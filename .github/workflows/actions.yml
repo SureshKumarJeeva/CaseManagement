@@ -33,7 +33,7 @@ jobs:
         php-version: '7.4.33'
 
     - name: Install dependencies
-      run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
+      run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-suggest --no-interaction
 
     - name: Deploy via SSH
       uses: appleboy/ssh-action@master
