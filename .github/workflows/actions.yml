@@ -41,7 +41,7 @@ jobs:
         host: ${{vars.AZURE_SSH_HOST}}
         username: ${{vars.AZURE_USERNAME}}
         key: ${{secrets.AZURE_PUBLIC_KEY}}
-        script: |
+        run: |
           cd /var/www/html/
           git config --global --add safe.directory /var/www/html/
           git pull origin master
