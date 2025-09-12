@@ -1,0 +1,54 @@
+uuid: 0c2e4db1-5965-4e76-babe-c9b26636fbbb
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_cover_letters
+    - node.type.job
+    - paragraphs.paragraphs_type.cover_letter
+    - paragraphs.paragraphs_type.from_library
+  module:
+    - entity_reference_revisions
+id: node.job.field_cover_letters
+field_name: field_cover_letters
+entity_type: node
+bundle: job
+label: 'Cover Letters'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      cover_letter: cover_letter
+      from_library: from_library
+    target_bundles_drag_drop:
+      address:
+        weight: 9
+        enabled: false
+      affidavit:
+        weight: 10
+        enabled: false
+      attendance_note:
+        weight: 11
+        enabled: false
+      cover_letter:
+        enabled: true
+        weight: 12
+      document:
+        weight: 13
+        enabled: false
+      from_library:
+        enabled: true
+        weight: 14
+      party:
+        weight: 15
+        enabled: false
+      party_side_two_:
+        weight: 16
+        enabled: false
+field_type: entity_reference_revisions

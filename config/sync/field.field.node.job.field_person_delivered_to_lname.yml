@@ -1,0 +1,19 @@
+uuid: 47e64c7c-530f-4738-a2c1-c98e9e8e790c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_person_delivered_to_lname
+    - node.type.job
+id: node.job.field_person_delivered_to_lname
+field_name: field_person_delivered_to_lname
+entity_type: node
+bundle: job
+label: 'Person Delivered to Last Name'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

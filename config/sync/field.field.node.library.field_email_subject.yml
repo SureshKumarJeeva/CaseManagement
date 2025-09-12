@@ -1,0 +1,19 @@
+uuid: 98d90d36-3ada-468b-94d1-4d37436ff753
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_email_subject
+    - node.type.library
+id: node.library.field_email_subject
+field_name: field_email_subject
+entity_type: node
+bundle: library
+label: 'Email Subject'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

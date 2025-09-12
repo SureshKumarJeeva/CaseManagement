@@ -1,0 +1,11 @@
+name: XML-RPC
+type: module
+description: 'Provides XML-RPC functionality.'
+package: Web services
+core: 8.x
+core_version_requirement: ^8 || ^9 || ^10
+
+# Information added by Drupal.org packaging script on 2023-06-14
+version: '8.x-1.0-rc1'
+project: 'xmlrpc'
+datestamp: 1686726699

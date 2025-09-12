@@ -1,0 +1,20 @@
+uuid: 9ea7792a-90ba-49c1-a0cb-90a01f538ff6
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_notice_period
+field_name: field_notice_period
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

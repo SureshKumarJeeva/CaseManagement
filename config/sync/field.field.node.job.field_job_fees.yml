@@ -1,0 +1,58 @@
+uuid: 7dc8c192-888b-409d-8772-35e339bea5d2
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_job_fees
+    - node.type.job
+    - paragraphs.paragraphs_type.job_fees
+  module:
+    - entity_reference_revisions
+id: node.job.field_job_fees
+field_name: field_job_fees
+entity_type: node
+bundle: job
+label: 'Job Fees'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      job_fees: job_fees
+    target_bundles_drag_drop:
+      address:
+        weight: 11
+        enabled: false
+      affidavit:
+        weight: 12
+        enabled: false
+      attendance_note:
+        weight: 13
+        enabled: false
+      cover_letter:
+        weight: 14
+        enabled: false
+      document:
+        weight: 15
+        enabled: false
+      from_library:
+        weight: 16
+        enabled: false
+      job_fees:
+        enabled: true
+        weight: 17
+      party:
+        weight: 18
+        enabled: false
+      party_other:
+        weight: 19
+        enabled: false
+      party_side_two_:
+        weight: 20
+        enabled: false
+field_type: entity_reference_revisions

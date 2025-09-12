@@ -1,0 +1,157 @@
+uuid: b04ff178-d094-404d-8985-1deb6cc87d7b
+langcode: en
+status: false
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.job.field_admin_affidavit_date
+    - field.field.node.job.field_admin_cover_letter_date
+    - field.field.node.job.field_admin_email_update_date
+    - field.field.node.job.field_admin_invoiced_date
+    - field.field.node.job.field_admin_send_to_client_date
+    - field.field.node.job.field_admin_status
+    - field.field.node.job.field_affidavits
+    - field.field.node.job.field_agreed_discount
+    - field.field.node.job.field_allocated_to
+    - field.field.node.job.field_allocated_to_first_name
+    - field.field.node.job.field_allocated_to_full_name
+    - field.field.node.job.field_allocated_to_last_name
+    - field.field.node.job.field_allocation_date
+    - field.field.node.job.field_attendance_notes
+    - field.field.node.job.field_business_name
+    - field.field.node.job.field_business_name_value
+    - field.field.node.job.field_business_other
+    - field.field.node.job.field_case_no
+    - field.field.node.job.field_case_status
+    - field.field.node.job.field_case_status_value
+    - field.field.node.job.field_client
+    - field.field.node.job.field_client_address
+    - field.field.node.job.field_client_cid
+    - field.field.node.job.field_client_name
+    - field.field.node.job.field_client_ref
+    - field.field.node.job.field_client_s_job_email
+    - field.field.node.job.field_court
+    - field.field.node.job.field_cover_letters
+    - field.field.node.job.field_date_service
+    - field.field.node.job.field_deadline
+    - field.field.node.job.field_division
+    - field.field.node.job.field_documents
+    - field.field.node.job.field_email
+    - field.field.node.job.field_hearing_date
+    - field.field.node.job.field_instruction_received
+    - field.field.node.job.field_job_client_id
+    - field.field.node.job.field_job_fees
+    - field.field.node.job.field_job_types
+    - field.field.node.job.field_last_mail_time
+    - field.field.node.job.field_list
+    - field.field.node.job.field_method_of_service
+    - field.field.node.job.field_name_to_other
+    - field.field.node.job.field_name_to_server_value
+    - field.field.node.job.field_notes
+    - field.field.node.job.field_notes2
+    - field.field.node.job.field_other_parties
+    - field.field.node.job.field_para_address
+    - field.field.node.job.field_parties
+    - field.field.node.job.field_party_2
+    - field.field.node.job.field_party_to_serve_phone
+    - field.field.node.job.field_person_delivered_to
+    - field.field.node.job.field_person_delivered_to_fname
+    - field.field.node.job.field_person_delivered_to_lname
+    - field.field.node.job.field_person_delivered_to_other
+    - field.field.node.job.field_person_delivered_value
+    - field.field.node.job.field_primary_postal_code
+    - field.field.node.job.field_registry
+    - field.field.node.job.field_served_by
+    - field.field.node.job.field_served_by_first_name
+    - field.field.node.job.field_served_by_full_name
+    - field.field.node.job.field_served_by_last_name
+    - field.field.node.job.field_served_date
+    - field.field.node.job.field_served_notes
+    - field.field.node.job.field_served_party
+    - field.field.node.job.field_service_address
+    - field.field.node.job.field_service_details_position
+    - field.field.node.job.field_telephone
+    - node.type.job
+  module:
+    - user
+id: node.job.teaser
+targetEntityType: node
+bundle: job
+mode: teaser
+content:
+  links:
+    weight: 100
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_admin_affidavit_date: true
+  field_admin_cover_letter_date: true
+  field_admin_email_update_date: true
+  field_admin_invoiced_date: true
+  field_admin_send_to_client_date: true
+  field_admin_status: true
+  field_affidavits: true
+  field_agreed_discount: true
+  field_allocated_to: true
+  field_allocated_to_first_name: true
+  field_allocated_to_full_name: true
+  field_allocated_to_last_name: true
+  field_allocation_date: true
+  field_attendance_notes: true
+  field_business_name: true
+  field_business_name_value: true
+  field_business_other: true
+  field_case_no: true
+  field_case_status: true
+  field_case_status_value: true
+  field_client: true
+  field_client_address: true
+  field_client_cid: true
+  field_client_name: true
+  field_client_ref: true
+  field_client_s_job_email: true
+  field_court: true
+  field_cover_letters: true
+  field_date_service: true
+  field_deadline: true
+  field_division: true
+  field_documents: true
+  field_email: true
+  field_hearing_date: true
+  field_instruction_received: true
+  field_job_client_id: true
+  field_job_fees: true
+  field_job_types: true
+  field_last_mail_time: true
+  field_list: true
+  field_method_of_service: true
+  field_name_to_other: true
+  field_name_to_server_value: true
+  field_notes: true
+  field_notes2: true
+  field_other_parties: true
+  field_para_address: true
+  field_parties: true
+  field_party_2: true
+  field_party_to_serve_phone: true
+  field_person_delivered_to: true
+  field_person_delivered_to_fname: true
+  field_person_delivered_to_lname: true
+  field_person_delivered_to_other: true
+  field_person_delivered_value: true
+  field_primary_postal_code: true
+  field_registry: true
+  field_served_by: true
+  field_served_by_first_name: true
+  field_served_by_full_name: true
+  field_served_by_last_name: true
+  field_served_date: true
+  field_served_notes: true
+  field_served_party: true
+  field_service_address: true
+  field_service_details_position: true
+  field_telephone: true

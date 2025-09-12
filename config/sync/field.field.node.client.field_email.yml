@@ -1,0 +1,19 @@
+uuid: 3c0c5611-4b4c-4cc3-83f4-f366528d1f2c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_email
+    - node.type.client
+id: node.client.field_email
+field_name: field_email
+entity_type: node
+bundle: client
+label: 'Generic Email'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: email

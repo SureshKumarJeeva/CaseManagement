@@ -1,0 +1,42 @@
+uuid: 019d9ed4-4087-47ee-9fb4-5e6e0f61149a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.addresses.field_primary_address
+    - field.field.paragraph.addresses.field_service_address
+    - paragraphs.paragraphs_type.addresses
+  module:
+    - address
+    - field_group
+third_party_settings:
+  field_group:
+    group_address:
+      children:
+        - field_service_address
+      parent_name: ''
+      weight: 0
+      format_type: fieldset
+      region: content
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+      label: Address
+id: paragraph.addresses.default
+targetEntityType: paragraph
+bundle: addresses
+mode: default
+content:
+  field_service_address:
+    weight: 1
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_primary_address: true

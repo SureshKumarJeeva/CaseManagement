@@ -1,0 +1,62 @@
+uuid: fc690c00-4bfe-456f-b0ca-47d4c9e824cd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_service_address
+    - paragraphs.paragraphs_type.addresses
+  module:
+    - address
+id: paragraph.addresses.field_service_address
+field_name: field_service_address
+entity_type: paragraph
+bundle: addresses
+label: 'Service Address'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    country_code: AU
+    langcode: ''
+    address_line1: ''
+    locality: ''
+    administrative_area: ''
+    postal_code: ''
+    given_name: null
+    additional_name: null
+    family_name: null
+    organization: null
+    address_line2: null
+    sorting_code: null
+    dependent_locality: null
+default_value_callback: ''
+settings:
+  available_countries:
+    AU: AU
+  langcode_override: ''
+  field_overrides:
+    givenName:
+      override: hidden
+    additionalName:
+      override: hidden
+    familyName:
+      override: hidden
+    organization:
+      override: hidden
+    addressLine1:
+      override: optional
+    addressLine2:
+      override: hidden
+    postalCode:
+      override: optional
+    sortingCode:
+      override: hidden
+    dependentLocality:
+      override: hidden
+    locality:
+      override: optional
+    administrativeArea:
+      override: optional
+  fields: {  }
+field_type: address

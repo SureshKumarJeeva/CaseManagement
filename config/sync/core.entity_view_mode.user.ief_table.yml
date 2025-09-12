@@ -1,0 +1,10 @@
+uuid: 3ffcacb9-15e3-47a0-8d86-590cf35450d8
+langcode: en
+status: true
+dependencies:
+  module:
+    - user
+id: user.ief_table
+label: 'Inline Entity Form Table'
+targetEntityType: user
+cache: true

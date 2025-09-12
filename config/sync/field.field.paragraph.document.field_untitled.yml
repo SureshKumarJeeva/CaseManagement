@@ -1,0 +1,21 @@
+uuid: 81b13326-e6f0-461b-b4fe-fc24391ab5f3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_untitled
+    - paragraphs.paragraphs_type.document
+  module:
+    - options
+id: paragraph.document.field_untitled
+field_name: field_untitled
+entity_type: paragraph
+bundle: document
+label: 'Dated/Filed/Issued/ Sworn'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

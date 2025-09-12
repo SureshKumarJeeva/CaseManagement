@@ -1,0 +1,21 @@
+uuid: 6c56ae7c-9027-4b7a-a060-aaa020ae07d6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_body
+    - paragraphs.paragraphs_type.cover_letter
+  module:
+    - text
+id: paragraph.cover_letter.field_body
+field_name: field_body
+entity_type: paragraph
+bundle: cover_letter
+label: Body
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

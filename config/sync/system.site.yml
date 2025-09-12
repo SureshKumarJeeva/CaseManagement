@@ -1,0 +1,15 @@
+uuid: 30d28c02-32b0-438c-b4df-ca74879fad09
+name: 'Associated Process Servers'
+mail: info@associatedps.com.au
+slogan: ''
+page:
+  403: /user/login
+  404: ''
+  front: /node/3
+admin_compact_mode: false
+weight_select_max: 100
+langcode: en
+default_langcode: en
+_core:
+  default_config_hash: yXadRE77Va-G6dxhd2kPYapAvbnSvTF6hO4oXiOEynI
+mail_notification: ''

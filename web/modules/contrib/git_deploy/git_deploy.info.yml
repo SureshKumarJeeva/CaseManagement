@@ -1,0 +1,4 @@
+name: 'Git Deploy'
+description: 'Helps sites that are deployed directly from Git repositories.'
+core_version_requirement: ^8 || ^9 || ^10 || ^11
+type: module

@@ -1,0 +1,28 @@
+uuid: f3cc536f-af53-43c8-ae2a-c79cc3c282be
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.taxonomy_term.services.field_standard_fee
+    - taxonomy.vocabulary.services
+id: taxonomy_term.services.default
+targetEntityType: taxonomy_term
+bundle: services
+mode: default
+content:
+  field_standard_fee:
+    weight: 0
+    label: inline
+    settings:
+      thousand_separator: ''
+      decimal_separator: .
+      scale: 2
+      prefix_suffix: true
+    third_party_settings: {  }
+    type: number_decimal
+    region: content
+hidden:
+  description: true
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true

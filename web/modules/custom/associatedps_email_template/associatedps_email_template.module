@@ -1,0 +1,86 @@
+<?php
+
+/**
+ * @file
+ * This is the module to send mail.
+ */
+
+use Drupal\node\Entity\Node;
+use Drupal\Core\Database\Database;
+use Drupal\associatedps_email_template\Controller\EmailTemplateController;
+
+/**
+ * Implements hook_mail().
+ */
+function associatedps_email_template_mail($key, &$message, $params) {
+  $options = ['langcode' => $message['langcode']];
+
+  switch ($key) {
+    case 'SEND_EMAIL_TO_CLIENT':
+      $message['From'] = \Drupal::config('system.site')->get('mail');
+      $message['subject'] = t('@title', ['@title' => $params['subject']], $options);
+      $message['body'][] = check_markup(($params['message']), 'full_html');
+      break;
+
+    case 'SEND_EMAIL_TO_ADMIN':
+      $message['From'] = $params['from'];
+      $message['subject'] = t('@title', ['@title' => $params['subject']], $options);
+      $message['body'][] = check_markup(($params['message']), 'full_html');
+      break;
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function associatedps_email_template_cron() {
+  $nids = \Drupal::entityQuery('node')->condition('type', 'client')->execute();
+  $nodes = Node::loadMultiple($nids);
+  foreach ($nodes as $node) {
+    $nid = $node->nid->value;
+    $send_mail = $node->field_send_auto_email->value;
+    $interval = $node->field_email_interval->value;
+
+    if ($send_mail === '1') {
+
+      $db = Database::getConnection();
+      $query = db_select('node__field_client', 'fc');
+      $query->fields('fc', ['entity_id']);
+      $query->condition('fc.field_client_target_id', $nid, '=');
+      $job_nodes = $query->execute();
+      foreach ($job_nodes as $job_node) {
+
+        // Load the data of job content type.
+        $job_list = Node::load($job_node->entity_id);
+        if (!empty($job_list)) {
+          $job_id = $job_list->nid->value;
+          $instruction_date = $job_list->field_instruction_received->value;
+          $last_date = $job_list->field_last_mail_time->value;
+          $case_status = $job_list->field_case_status->value;
+
+          if ($case_status === 'Ongoing') {
+            $current_date = date('Y-m-d', time());
+            $current_date = date_create($current_date);
+
+            if (!empty($instruction_date) && empty($last_date)) {
+              $instruction_date = date('Y-m-d', $job_list->field_instruction_received->date->getTimestamp());
+              $instruction_date = date_create($instruction_date);
+              if ($instruction_date <= $current_date) {
+                EmailTemplateController::createEmailTemplate($nid, $job_id);
+              }
+            }
+            elseif (!empty($instruction_date) && !empty($last_date)) {
+              $last_date = date('Y-m-d', $job_list->field_last_mail_time->date->getTimestamp());
+              $last_date = date_create($last_date);
+              $diff = date_diff($last_date, $current_date);
+              $days = $diff->format("%d");
+              if ((--$days) == $interval) {
+                EmailTemplateController::createEmailTemplate($nid, $job_id);
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

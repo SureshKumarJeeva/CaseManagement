@@ -1,0 +1,55 @@
+uuid: 94aa3c27-c9bb-470c-ad16-c3e4158b7afc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_other_parties
+    - node.type.job
+    - paragraphs.paragraphs_type.party_other
+  module:
+    - entity_reference_revisions
+id: node.job.field_other_parties
+field_name: field_other_parties
+entity_type: node
+bundle: job
+label: 'Other Parties'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      party_other: party_other
+    target_bundles_drag_drop:
+      address:
+        weight: -19
+        enabled: false
+      affidavit:
+        weight: -18
+        enabled: false
+      attendance_note:
+        weight: -17
+        enabled: false
+      cover_letter:
+        weight: -16
+        enabled: false
+      document:
+        weight: -15
+        enabled: false
+      from_library:
+        weight: -14
+        enabled: false
+      party:
+        weight: -13
+        enabled: false
+      party_other:
+        enabled: true
+        weight: -11
+      party_side_two_:
+        weight: -12
+        enabled: false
+field_type: entity_reference_revisions

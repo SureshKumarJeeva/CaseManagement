@@ -1,0 +1,184 @@
+uuid: a481c9a7-79a2-423d-b1f2-f9f97f939767
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.client.field_agreed_discount
+    - field.field.node.client.field_client_address
+    - field.field.node.client.field_client_id
+    - field.field.node.client.field_email
+    - field.field.node.client.field_email_interval
+    - field.field.node.client.field_email_template
+    - field.field.node.client.field_notes
+    - field.field.node.client.field_send_auto_email
+    - field.field.node.client.field_telephone
+    - field.field.node.client.field_user
+    - node.type.client
+  module:
+    - address
+    - conditional_fields
+    - path
+    - telephone
+    - text
+id: node.client.default
+targetEntityType: node
+bundle: client
+mode: default
+content:
+  created:
+    type: datetime_timestamp
+    weight: 8
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_agreed_discount:
+    type: number
+    weight: 6
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_client_address:
+    weight: 3
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
+    region: content
+  field_client_id:
+    type: string_textfield
+    weight: 2
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_email:
+    type: email_default
+    weight: 5
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_email_interval:
+    weight: 15
+    settings:
+      placeholder: ''
+    third_party_settings:
+      conditional_fields:
+        fbda7936-7b31-4589-b8a6-17c495a2ed1a:
+          dependee: field_send_auto_email
+          settings:
+            state: visible
+            condition: checked
+            grouping: AND
+            values_set: 4
+            value: ''
+            values: 'On'
+            value_form:
+              value: 1
+            effect: show
+            effect_options: {  }
+            selector: ''
+          entity_type: node
+          bundle: client
+    type: number
+    region: content
+  field_email_template:
+    weight: 16
+    settings: {  }
+    third_party_settings:
+      conditional_fields:
+        8db015f5-2aec-4294-8af7-5e11e2c14df5:
+          dependee: field_send_auto_email
+          settings:
+            state: visible
+            condition: checked
+            grouping: AND
+            values_set: 4
+            value: ''
+            values: 'On'
+            value_form:
+              value: 1
+            effect: show
+            effect_options: {  }
+            selector: ''
+          entity_type: node
+          bundle: client
+    type: options_select
+    region: content
+  field_notes:
+    type: text_textarea
+    weight: 7
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_send_auto_email:
+    weight: 14
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+    region: content
+  field_telephone:
+    type: telephone_default
+    weight: 4
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings:
+      conditional_fields: {  }
+  field_user:
+    weight: 0
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
+    region: content
+  path:
+    type: path
+    weight: 11
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  promote:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 9
+    region: content
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 12
+    region: content
+    third_party_settings: {  }
+  sticky:
+    type: boolean_checkbox
+    settings:
+      display_label: true
+    weight: 10
+    region: content
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: 1
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  uid:
+    weight: 13
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+hidden: {  }

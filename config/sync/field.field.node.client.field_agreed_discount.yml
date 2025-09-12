@@ -1,0 +1,25 @@
+uuid: 975531a4-b5b8-4973-8588-69f433d9d763
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_agreed_discount
+    - node.type.client
+id: node.client.field_agreed_discount
+field_name: field_agreed_discount
+entity_type: node
+bundle: client
+label: 'Agreed Discount'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: '%'
+field_type: integer

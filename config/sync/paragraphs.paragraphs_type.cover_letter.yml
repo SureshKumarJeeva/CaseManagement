@@ -1,0 +1,9 @@
+uuid: 21bb1a56-cd68-472e-b189-e8ecf84ba248
+langcode: en
+status: true
+dependencies: {  }
+id: cover_letter
+label: 'Cover Letter'
+icon_uuid: null
+description: ''
+behavior_plugins: {  }

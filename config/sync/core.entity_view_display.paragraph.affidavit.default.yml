@@ -1,0 +1,31 @@
+uuid: 08ede6da-e04b-44ef-835b-37be0b340b5b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.affidavit.field_body
+    - field.field.paragraph.affidavit.field_name
+    - paragraphs.paragraphs_type.affidavit
+  module:
+    - text
+id: paragraph.affidavit.default
+targetEntityType: paragraph
+bundle: affidavit
+mode: default
+content:
+  field_body:
+    weight: 1
+    label: visually_hidden
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_name:
+    weight: 0
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+hidden: {  }

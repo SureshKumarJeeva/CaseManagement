@@ -1,0 +1,19 @@
+uuid: 0cd10ec8-944a-492a-bc24-13535b0ab23b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_work_details_of_served
+    - node.type.online_instruction
+id: node.online_instruction.field_work_details_of_served
+field_name: field_work_details_of_served
+entity_type: node
+bundle: online_instruction
+label: 'Work Details of Person/Entity to be Served'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

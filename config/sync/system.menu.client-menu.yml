@@ -1,0 +1,8 @@
+uuid: af2aebfb-ed71-4b0a-a4ae-757bd8f21631
+langcode: en
+status: true
+dependencies: {  }
+id: client-menu
+label: 'Client Menu'
+description: ''
+locked: false

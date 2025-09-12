@@ -1,0 +1,19 @@
+uuid: a6ab8040-a945-47f0-927c-378bd8b0d1e1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_employee_full_name
+    - paragraphs.paragraphs_type.attendance_note
+id: paragraph.attendance_note.field_employee_full_name
+field_name: field_employee_full_name
+entity_type: paragraph
+bundle: attendance_note
+label: Employee
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,820 @@
+<?php
+
+/**
+ * @file
+ * Contains associatedps_forms.module.
+ */
+
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
+use Drupal\Core\Url;
+use Drupal\node\NodeInterface;
+use Drupal\node\Entity\Node;
+use Drupal\paragraphs\Entity\Paragraph;
+use Drupal\taxonomy\Entity\Term;
+use Drupal\Core\Database\Database;
+use Drupal\Core\Ajax\AjaxResponse;
+use Drupal\Core\Ajax\InvokeCommand;
+use Drupal\associatedps_email_template\Controller\EmailTemplateController;
+use Drupal\Core\Datetime\DrupalDateTime;
+
+/**
+ * Implements hook_form_alter().
+ */
+function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+
+  /* Job Edit/Add form overrides. */
+
+  if (($form_id == 'node_job_edit_form') || ($form_id == 'node_job_form')) {
+
+    /* Prevent agents from editing jobs to which they are not assigned. */
+    $roles = Role::loadMultiple();
+    $userCurrent = \Drupal::currentUser();
+    $user = User::load($userCurrent->id());
+    $roles = $user->getRoles();
+    if ($userCurrent->id() > 0 && $roles[1] == "agent") {
+
+      $form['title']['#access'] = FALSE;
+      $form['field_admin_affidavit_date']['#disabled'] = TRUE;
+      $form['field_admin_cover_letter_date']['#disabled'] = TRUE;
+      $form['field_admin_email_update_date']['#disabled'] = TRUE;
+      $form['field_admin_invoiced_date']['#disabled'] = TRUE;
+      $form['field_admin_send_to_client_date']['#disabled'] = TRUE;
+      $form['field_admin_status']['#disabled'] = TRUE;
+      $form['field_affidavits']['#disabled'] = TRUE;
+      $form['field_agreed_discount']['#disabled'] = TRUE;
+      $form['field_allocated_to']['#disabled'] = TRUE;
+      $form['field_allocation_date']['#disabled'] = TRUE;
+      $form['field_case_no']['#disabled'] = TRUE;
+      $form['field_client']['#disabled'] = TRUE;
+      $form['field_client_ref']['#disabled'] = TRUE;
+      $form['field_client_s_job_email']['#disabled'] = TRUE;
+      $form['field_court']['#disabled'] = TRUE;
+      $form['field_cover_letters']['#disabled'] = TRUE;
+      $form['field_deadline']['#disabled'] = TRUE;
+      $form['field_division']['#disabled'] = TRUE;
+      $form['field_documents']['#disabled'] = TRUE;
+      $form['field_hearing_date']['#disabled'] = TRUE;
+      $form['field_instruction_received']['#disabled'] = TRUE;
+      $form['field_job_fees']['#disabled'] = TRUE;
+      $form['field_job_types']['#disabled'] = TRUE;
+      $form['field_last_mail_time']['#disabled'] = TRUE;
+      $form['field_list']['#disabled'] = TRUE;
+      $form['field_other_parties']['#disabled'] = TRUE;
+      $form['field_parties']['#disabled'] = TRUE;
+      $form['field_party_2']['#disabled'] = TRUE;
+      $form['field_party_to_serve_phone']['#disabled'] = TRUE;
+      $form['field_registry']['#disabled'] = TRUE;
+      $form['field_service_address']['#disabled'] = TRUE;
+      $form['field_served_party']['#disabled'] = TRUE;
+      $form['field_served_notes']['#disabled'] = TRUE;
+
+      $allocated_to = $form["field_allocated_to"]["widget"]["#default_value"][0];
+      if ($allocated_to != $userCurrent->id()) {
+        die();
+      }
+    }
+
+    /* Rename some button labels. */
+    $form["field_party_to_serve_phone"]["widget"]["add_more"]["#value"] = 'Add Additional Phone Number';
+    $form["field_attendance_notes"]["widget"]["add_more"]["add_more_button_attendance_note"]["#value"] = 'Add Additional Attendance Note';
+    $form["field_affidavits"]["widget"]["add_more"]["add_more_button_affidavit"]["#value"] = 'Add Additional Affidavit';
+    $form["field_cover_letters"]["widget"]["add_more"]["add_more_button_cover_letter"]["#value"] = 'Add Additional Cover Letter';
+    $form["field_service_address"]["widget"]["add_more"]["add_more_button_address"]["#value"] = 'Add Additional Address';
+    $form["field_documents"]["widget"]["add_more"]["add_more_button_document"]["#value"] = 'Add Additional Document To Job';
+    $form["field_parties"]["widget"]["add_more"]["add_more_button_party"]["#value"] = 'Add Additional Party (Side 1)';
+    $form["field_party_2"]["widget"]["add_more"]["add_more_button_party_side_two_"]["#value"] = 'Add Additional Party (Side 2)';
+    $form["field_other_parties"]["widget"]["add_more"]["add_more_button_party_other"]["#value"] = 'Add Additional Party (Other)';
+    $form["field_job_fees"]["widget"]["add_more"]["add_more_button_job_fees"]["#value"] = 'Add Additional Service';
+    $form["field_client_actions_ief_add"]["#value"] = 'Save';
+    /* Autocomplete Client */
+    $form["field_client"]["widget"][0]["value"]["#ajax"]["event"] = 'autocomplete_select';
+
+    /* client's job email base on client's generic email. */
+    $form["field_client"]["widget"]["#ajax"] = [
+      'event' => 'change',
+      'callback' => 'associatedps_forms_change_client_email',
+    ];
+
+    $form['field_client_s_job_email']['widget'][0]['value']['#attributes']['id'] = 'change-client-email';
+    $form['field_agreed_discount']['widget'][0]['value']['#attributes']['id'] = 'change-client-discount';
+
+    /* set Full name of user in allocated_to/served_by */
+
+    $query = \Drupal::entityQuery('user');
+    $uids = $query->execute();
+    $options = _associatedps_forms_get_users($uids);
+    $form['field_allocated_to']['widget']['#options'] = $options;
+    $form['field_served_by']['widget']['#options'] = $options;
+
+  }
+
+  if ($form_id == 'node_job_edit_form') {
+
+    $path = \Drupal::service('path.current')->getPath();
+    $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
+    $form['group_job_details']['open_modal_client'] = [
+      '#type' => 'link',
+      '#title' => 'Edit Client',
+      '#url' => Url::fromUri('base://add-client/' . $nid),
+      '#attributes' => [
+        'class' => [
+          'use-ajax',
+          'button',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => '{"width":800}',
+      ],
+      '#weight' => '7',
+    ];
+    $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
+    $form['#attached']['library'][] = 'associatedps_forms/global';
+
+    /* Set Client after save last step. */
+    $client_cid = $form['field_client_cid']['widget'][0]['value']['#default_value'];
+    if (!empty($client_cid) && ($form['field_client']['widget']['#default_value'] === [])) {
+      $form['field_client']['widget']['#default_value'][] = $client_cid;
+    }
+
+    /* After node save functionality */
+    $nid = abs($nid);
+    if (!empty($nid)) {
+      $node = Node::load($nid);
+
+      /* Start Name To Serve and Person Delivered options and default value */
+      $party_list = [];
+      $person_list = [];
+      $business_list = [];
+      $default = [];
+      $default_value = '';
+      if (!empty($node->field_parties->getValue())) {
+        $party_one = $node->field_parties->getValue();
+        foreach ($party_one as $value) {
+          $party_one_para = Paragraph::load($value['target_id']);
+          $first_name = $party_one_para->field_name->value;
+          $last_name = $party_one_para->field_last_name->value;
+          $full_name = $first_name . " " . $last_name;
+          $party_one_para->set('field_full_name', $full_name);
+          $party_one_para->save();
+          $party_list[$full_name] = $full_name;
+          $person_list[$full_name] = $full_name;
+          $business_list[$full_name] = $full_name;
+        }
+      }
+      if (!empty($node->field_party_2->getValue())) {
+        $party_two = $node->field_party_2->getValue();
+        foreach ($party_two as $value) {
+          $party_two_para = Paragraph::load($value['target_id']);
+          $first_name = $party_two_para->field_name->value;
+          $last_name = $party_two_para->field_last_name->value;
+          $full_name = $first_name . " " . $last_name;
+          $party_two_para->set('field_full_name', $full_name);
+          $party_two_para->save();
+          $party_list[$full_name] = $full_name;
+          $person_list[$full_name] = $full_name;
+          $business_list[$full_name] = $full_name;
+          $default[] = $full_name;
+          $default_value = $default[0];
+        }
+      }
+
+      if (empty($form["field_served_party"]["widget"]["#default_value"])) {
+        $form["field_served_party"]["widget"]["#default_value"] = $default_value;
+      }
+      if (!empty($node->field_name_to_other->value)) {
+        $party_other = $node->field_name_to_other->value;
+        $party_list[$party_other] = $party_other;
+        $form["field_served_party"]["widget"]["#options"] = $party_list;
+      }
+      if (!empty($node->field_person_delivered_to_other->value)) {
+        $person_other = $node->field_person_delivered_to_other->value;
+        $person_list[$person_other] = $person_other;
+        $form["field_person_delivered_to"]["widget"]["#options"] = $person_list;
+      }
+      if (!empty($node->field_business_other->value)) {
+        $business_other = $node->field_business_other->value;
+        $business_list[$business_other] = $business_other;
+        $form["field_business_name"]["widget"]["#options"] = $business_list;
+      }
+      $form["field_served_party"]["widget"]["#options"] = $party_list;
+      $form["field_person_delivered_to"]["widget"]["#options"] = $person_list;
+      $form["field_business_name"]["widget"]["#options"] = $business_list;
+      /* Finish Name To Serve and Person Delivered options and default value */
+
+      /* Deadline Date */
+
+      if (!empty($node->field_hearing_date->value) && !empty($node->field_documents->getValue())) {
+
+        $deadline_date = '';
+        $documents = $node->field_documents->getValue();
+        foreach ($documents as $value) {
+          $document = Paragraph::load($value['target_id']);
+          $primary_doc = $document->field_primary_document->value;
+          if ($primary_doc === '1') {
+            if (!empty($document->field_override_notice_period->value)) {
+              $notice_period = $document->field_override_notice_period->value;
+            }
+            if (empty($document->field_override_notice_period->value) && !empty($document->field_notice_period->value)) {
+              $notice_period = $document->field_notice_period->value;
+            }
+            if (!empty($notice_period)) {
+              $hearing_date = date_create($node->field_hearing_date->value);
+              $deadline_date = date_sub($hearing_date, date_interval_create_from_date_string($notice_period . " days"));
+              $deadline_date = date_format($deadline_date, "Y-m-d");
+            }
+          }
+        }
+        if (!empty($deadline_date)) {
+          if ($form['field_deadline']['widget'][0]['value']['#default_value'] === NULL) {
+            $form['field_deadline']['widget'][0]['value']['#default_value'] = DrupalDateTime::createFromTimestamp(strtotime($deadline_date));
+          }
+        }
+      }
+      /* Finish Deadline Date */
+    }
+
+  }
+
+  /* Client form alterations. */
+  if ($form_id == 'node_client_form') {
+    $connection = \Drupal::database();
+    $query = $connection->query("SELECT count(nid) AS nodes FROM {node} WHERE node.type = 'client';");
+    $result = $query->fetchAll();
+    $count = (int) $result[0]->nodes + 1;
+    /* Populates the client ID field when creating a new client. */
+    $form["field_client_id"]["widget"][0]["value"]["#default_value"] = '54323' . $count;
+  }
+
+  /* Job form alterations. */
+  if ($form_id == 'node_job_form') {
+
+    $connection = \Drupal::database();
+    $query = $connection->query("SELECT count(nid) AS nodes FROM {node} WHERE node.type = 'job';");
+    $result = $query->fetchAll();
+    $count = (int) $result[0]->nodes + 1;
+    /* Populates the job ID field when creating a new job. */
+    $form["title"]["widget"][0]["value"]["#default_value"] = '09327' . $count;
+
+    $form['group_job_details']['open_modal'] = [
+      '#type' => 'link',
+      '#title' => 'Create New Client',
+      '#url' => Url::fromUri('base://add-client/0'),
+      '#attributes' => [
+        'class' => [
+          'use-ajax',
+          'button',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => '{"width":800}',
+      ],
+      '#weight' => '7',
+    ];
+    $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
+    $form['#attached']['library'][] = 'associatedps_forms/global';
+  }
+
+  /* Client Edit/Add form field_email_template field overrides. */
+
+  if (($form_id == 'node_client_form') || ($form_id == 'node_client_edit_form')) {
+
+    $db = Database::getConnection();
+    $query = db_select('node_field_data', 'n');
+    $query->fields('n', ['nid', 'title']);
+    $query->leftjoin('node__field_category', 'fc', 'fc.entity_id = n.nid');
+    $query->fields('fc', ['field_category_value']);
+    $query->condition('fc.field_category_value', 'Email', '=');
+    $result = $query->execute();
+    $email_template['_none'] = '- None -';
+    foreach ($result as $email_value) {
+      $email_template[$email_value->nid] = $email_value->title;
+    }
+    $form["field_email_template"]["widget"]["#options"] = $email_template;
+  }
+
+  /* Hide preview button from Email Preview and Preview node. */
+  if (($form_id == 'node_email_preview_form') || ($form_id == 'node_email_preview_edit_form') || ($form_id == 'node_preview_form') || ($form_id == 'node_preview_edit_form')) {
+
+    $form['actions']['preview']['#access'] = FALSE;
+  }
+
+  /* Court Name Taxonomy Edit/Add form name field overrides. */
+
+  if ($form_id == 'taxonomy_term_court_name_form') {
+
+    $route = \Drupal::routeMatch()->getCurrentRouteMatch()->getRouteObject();
+    $get_title = $route->getDefault('_title');
+    if ($get_title == 'Add term') {
+      $route->setDefault('_title', 'Add Court');
+    }
+
+    $form["name"]["widget"][0]['value']['#title'] = t('Court Name');
+  }
+
+  /* Services Taxonomy Edit/Add form name field overrides. */
+
+  if ($form_id == 'taxonomy_term_services_form') {
+    $form["name"]["widget"][0]['value']['#title'] = t('Type of Service');
+  }
+
+  /* Alter LogIn form title. */
+
+  if ($form_id == 'user_login_form') {
+    $route = \Drupal::routeMatch()->getCurrentRouteMatch()->getRouteObject();
+    $route->setDefault('_title', 'Admin Login');
+  }
+
+  /* Online Instruction add/edit form */
+  if (($form_id == 'node_online_instruction_form')) {
+    $userCurrent = \Drupal::currentUser();
+    $user = User::load($userCurrent->id());
+    $user_name = $user->name->value;
+    $form['title']['widget'][0]['value']['#default_value'] = 'Online Instruction by ' . $user_name;
+    $form['title']['#access'] = FALSE;
+    $form['actions']['submit']['#value'] = 'Save Online Instruction';
+  }
+  if (($form_id == 'node_online_instruction_edit_form') || ($form_id == 'node_online_instruction_form')) {
+    $form['title']['#access'] = FALSE;
+    $form['actions']['submit']['#value'] = 'Save Online Instruction';
+  }
+
+  /* Alter View form filter. */
+
+  if (($form['#id'] == 'views-exposed-form-job-page-job-list') || ($form['#id'] == 'views-exposed-form-job-page-per-agent-job-page-per-agent') || ($form['#id'] == 'views-exposed-form-job-page-per-user-job-page-per-user')) {
+
+    /* Allocated To filter */
+    $query = \Drupal::entityQuery('user');
+    $uids = $query->execute();
+    $users = ['' => '- Any -'];
+    foreach ($uids as $uid) {
+      $user = User::load($uid);
+      if (isset($user->field_address) && !empty($user->field_address->getValue())) {
+        $address = $user->field_address->getValue();
+        $address = reset($address);
+        $full_name = $address['given_name'] . ' ' . $address['family_name'];
+        if ($full_name !== " ") {
+          $users[$full_name] = $full_name;
+        }
+      }
+    }
+    if (isset($form['field_allocated_to'])) {
+      $form['field_allocated_to'] = [
+        '#type' => 'select',
+        '#options' => $users,
+        '#size' => 1,
+      ];
+    }
+
+    /* Client Name field filter. */
+    $client_nids = \Drupal::entityQuery('node')->condition('type', 'client')->execute();
+    $client_nodes = Node::loadMultiple($client_nids);
+    $client_options = ['' => '- Any -'];
+    foreach ($client_nodes as $node) {
+      $title = $node->get('title')->getString();
+      if (!empty($title)) {
+        $client_options[$title] = $title;
+      }
+    }
+    if (isset($form['field_client_name'])) {
+      $form['field_client_name'] = [
+        '#type' => 'select',
+        '#options' => $client_options,
+        '#size' => 1,
+      ];
+    }
+
+    /* Party to be served field filter. */
+    $job_nids = \Drupal::entityQuery('node')->condition('type', 'job')->execute();
+    $job_nodes = Node::loadMultiple($job_nids);
+    $job_options = ['' => '- Any -'];
+    $postal_options = ['' => '- Any -'];
+    foreach ($job_nodes as $node) {
+      $party_to_serve = $node->get('field_name_to_server_value')->getString();
+      if (!empty($party_to_serve) && $party_to_serve != '- None -') {
+        $job_options[$party_to_serve] = $party_to_serve;
+      }
+
+      /* Postal code field filter. */
+      $address = $node->get('field_service_address')->getValue();
+      if (!empty($address)) {
+        foreach ($address as $add) {
+          $add_para = Paragraph::load($add['target_id']);
+          $add_para = $add_para->get('field_service_address')->getValue();
+          $add_para = reset($add_para);
+          $postal_code = $add_para['postal_code'];
+          if (!empty($postal_code)) {
+            $postal_options[$postal_code] = $postal_code;
+          }
+        }
+      }
+    }
+    if (isset($form['field_name_to_server_value'])) {
+      $form['field_name_to_server_value'] = [
+        '#type' => 'select',
+        '#options' => $job_options,
+        '#size' => 1,
+      ];
+    }
+
+    if (isset($form['field_primary_postal_code_value'])) {
+      $form['field_primary_postal_code_value'] = [
+        '#type' => 'select',
+        '#options' => $postal_options,
+        '#size' => 1,
+      ];
+    }
+  }
+
+}
+
+/**
+ * Ajax callback associatedps_forms_change_client_email().
+ */
+function associatedps_forms_change_client_email($form, &$form_state) {
+  $client_id = $form_state->getValue('field_client');
+  $client_email = $client_dis = '';
+
+  if (!empty($client_id)) {
+    $client_id = reset($client_id);
+    $client = Node::load($client_id['target_id']);
+    $client_email = $client->field_email->value;
+    $client_dis = $client->field_agreed_discount->value;
+  }
+  $response = new AjaxResponse();
+  $response->addCommand(new InvokeCommand("#change-client-email", 'val', [$client_email]));
+  $response->addCommand(new InvokeCommand("#change-client-discount", 'val', [$client_dis]));
+  return $response;
+}
+
+/**
+ * Implements hook_field_widget_form_alter().
+ */
+function associatedps_forms_field_widget_form_alter(&$element, FormStateInterface $form_state, $context) {
+
+  $field_definition = $context['items']->getFieldDefinition();
+  if ($field_definition->getType() == 'entity_reference_revisions') {
+    $path = \Drupal::service('path.current')->getPath();
+    $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
+
+    if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'document') {
+
+      if ($nid > 0 && isset($element['subform']['field_document'])) {
+        $element['subform']['open_modal_document'] = [
+          '#type' => 'link',
+          '#title' => 'Edit Document',
+          '#url' => Url::fromUri('base://add-document/' . $nid),
+          '#attributes' => [
+            'class' => [
+              'use-ajax',
+              'button',
+            ],
+            'data-dialog-type' => 'modal',
+            'data-dialog-options' => '{"width":800}',
+          ],
+          '#weight' => '0',
+        ];
+      }
+      else {
+        $element['subform']['open_modal_document'] = [
+          '#type' => 'link',
+          '#title' => 'Create New Document',
+          '#url' => Url::fromUri('base://add-document/0'),
+          '#attributes' => [
+            'class' => [
+              'use-ajax',
+              'button',
+            ],
+            'data-dialog-type' => 'modal',
+            'data-dialog-options' => '{"width":800}',
+          ],
+          '#weight' => '0',
+        ];
+      }
+
+      /* Notice Period based on selected document before save node. */
+
+      $ajax_id = 'edit-field-documents';
+      foreach ($element['subform']['field_doc_notice_period']['widget']['#parents'] as $value) {
+        $ajax_id .= is_int($value) ? "-" . $value : "";
+      }
+      $ajax_id .= "-subform-field-doc-notice-period-0-value";
+
+      $element['subform']['field_doc_notice_period']['widget'][0]['value']['#attributes']['id'] = $ajax_id;
+
+      $element['subform']['field_document']['widget']['#ajax'] = [
+        'event' => 'change',
+        'wrapper' => $ajax_id,
+        'callback' => 'associatedps_forms_change_notice_period',
+      ];
+    }
+
+    /* standard fee base on types of service's standard fee.*/
+    if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'job_fees') {
+
+      $element['subform']['calculate_button'] = [
+        '#type' => 'html_tag',
+        '#tag' => 'input',
+        '#attributes' => [
+          'type' => 'button',
+          'value' => 'Calculate',
+          'class' => 'calculate-button',
+          'name' => 'calculate_button',
+        ],
+        '#weight' => '2',
+      ];
+
+      $ajax_id = 'edit-field-job-fees';
+      foreach ($element['subform']['field_standard_fee']['widget']['#parents'] as $value) {
+        $ajax_id .= is_int($value) ? "-" . $value : "";
+      }
+      $ajax_id .= "-subform-field-standard-fee-0-value";
+
+      $element['subform']['field_standard_fee']['widget'][0]['value']['#attributes']['id'] = $ajax_id;
+
+      $element['subform']['field_type_of_service']['widget']['#ajax'] = [
+        'event' => 'change',
+        'wrapper' => $ajax_id,
+        'callback' => 'associatedps_forms_change_standard_fees',
+      ];
+    }
+
+    /* Employee default value based on allocated to */
+    if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'attendance_note') {
+      $node = Node::load($nid);
+      if ($nid > 0 && isset($element['subform']['field_by'])) {
+
+        $query = \Drupal::entityQuery('user');
+        $uids = $query->execute();
+        $options = _associatedps_forms_get_users($uids);
+        $element['subform']['field_by']['widget']['#options'] = $options;
+
+        $user_id = '';
+        $user_address = [];
+        if (!empty($node->field_allocated_to->getValue())) {
+          $allocated_to = $node->field_allocated_to->getValue();
+          $allocated_to = reset($allocated_to);
+          $user_id = $allocated_to['target_id'];
+          $user = User::load($user_id);
+          $user_address = $user->field_address->getValue();
+          $user_address = reset($user_address);
+          if ($element['subform']['field_by']['widget']['#default_value'] == []) {
+            $element['subform']['field_by']['widget']['#default_value'] = $user_id;
+            $element['subform']['field_employee_full_name']['widget'][0]['value']['#default_value'] = $user_address['given_name'] . ' ' . $user_address['family_name'];
+            $element['subform']['field_employee_first_name']['widget'][0]['value']['#default_value'] = $user_address['given_name'];
+            $element['subform']['field_employee_last_name']['widget'][0]['value']['#default_value'] = $user_address['family_name'];
+          }
+        }
+      }
+
+      if ($nid > 0 && isset($element['subform']['field_party_to_serve_addresses'])) {
+        if (!empty($node->field_service_address->getValue())) {
+          $address = [];
+          $default = [];
+          $addresses = $node->field_service_address->getValue();
+          foreach ($addresses as $add) {
+            $add_para = Paragraph::load($add['target_id']);
+            $add_value = $add_para->field_service_address->getValue();
+            $add_value = reset($add_value);
+
+            $address[$add_value['address_line1'] . '-' . $add_value['locality'] . '-' . $add_value['administrative_area'] . '-' . $add_value['postal_code']] = $add_value['address_line1'];
+            $default[] = $add_value['address_line1'] . '-' . $add_value['locality'] . '-' . $add_value['administrative_area'] . '-' . $add_value['postal_code'];
+          }
+          $add = explode('-', $default[0]);
+          if (($element['subform']['field_party_to_serve_addresses']['widget']['#default_value'] == []) && ($element['subform']['field_address_attendance']['widget'][0]['address']['#default_value']['address_line1'] == "")) {
+            $element['subform']['field_party_to_serve_addresses']['widget']['#default_value'] = $default[0];
+            $element['subform']['field_address_attendance']['widget'][0]['address']['#default_value']['address_line1'] = $add[0];
+            $element['subform']['field_address_attendance']['widget'][0]['address']['#default_value']['locality'] = $add[1];
+            $element['subform']['field_address_attendance']['widget'][0]['address']['#default_value']['administrative_area'] = $add[2];
+            $element['subform']['field_address_attendance']['widget'][0]['address']['#default_value']['postal_code'] = $add[3];
+          }
+          $element['subform']['field_party_to_serve_addresses']['widget']['#options'] = $address;
+        }
+      }
+    }
+
+    if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'address') {
+      $node = Node::load($nid);
+      if ($nid > 0 && isset($element['subform']['field_party_to_serve_addresses'])) {
+        if (!empty($node->field_service_address->getValue())) {
+          $address = [];
+          $default = [];
+          $addresses = $node->field_service_address->getValue();
+          foreach ($addresses as $add) {
+            $add_para = Paragraph::load($add['target_id']);
+            $add_value = $add_para->field_service_address->getValue();
+            $add_value = reset($add_value);
+
+            $address[$add_value['address_line1'] . '-' . $add_value['locality'] . '-' . $add_value['administrative_area'] . '-' . $add_value['postal_code']] = $add_value['address_line1'];
+            $default[] = $add_value['address_line1'] . '-' . $add_value['locality'] . '-' . $add_value['administrative_area'] . '-' . $add_value['postal_code'];
+          }
+          $add = explode('-', $default[0]);
+          if (($element['subform']['field_party_to_serve_addresses']['widget']['#default_value'] == []) && ($element['subform']['field_address']['widget'][0]['address']['#default_value']['address_line1'] == "")) {
+            $element['subform']['field_party_to_serve_addresses']['widget']['#default_value'] = $default[0];
+            $element['subform']['field_address']['widget'][0]['address']['#default_value']['address_line1'] = $add[0];
+            $element['subform']['field_address']['widget'][0]['address']['#default_value']['locality'] = $add[1];
+            $element['subform']['field_address']['widget'][0]['address']['#default_value']['administrative_area'] = $add[2];
+            $element['subform']['field_address']['widget'][0]['address']['#default_value']['postal_code'] = $add[3];
+          }
+          $element['subform']['field_party_to_serve_addresses']['widget']['#options'] = $address;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Ajax callback associatedps_forms_change_standard_fees().
+ */
+function associatedps_forms_change_standard_fees(array & $element, FormStateInterface $form_state) {
+
+  $type_of_service = $form_state->getTriggeringElement();
+  $service = $type_of_service['#value'];
+  $std_fees = '';
+  if (!empty($service)) {
+    $service_id = reset($service);
+    $service_term = Term::load($service_id);
+    $std_fees = $service_term->field_standard_fee->value;
+  }
+  $wrapper_id = $type_of_service["#ajax"]["wrapper"];
+  $response = new AjaxResponse();
+  $response->addCommand(new InvokeCommand("#" . $wrapper_id, 'val', [$std_fees]));
+  return $response;
+}
+
+/**
+ * Ajax callback associatedps_forms_change_notice_period().
+ */
+function associatedps_forms_change_notice_period(array & $element, FormStateInterface $form_state) {
+
+  $document = $form_state->getTriggeringElement();
+  $doc_node = $document['#value'];
+  $notice_period = '';
+  if (!empty($doc_node)) {
+    $doc_node_id = reset($doc_node);
+    $node_doc = Node::load($doc_node_id);
+    $notice_period = $node_doc->field_notice_period->value;
+  }
+  $wrapper_id = $document["#ajax"]["wrapper"];
+  $response = new AjaxResponse();
+  $response->addCommand(new InvokeCommand("#" . $wrapper_id, 'val', [$notice_period]));
+  return $response;
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function associatedps_forms_node_presave(NodeInterface $node) {
+  if ($node->getType() == 'job') {
+    $client_name = isset($_COOKIE['Drupal_visitor_client_name']) ? $_COOKIE['Drupal_visitor_client_name'] : '';
+    $client_id = isset($_COOKIE['Drupal_visitor_client_id']) ? $_COOKIE['Drupal_visitor_client_id'] : '';
+    $telephone = isset($_COOKIE['Drupal_visitor_telephone']) ? $_COOKIE['Drupal_visitor_telephone'] : '';
+    $generic_email = isset($_COOKIE['Drupal_visitor_generic_email']) ? $_COOKIE['Drupal_visitor_generic_email'] : '';
+    $discount = isset($_COOKIE['Drupal_visitor_discount']) ? $_COOKIE['Drupal_visitor_discount'] : '';
+    $notes = isset($_COOKIE['Drupal_visitor_notes']) ? $_COOKIE['Drupal_visitor_notes'] : '';
+    $sa_address_line1 = isset($_COOKIE['Drupal_visitor_sa_address_line1']) ? $_COOKIE['Drupal_visitor_sa_address_line1'] : '';
+    $sa_address_line2 = isset($_COOKIE['Drupal_visitor_sa_address_line2']) ? $_COOKIE['Drupal_visitor_sa_address_line2'] : '';
+    $sa_locality = isset($_COOKIE['Drupal_visitor_sa_locality']) ? $_COOKIE['Drupal_visitor_sa_locality'] : '';
+    $sa_postal_code = isset($_COOKIE['Drupal_visitor_sa_postal_code']) ? $_COOKIE['Drupal_visitor_sa_postal_code'] : '';
+    $sa_administrative_area = isset($_COOKIE['Drupal_visitor_sa_administrative_area']) ? $_COOKIE['Drupal_visitor_sa_administrative_area'] : '';
+    $node_id = isset($_COOKIE['Drupal_visitor_node_id']) ? $_COOKIE['Drupal_visitor_node_id'] : '';
+    $client_submit = isset($_COOKIE['Drupal_visitor_client_submit']) ? $_COOKIE['Drupal_visitor_client_submit'] : 0;
+    $nid = 0;
+    if ($node->get('field_client')->getValue()) {
+      $nid = (int) $node->get('field_client')->getValue()[0]['target_id'];
+    }
+    if ($nid > 0) {
+      $node_client = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
+      $node_id = $nid;
+      $client_name = $node_client->getTitle();
+      $client_id = !empty($node_client->get('field_client_id')->getValue()) ? $node_client->get('field_client_id')->getValue()[0]['value'] : 0;
+      $telephone = !empty($node_client->get('field_telephone')->getValue()) ? $node_client->get('field_telephone')->getValue()[0]['value'] : '';
+      $generic_email = !empty($node_client->get('field_email')->getValue()) ? $node_client->get('field_email')->getValue()[0]['value'] : '';
+      $discount = !empty($node_client->get('field_agreed_discount')->getValue()) ? $node_client->get('field_agreed_discount')->getValue()[0]['value'] : '';
+      $notes = !empty($node_client->get('field_notes')->getValue()) ? $node_client->get('field_notes')->getValue()[0]['value'] : '';
+      if (!empty($node_client->get('field_client_address')->getValue())) {
+        $sa_address_line1 = $node_client->get('field_client_address')->getValue()[0]['address_line1'];
+        $sa_address_line2 = $node_client->get('field_client_address')->getValue()[0]['address_line2'];
+        $sa_locality = $node_client->get('field_client_address')->getValue()[0]['locality'];
+        $sa_postal_code = $node_client->get('field_client_address')->getValue()[0]['postal_code'];
+        $sa_administrative_area = $node_client->get('field_client_address')->getValue()[0]['administrative_area'];
+      }
+      $client_submit = 1;
+    }
+
+    if ($client_submit != 0) {
+      $node->field_client_cid->value = $node_id;
+      $node->field_client_name->value = $client_name;
+      $node->field_job_client_id->value = $client_id;
+      $node->field_email->value = $generic_email;
+      $node->field_telephone->value = $telephone;
+      $node->field_agreed_discount->value = $discount;
+      $node->field_notes = [
+        'value' => $notes,
+        'format' => 'full_html',
+      ];
+      $node->field_client_address->address_line1 = $sa_address_line1;
+      $node->field_client_address->address_line2 = $sa_address_line2;
+      $node->field_client_address->locality = $sa_locality;
+      $node->field_client_address->administrative_area = $sa_administrative_area;
+      $node->field_client_address->postal_code = $sa_postal_code;
+    }
+
+    if ($node_id != '') {
+      $node->field_client->target_id = $node_id;
+    }
+
+    $reset_value = [
+      'client_submit' => 0,
+      'client_name' => '',
+      'client_id' => '',
+      'telephone' => '',
+      'generic_email' => '',
+      'discount' => '',
+      'notes' => '',
+      'sa_address_line1' => '',
+      'sa_address_line2' => '',
+      'sa_locality' => '',
+      'sa_postal_code' => '',
+      'sa_administrative_area' => '',
+    ];
+    user_cookie_save($reset_value);
+
+    if ((!empty($node->field_client_cid->value)) && empty($node->field_client->getValue())) {
+      $node->field_client[] = ['target_id' => $node->field_client_cid->value];
+    }
+
+    $document = $node->get('field_documents')->getValue();
+    foreach ($document as $dc) {
+      if ((int) $dc['target_id'] > 0) {
+        $prag = Paragraph::load($dc['target_id']);
+        $dc_value = $prag->field_document->getValue();
+        if (!empty($dc_value)) {
+          $dc_value = reset($dc_value);
+          $node_dc = \Drupal::entityTypeManager()->getStorage('node')->load($dc_value['target_id']);
+          if (!empty($node_dc)) {
+            $court_name = $node_dc->field_court_name->target_id;
+            $aff_template = $node_dc->field_affidavit_template->target_id;
+            $dc_title = $node_dc->getTitle();
+            $dc_notice = isset($node_dc->field_notice_period->getValue()[0]['value']) ? $node_dc->field_notice_period->getValue()[0]['value'] : '';
+            $prag->field_document_title->value = $dc_title;
+            $prag->field_notice_period->value = $dc_notice;
+            $prag->field_court_name[] = ['target_id' => $court_name];
+            $prag->field_affidavit_template[] = ['target_id' => $aff_template];
+            $prag->save();
+          }
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Get all user list for allocated_to/served_by/employee fields.
+ */
+function _associatedps_forms_get_users(array $uids) {
+  $options['_none'] = '- None -';
+  foreach ($uids as $uid) {
+    $user = User::load($uid);
+    $address = $user->field_address->getValue();
+    $address = reset($address);
+    $full_name = $address['given_name'] . ' ' . $address['family_name'];
+    $options[$uid] = $full_name;
+  }
+  return $options;
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function associatedps_forms_node_insert(NodeInterface $node) {
+  if ($node->getType() === 'online_instruction') {
+    $nid = $node->id();
+    EmailTemplateController::createEmailTemplate($nid, 'true');
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function associatedps_forms_node_update(NodeInterface $node) {
+  if ($node->getType() === 'online_instruction') {
+    $nid = $node->id();
+    EmailTemplateController::createEmailTemplate($nid);
+  }
+
+  if ($node->getType() === 'job') {
+
+    /* Send email on change Case Status. */
+    $nid = $node->id();
+    $case_status = $node->field_case_status->value;
+    $case_status_value = $node->field_case_status_value->value;
+    $config = \Drupal::config('associatedps_case_status_template.settings');
+    $email_template = $config->get('email_template');
+    if (!empty($case_status) && ($email_template !== '_none')) {
+      if ($case_status !== 'Ongoing' && $case_status !== $case_status_value) {
+        EmailTemplateController::createEmailTemplate($email_template, $nid, 'job');
+      }
+    }
+  }
+
+}

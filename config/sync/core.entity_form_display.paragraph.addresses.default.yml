@@ -1,0 +1,31 @@
+uuid: a6142fd7-9bd7-49cc-bdb9-5950ce74e00e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.addresses.field_primary_address
+    - field.field.paragraph.addresses.field_service_address
+    - paragraphs.paragraphs_type.addresses
+  module:
+    - address
+id: paragraph.addresses.default
+targetEntityType: paragraph
+bundle: addresses
+mode: default
+content:
+  field_primary_address:
+    weight: 1
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+    region: content
+  field_service_address:
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
+    region: content
+hidden:
+  created: true
+  status: true

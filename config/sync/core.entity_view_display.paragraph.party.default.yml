@@ -1,0 +1,67 @@
+uuid: d54a5062-17de-4501-b909-291525a64945
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.party.field_full_name
+    - field.field.paragraph.party.field_last_name
+    - field.field.paragraph.party.field_name
+    - field.field.paragraph.party.field_party_type
+    - paragraphs.paragraphs_type.party
+  module:
+    - field_formatter_class
+    - field_group
+    - options
+third_party_settings:
+  field_group:
+    group_party_details:
+      children:
+        - field_name
+        - field_last_name
+        - field_party_type
+      parent_name: ''
+      weight: 0
+      format_type: fieldset
+      format_settings:
+        description: ''
+        id: ''
+        classes: ''
+      label: 'Party Details (Side One)'
+      region: content
+id: paragraph.party.default
+targetEntityType: paragraph
+bundle: party
+mode: default
+content:
+  field_last_name:
+    weight: 2
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_name:
+    weight: 1
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: party-side-one-name-text
+    type: string
+    region: content
+  field_party_type:
+    weight: 3
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: party-side-one-type-select
+    type: list_default
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_full_name: true

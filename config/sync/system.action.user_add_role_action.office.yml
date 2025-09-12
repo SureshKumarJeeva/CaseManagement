@@ -1,0 +1,14 @@
+uuid: 0c47639f-a9dd-4336-8dcf-1b934cd68195
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.office
+  module:
+    - user
+id: user_add_role_action.office
+label: 'Add the Office role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: office

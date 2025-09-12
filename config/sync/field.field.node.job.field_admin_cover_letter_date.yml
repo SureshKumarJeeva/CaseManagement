@@ -1,0 +1,21 @@
+uuid: a762a017-d0a6-4082-965e-d5a6a264e4a6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_admin_cover_letter_date
+    - node.type.job
+  module:
+    - datetime
+id: node.job.field_admin_cover_letter_date
+field_name: field_admin_cover_letter_date
+entity_type: node
+bundle: job
+label: 'Cover Letter Drafted Date'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

@@ -1,0 +1,25 @@
+uuid: dadf223e-db23-4408-aa93-ee577ba46512
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.cover_letter.field_body
+    - paragraphs.paragraphs_type.cover_letter
+  module:
+    - text
+id: paragraph.cover_letter.default
+targetEntityType: paragraph
+bundle: cover_letter
+mode: default
+content:
+  field_body:
+    weight: 0
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: text_textarea
+    region: content
+hidden:
+  created: true
+  status: true

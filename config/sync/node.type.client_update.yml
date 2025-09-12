@@ -1,0 +1,18 @@
+uuid: 8b890598-b08d-4569-a2b7-913d3c8511e9
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus:
+      - main
+    parent: 'main:'
+name: 'Client Update'
+type: client_update
+description: ''
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

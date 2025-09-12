@@ -1,0 +1,21 @@
+uuid: 3cadddbf-2534-4bc7-a1ea-1901a9484739
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_party_to_serve_addresses
+    - paragraphs.paragraphs_type.attendance_note
+  module:
+    - options
+id: paragraph.attendance_note.field_party_to_serve_addresses
+field_name: field_party_to_serve_addresses
+entity_type: paragraph
+bundle: attendance_note
+label: 'Party to Serve Addresses'
+description: 'Select Other to enter address manually.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

@@ -1,0 +1,23 @@
+uuid: 5fae07d3-55bc-4b17-be0c-b16f8418fffe
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_primary_document
+    - paragraphs.paragraphs_type.document
+id: paragraph.document.field_primary_document
+field_name: field_primary_document
+entity_type: paragraph
+bundle: document
+label: 'Primary Document'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

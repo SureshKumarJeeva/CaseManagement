@@ -1,0 +1,44 @@
+uuid: 38bfc63b-9414-4c63-a469-a1b1d970e002
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.address.field_address
+    - field.field.paragraph.address.field_party_to_serve_addresses
+    - field.field.paragraph.address.field_selected_address
+    - paragraphs.paragraphs_type.address
+  module:
+    - address
+    - select_or_other
+id: paragraph.address.default
+targetEntityType: paragraph
+bundle: address
+mode: default
+content:
+  field_address:
+    weight: 2
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
+    region: content
+  field_party_to_serve_addresses:
+    weight: 0
+    settings:
+      select_element_type: select_or_other_select
+      sort_options: ''
+      add_other_value_to_allowed_values: true
+    third_party_settings: {  }
+    type: select_or_other_list
+    region: content
+  field_selected_address:
+    weight: 1
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+hidden:
+  created: true
+  status: true
+  uid: true

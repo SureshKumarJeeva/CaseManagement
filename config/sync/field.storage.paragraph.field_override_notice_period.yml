@@ -1,0 +1,20 @@
+uuid: c76c9a83-552b-4b13-92d4-5eb4e0097f0b
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs
+id: paragraph.field_override_notice_period
+field_name: field_override_notice_period
+entity_type: paragraph
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

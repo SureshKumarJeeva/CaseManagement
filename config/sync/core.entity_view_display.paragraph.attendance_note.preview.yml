@@ -1,0 +1,44 @@
+uuid: 5d238440-d046-47d4-8883-7c3e58b9a630
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.paragraph.preview
+    - field.field.paragraph.attendance_note.field_address_attendance
+    - field.field.paragraph.attendance_note.field_by
+    - field.field.paragraph.attendance_note.field_date_time
+    - field.field.paragraph.attendance_note.field_employee_first_name
+    - field.field.paragraph.attendance_note.field_employee_full_name
+    - field.field.paragraph.attendance_note.field_employee_last_name
+    - field.field.paragraph.attendance_note.field_notes
+    - field.field.paragraph.attendance_note.field_party_to_serve_addresses
+    - field.field.paragraph.attendance_note.field_selected_address
+    - paragraphs.paragraphs_type.attendance_note
+  module:
+    - datetime
+id: paragraph.attendance_note.preview
+targetEntityType: paragraph
+bundle: attendance_note
+mode: preview
+content:
+  field_date_time:
+    type: datetime_default
+    weight: 0
+    region: content
+    label: hidden
+    settings:
+      format_type: medium
+      timezone_override: ''
+    third_party_settings: {  }
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_address_attendance: true
+  field_by: true
+  field_employee_first_name: true
+  field_employee_full_name: true
+  field_employee_last_name: true
+  field_notes: true
+  field_party_to_serve_addresses: true
+  field_selected_address: true

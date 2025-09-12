@@ -1,0 +1,61 @@
+uuid: bfea4469-0c99-4fd8-b2cb-26a7aaf191dc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_service_address
+    - node.type.job
+    - paragraphs.paragraphs_type.addresses
+  module:
+    - entity_reference_revisions
+id: node.job.field_service_address
+field_name: field_service_address
+entity_type: node
+bundle: job
+label: 'Service Address'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      addresses: addresses
+    target_bundles_drag_drop:
+      address:
+        weight: 6
+        enabled: false
+      addresses:
+        enabled: true
+        weight: 13
+      affidavit:
+        weight: 12
+        enabled: false
+      attendance_note:
+        weight: 7
+        enabled: false
+      cover_letter:
+        weight: 14
+        enabled: false
+      document:
+        weight: 15
+        enabled: false
+      from_library:
+        weight: 16
+        enabled: false
+      job_fees:
+        weight: 17
+        enabled: false
+      party:
+        weight: 8
+        enabled: false
+      party_other:
+        weight: 19
+        enabled: false
+      party_side_two_:
+        weight: 9
+        enabled: false
+field_type: entity_reference_revisions

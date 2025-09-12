@@ -1,0 +1,19 @@
+minimum_single: 25
+minimum_multiple: 0
+disable_search_threshold: 25
+minimum_width: 300
+jquery_selector: 'select[multiple="multiple"]'
+search_contains: false
+disable_search: false
+allow_single_deselect: false
+placeholder_text_multiple: 'Choose some options'
+placeholder_text_single: 'Choose an option'
+no_results_text: 'No results match'
+disabled_themes:
+  seven: '0'
+  associatedps: '0'
+  adminimal_theme: '0'
+chosen_include: 2
+_core:
+  default_config_hash: JUHKHJeHl1bWXY41HMIcDR-VmAWvJ4OJycDubCkIeDU
+use_relative_width: false

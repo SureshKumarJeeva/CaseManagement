@@ -1,0 +1,45 @@
+uuid: d994aeec-8502-42c5-a4a1-f4b176fae79f
+langcode: en
+status: false
+dependencies:
+  module:
+    - ctools
+    - search
+    - system
+    - user
+  theme:
+    - associatedps
+id: searchform
+theme: associatedps
+region: content
+weight: -3
+provider: null
+plugin: search_form_block
+settings:
+  id: search_form_block
+  label: 'Search form'
+  provider: search
+  label_display: '0'
+  page_id: ''
+visibility:
+  'entity_bundle:node':
+    id: 'entity_bundle:node'
+    bundles:
+      basic_page: basic_page
+    negate: false
+    context_mapping:
+      node: '@node.node_route_context:node'
+  request_path:
+    id: request_path
+    pages: '<front>'
+    negate: false
+    context_mapping: {  }
+  user_role:
+    id: user_role
+    roles:
+      administrator: administrator
+      editor: editor
+      office: office
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'

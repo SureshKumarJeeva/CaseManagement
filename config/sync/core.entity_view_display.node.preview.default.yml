@@ -1,0 +1,27 @@
+uuid: 525732c5-1c72-4c4d-967f-b2212340c0ac
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.preview.body
+    - node.type.preview
+  module:
+    - text
+    - user
+id: node.preview.default
+targetEntityType: node
+bundle: preview
+mode: default
+content:
+  body:
+    label: hidden
+    type: text_default
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  links: true

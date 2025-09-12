@@ -1,0 +1,6 @@
+associatedps_email_template:
+  path: /email_template/{node_id}
+  defaults:
+    _controller: Drupal\associatedps_email_template\Controller\EmailTemplateController::createEmailTemplate
+  requirements:
+    _permission: 'access content'

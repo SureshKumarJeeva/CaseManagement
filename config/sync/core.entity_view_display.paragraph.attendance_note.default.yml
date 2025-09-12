@@ -1,0 +1,90 @@
+uuid: 3239253e-f4c3-48d5-8017-56b842348b94
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.attendance_note.field_address_attendance
+    - field.field.paragraph.attendance_note.field_by
+    - field.field.paragraph.attendance_note.field_date_time
+    - field.field.paragraph.attendance_note.field_employee_first_name
+    - field.field.paragraph.attendance_note.field_employee_full_name
+    - field.field.paragraph.attendance_note.field_employee_last_name
+    - field.field.paragraph.attendance_note.field_notes
+    - field.field.paragraph.attendance_note.field_party_to_serve_addresses
+    - field.field.paragraph.attendance_note.field_selected_address
+    - paragraphs.paragraphs_type.attendance_note
+  module:
+    - address
+    - datetime
+    - field_formatter_class
+    - field_group
+third_party_settings:
+  field_group:
+    group_attendance_note:
+      children:
+        - field_date_time
+        - field_employee_full_name
+        - field_address_attendance
+        - field_notes
+      parent_name: ''
+      weight: 0
+      format_type: fieldset
+      region: content
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+      label: 'Attendance Note'
+id: paragraph.attendance_note.default
+targetEntityType: paragraph
+bundle: attendance_note
+mode: default
+content:
+  field_address_attendance:
+    weight: 5
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: attendance-address-rendered-entity
+    type: address_default
+    region: content
+  field_date_time:
+    weight: 3
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: short
+    third_party_settings:
+      field_formatter_class:
+        class: ''
+    type: datetime_default
+    region: content
+  field_employee_full_name:
+    weight: 4
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: attendance-employee-ref
+    type: string
+    region: content
+  field_notes:
+    weight: 6
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: attendance-notes-textarea
+    type: basic_string
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_by: true
+  field_employee_first_name: true
+  field_employee_last_name: true
+  field_party_to_serve_addresses: true
+  field_selected_address: true

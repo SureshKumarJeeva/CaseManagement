@@ -1,0 +1,19 @@
+uuid: 0bc2a370-272e-4c92-bee0-4084e4a97b98
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_name
+    - paragraphs.paragraphs_type.affidavit
+id: paragraph.affidavit.field_name
+field_name: field_name
+entity_type: paragraph
+bundle: affidavit
+label: Name
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

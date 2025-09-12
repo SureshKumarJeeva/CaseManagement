@@ -1,0 +1,26 @@
+uuid: bae75110-5098-4e50-bd3b-93001e6b8810
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+    - node_save_redirect
+third_party_settings:
+  menu_ui:
+    available_menus:
+      - main
+    parent: 'main:'
+  node_save_redirect:
+    save_type: '4'
+    save_location: /online-instruction
+    save_destination: 0
+    edit_type: '4'
+    edit_location: /online-instruction
+    edit_destination: 0
+name: 'Online Instruction'
+type: online_instruction
+description: ''
+help: ''
+new_revision: false
+preview_mode: 0
+display_submitted: false

@@ -1,0 +1,19 @@
+uuid: ab9c83db-be0e-4304-b018-70d5babf36ae
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_first_name
+    - node.type.online_instruction
+id: node.online_instruction.field_first_name
+field_name: field_first_name
+entity_type: node
+bundle: online_instruction
+label: 'First Name'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

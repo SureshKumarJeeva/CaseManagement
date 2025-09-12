@@ -1,0 +1,69 @@
+definitions:
+  contact__site_page:
+    enabled: true
+    menu_name: footer
+    parent: ''
+    weight: 0
+    expanded: false
+  system__admin_content:
+    menu_name: admin
+    parent: system.admin
+    weight: -10
+    expanded: true
+    enabled: true
+  comment__admin:
+    weight: -59
+    enabled: false
+    menu_name: admin
+    parent: system.admin_content
+    expanded: false
+  dblog__overview:
+    weight: -49
+    menu_name: admin
+    parent: system.admin_reports
+    expanded: false
+    enabled: true
+  entity__field_storage_config__collection:
+    weight: -48
+    menu_name: admin
+    parent: system.admin_reports
+    expanded: false
+    enabled: true
+  system__status:
+    weight: -47
+    menu_name: admin
+    parent: system.admin_reports
+    expanded: false
+    enabled: true
+  dblog__access_denied:
+    weight: -46
+    menu_name: admin
+    parent: system.admin_reports
+    expanded: false
+    enabled: true
+  dblog__page_not_found:
+    weight: -45
+    menu_name: admin
+    parent: system.admin_reports
+    expanded: false
+    enabled: true
+  dblog__search:
+    weight: -44
+    menu_name: admin
+    parent: system.admin_reports
+    expanded: false
+    enabled: true
+  views_ui__reports_plugins:
+    weight: -43
+    menu_name: admin
+    parent: system.admin_reports
+    expanded: false
+    enabled: true
+  standard__front_page:
+    menu_name: main
+    parent: ''
+    weight: 0
+    expanded: false
+    enabled: true
+_core:
+  default_config_hash: jdY7AU0tU-QsjmiOw3W8vwpYMb-By--_MSFgbqKUTYM

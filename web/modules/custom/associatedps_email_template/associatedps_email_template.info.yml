@@ -1,0 +1,5 @@
+name: AssociatedPS Email Template
+type: module
+description: For sending email with dynamic email template
+package: 'AssociatedPS'
+core: 8.x

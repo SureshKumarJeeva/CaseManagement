@@ -1,0 +1,610 @@
+uuid: 5a190a31-b79a-4beb-8ad1-30c880432d96
+langcode: en
+status: false
+dependencies:
+  config:
+    - core.entity_view_mode.node.ief_table
+    - field.field.node.job.field_admin_affidavit_date
+    - field.field.node.job.field_admin_cover_letter_date
+    - field.field.node.job.field_admin_email_update_date
+    - field.field.node.job.field_admin_invoiced_date
+    - field.field.node.job.field_admin_send_to_client_date
+    - field.field.node.job.field_admin_status
+    - field.field.node.job.field_affidavits
+    - field.field.node.job.field_agreed_discount
+    - field.field.node.job.field_allocated_to
+    - field.field.node.job.field_allocated_to_first_name
+    - field.field.node.job.field_allocated_to_full_name
+    - field.field.node.job.field_allocated_to_last_name
+    - field.field.node.job.field_allocation_date
+    - field.field.node.job.field_attendance_notes
+    - field.field.node.job.field_business_name
+    - field.field.node.job.field_business_name_value
+    - field.field.node.job.field_business_other
+    - field.field.node.job.field_case_no
+    - field.field.node.job.field_case_status
+    - field.field.node.job.field_case_status_value
+    - field.field.node.job.field_client
+    - field.field.node.job.field_client_address
+    - field.field.node.job.field_client_cid
+    - field.field.node.job.field_client_name
+    - field.field.node.job.field_client_ref
+    - field.field.node.job.field_client_s_job_email
+    - field.field.node.job.field_court
+    - field.field.node.job.field_cover_letters
+    - field.field.node.job.field_date_service
+    - field.field.node.job.field_deadline
+    - field.field.node.job.field_division
+    - field.field.node.job.field_documents
+    - field.field.node.job.field_email
+    - field.field.node.job.field_hearing_date
+    - field.field.node.job.field_instruction_received
+    - field.field.node.job.field_job_client_id
+    - field.field.node.job.field_job_fees
+    - field.field.node.job.field_job_types
+    - field.field.node.job.field_last_mail_time
+    - field.field.node.job.field_list
+    - field.field.node.job.field_method_of_service
+    - field.field.node.job.field_name_to_other
+    - field.field.node.job.field_name_to_server_value
+    - field.field.node.job.field_notes
+    - field.field.node.job.field_notes2
+    - field.field.node.job.field_other_parties
+    - field.field.node.job.field_para_address
+    - field.field.node.job.field_parties
+    - field.field.node.job.field_party_2
+    - field.field.node.job.field_party_to_serve_phone
+    - field.field.node.job.field_person_delivered_to
+    - field.field.node.job.field_person_delivered_to_fname
+    - field.field.node.job.field_person_delivered_to_lname
+    - field.field.node.job.field_person_delivered_to_other
+    - field.field.node.job.field_person_delivered_value
+    - field.field.node.job.field_primary_postal_code
+    - field.field.node.job.field_registry
+    - field.field.node.job.field_served_by
+    - field.field.node.job.field_served_by_first_name
+    - field.field.node.job.field_served_by_full_name
+    - field.field.node.job.field_served_by_last_name
+    - field.field.node.job.field_served_date
+    - field.field.node.job.field_served_notes
+    - field.field.node.job.field_served_party
+    - field.field.node.job.field_service_address
+    - field.field.node.job.field_service_details_position
+    - field.field.node.job.field_telephone
+    - node.type.job
+  module:
+    - datetime
+    - entity_reference_revisions
+    - field_formatter_class
+    - field_group
+    - options
+    - telephone
+    - user
+third_party_settings:
+  field_group:
+    group_court_details:
+      children:
+        - field_court
+        - field_division
+        - field_list
+        - field_registry
+        - field_case_no
+        - field_hearing_date
+      parent_name: ''
+      weight: 1
+      format_type: fieldset
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+      label: 'Court Details'
+      region: content
+    group_party_details:
+      children:
+        - field_parties
+        - field_party_2
+      parent_name: ''
+      weight: 2
+      format_type: fieldset
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+      label: 'Party Details'
+      region: content
+    group_attendance_note_details:
+      children:
+        - field_attendance_notes
+      parent_name: ''
+      weight: 6
+      format_type: fieldset
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+      label: 'Attendance Note Details'
+      region: content
+    group_service_details:
+      children:
+        - field_served_by
+        - field_date_service
+        - field_para_address
+        - field_method_of_service
+        - field_person_delivered_value
+        - field_service_details_position
+        - field_business_name_value
+        - field_notes2
+      parent_name: ''
+      weight: 5
+      format_type: fieldset
+      format_settings:
+        label: 'Service Details'
+        description: ''
+        id: service-details-panel
+        classes: ''
+      label: 'Service Details'
+      region: content
+    group_document_details:
+      children:
+        - field_documents
+      parent_name: ''
+      weight: 7
+      format_type: fieldset
+      format_settings:
+        label: 'Document to be served'
+        description: ''
+        id: documents-served
+        classes: ''
+      label: 'Document to be served'
+      region: content
+    group_case_details:
+      children:
+        - field_client
+        - field_client_ref
+        - field_client_s_job_email
+        - field_standard_fee
+        - field_agreed_fee
+      parent_name: ''
+      weight: 0
+      format_type: fieldset
+      format_settings:
+        label: 'Job Details'
+        description: ''
+        id: ''
+        classes: ''
+      label: 'Job Details'
+      region: content
+    group_served_party_details:
+      children:
+        - field_name_to_server_value
+        - field_party_to_serve_phone
+        - field_service_address
+        - field_served_notes
+      parent_name: ''
+      weight: 3
+      format_type: fieldset
+      format_settings:
+        label: 'Party to Serve'
+        description: ''
+        id: ''
+        classes: ''
+      label: 'Party to Serve'
+      region: content
+    group_job_status:
+      children:
+        - field_case_status
+        - field_admin_status
+        - field_admin_send_to_client_date
+        - field_admin_invoiced_date
+        - field_admin_email_update_date
+        - field_admin_cover_letter_date
+        - field_admin_affidavit_date
+        - field_job_type
+        - field_instruction_received
+        - field_allocation_date
+        - field_allocated_to
+        - field_deadline
+      parent_name: ''
+      weight: 4
+      format_type: fieldset
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+      label: 'Job Status'
+      region: content
+id: node.job.ief_table
+targetEntityType: node
+bundle: job
+mode: ief_table
+content:
+  field_admin_affidavit_date:
+    weight: 12
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: status-affidavit-date
+    type: datetime_default
+    region: content
+  field_admin_cover_letter_date:
+    weight: 11
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: status-cover-letter-date
+    type: datetime_default
+    region: content
+  field_admin_email_update_date:
+    weight: 10
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: status-email-update-date
+    type: datetime_default
+    region: content
+  field_admin_invoiced_date:
+    weight: 9
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: status-invoiced-date
+    type: datetime_default
+    region: content
+  field_admin_send_to_client_date:
+    weight: 8
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: status-send-to-client-date
+    type: datetime_default
+    region: content
+  field_admin_status:
+    weight: 7
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: status-admin-status-select
+    type: list_default
+    region: content
+  field_allocated_to:
+    weight: 16
+    label: inline
+    settings:
+      link: true
+    third_party_settings:
+      field_formatter_class:
+        class: status-allocated-to-ref
+    type: entity_reference_label
+    region: content
+  field_allocation_date:
+    weight: 15
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: status-allocation-date
+    type: datetime_default
+    region: content
+  field_attendance_notes:
+    type: entity_reference_revisions_entity_view
+    weight: 13
+    label: hidden
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings:
+      field_formatter_class:
+        class: attendance-notes-rendered-entity
+    region: content
+  field_business_name_value:
+    type: string
+    weight: 35
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: service-business-name-select
+  field_case_no:
+    weight: 7
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: court-case-no-text
+    type: string
+    region: content
+  field_client:
+    weight: 2
+    label: inline
+    settings:
+      view_mode: search_result
+      link: false
+    third_party_settings:
+      field_formatter_class:
+        class: client-rendered-entity
+    type: entity_reference_entity_view
+    region: content
+  field_client_ref:
+    weight: 3
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: client-job-ref-text
+    type: string
+    region: content
+  field_client_s_job_email:
+    weight: 4
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: client-job-email
+    type: basic_string
+    region: content
+  field_date_service:
+    weight: 29
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: service-served-date
+    type: datetime_default
+    region: content
+  field_deadline:
+    type: datetime_default
+    weight: 17
+    region: content
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: status-deadline-date
+  field_division:
+    weight: 4
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: court-division-text
+    type: string
+    region: content
+  field_documents:
+    type: entity_reference_revisions_entity_view
+    weight: 37
+    label: hidden
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings:
+      field_formatter_class:
+        class: documents-rendered-entity
+    region: content
+  field_hearing_date:
+    weight: 8
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: court-hearing-date
+    type: datetime_default
+    region: content
+  field_instruction_received:
+    weight: 14
+    label: inline
+    settings:
+      timezone_override: ''
+      format_type: long
+    third_party_settings:
+      field_formatter_class:
+        class: status-instructions-date
+    type: datetime_default
+    region: content
+  field_list:
+    weight: 5
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: court-list-text
+    type: string
+    region: content
+  field_method_of_service:
+    weight: 31
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: service-method-select
+    type: list_default
+    region: content
+  field_name_to_server_value:
+    weight: 14
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: serve-name-text
+    type: string
+    region: content
+  field_notes2:
+    weight: 36
+    label: above
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: service-additional-notes-textarea
+    type: basic_string
+    region: content
+  field_para_address:
+    type: entity_reference_revisions_entity_view
+    weight: 30
+    label: hidden
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings:
+      field_formatter_class:
+        class: service-address-rendered-entity
+    region: content
+  field_parties:
+    type: entity_reference_revisions_entity_view
+    weight: 21
+    label: above
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings:
+      field_formatter_class:
+        class: party-side-one-rendered-entity
+    region: content
+  field_party_2:
+    type: entity_reference_revisions_entity_view
+    weight: 22
+    label: above
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings:
+      field_formatter_class:
+        class: party-side-two-rendered-entity
+    region: content
+  field_party_to_serve_phone:
+    weight: 15
+    label: inline
+    settings:
+      title: ''
+    third_party_settings:
+      field_formatter_class:
+        class: serve-phone
+    type: telephone_link
+    region: content
+  field_person_delivered_value:
+    weight: 32
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: service-person-delivered-select
+    type: string
+    region: content
+  field_registry:
+    weight: 6
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: court-registry-text
+    type: string
+    region: content
+  field_served_by:
+    weight: 28
+    label: inline
+    settings:
+      link: true
+    third_party_settings:
+      field_formatter_class:
+        class: service-served-by-ref
+    type: entity_reference_label
+    region: content
+  field_served_notes:
+    weight: 17
+    label: above
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: serve-notes-textarea
+    type: basic_string
+    region: content
+  field_service_address:
+    type: entity_reference_revisions_entity_view
+    weight: 16
+    region: content
+    label: hidden
+    settings:
+      view_mode: default
+      link: ''
+    third_party_settings:
+      field_formatter_class:
+        class: serve-address
+  field_service_details_position:
+    weight: 34
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: service-relationship-or-position-text
+    type: string
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_affidavits: true
+  field_agreed_discount: true
+  field_allocated_to_first_name: true
+  field_allocated_to_full_name: true
+  field_allocated_to_last_name: true
+  field_business_name: true
+  field_business_other: true
+  field_case_status: true
+  field_case_status_value: true
+  field_client_address: true
+  field_client_cid: true
+  field_client_name: true
+  field_court: true
+  field_cover_letters: true
+  field_email: true
+  field_job_client_id: true
+  field_job_fees: true
+  field_job_types: true
+  field_last_mail_time: true
+  field_name_to_other: true
+  field_notes: true
+  field_other_parties: true
+  field_person_delivered_to: true
+  field_person_delivered_to_fname: true
+  field_person_delivered_to_lname: true
+  field_person_delivered_to_other: true
+  field_primary_postal_code: true
+  field_served_by_first_name: true
+  field_served_by_full_name: true
+  field_served_by_last_name: true
+  field_served_date: true
+  field_served_party: true
+  field_telephone: true
+  links: true

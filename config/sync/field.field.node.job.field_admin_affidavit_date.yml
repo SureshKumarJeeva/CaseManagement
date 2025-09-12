@@ -1,0 +1,21 @@
+uuid: bdea19a6-8360-4781-8a4b-4ac17f35d02b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_admin_affidavit_date
+    - node.type.job
+  module:
+    - datetime
+id: node.job.field_admin_affidavit_date
+field_name: field_admin_affidavit_date
+entity_type: node
+bundle: job
+label: 'Affidavit Drafted Date'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

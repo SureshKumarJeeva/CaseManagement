@@ -1,0 +1,19 @@
+uuid: 1ba67af5-017f-4434-929e-9d4393bcfcab
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_person_delivered_to_other
+    - node.type.job
+id: node.job.field_person_delivered_to_other
+field_name: field_person_delivered_to_other
+entity_type: node
+bundle: job
+label: 'Person Delivered to Other'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

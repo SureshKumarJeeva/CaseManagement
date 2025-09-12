@@ -1,0 +1,19 @@
+uuid: 16334d38-c848-464e-ab6c-b9705c207002
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_last_name
+    - paragraphs.paragraphs_type.party_side_two_
+id: paragraph.party_side_two_.field_last_name
+field_name: field_last_name
+entity_type: paragraph
+bundle: party_side_two_
+label: 'Last Name'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

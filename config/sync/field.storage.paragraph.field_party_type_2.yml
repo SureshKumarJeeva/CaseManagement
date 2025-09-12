@@ -1,0 +1,36 @@
+uuid: c142092d-b856-4335-9682-0c8e8e6bb3e5
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+id: paragraph.field_party_type_2
+field_name: field_party_type_2
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: Defendant
+      label: Defendant
+    -
+      value: Respondent
+      label: Respondent
+    -
+      value: Debtor
+      label: Debtor
+    -
+      value: 'Respondent Debtor'
+      label: 'Respondent Debtor'
+    -
+      value: Tenant
+      label: Tenant
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

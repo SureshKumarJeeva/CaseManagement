@@ -1,0 +1,6 @@
+name: DateTime Hide Seconds
+type: module
+description: Provides the option to hide seconds in datetime fields.
+core_version_requirement: ^8.7.7 || ^9 || ^10 || ^11
+dependencies:
+  - drupal:datetime

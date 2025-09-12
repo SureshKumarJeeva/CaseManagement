@@ -1,0 +1,19 @@
+uuid: c9742f0a-69bf-408a-8f3a-df6c192cd84f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_selected_address
+    - paragraphs.paragraphs_type.address
+id: paragraph.address.field_selected_address
+field_name: field_selected_address
+entity_type: paragraph
+bundle: address
+label: 'Selected Address'
+description: 'Set to - None - to enter address manually.'
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

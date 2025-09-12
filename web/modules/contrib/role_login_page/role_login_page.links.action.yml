@@ -1,0 +1,13 @@
+#display a button in the list page.
+role_login_page.settings.add_form:
+  route_name: 'role_login_page.settings'
+  title: 'Add login page'
+  appears_on:
+    - role_login_page.settings_list
+#display a button in the Add & Edit login page. 
+role_login_page.settings.list_page:
+  route_name: 'role_login_page.settings_list'
+  title: 'Login pages list'
+  appears_on:
+    - role_login_page.settings
+    - role_login_page.settings_edit    

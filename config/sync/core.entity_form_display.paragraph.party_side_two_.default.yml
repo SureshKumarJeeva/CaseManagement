@@ -1,0 +1,49 @@
+uuid: e98a2399-6b9b-443d-b2cb-65a21aa8bbfc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.party_side_two_.field_full_name
+    - field.field.paragraph.party_side_two_.field_last_name
+    - field.field.paragraph.party_side_two_.field_name
+    - field.field.paragraph.party_side_two_.field_party_type_2
+    - paragraphs.paragraphs_type.party_side_two_
+id: paragraph.party_side_two_.default
+targetEntityType: paragraph
+bundle: party_side_two_
+mode: default
+content:
+  field_full_name:
+    weight: 3
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_last_name:
+    weight: 1
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_name:
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_party_type_2:
+    weight: 2
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+hidden:
+  created: true
+  status: true
+  uid: true

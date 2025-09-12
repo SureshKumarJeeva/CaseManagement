@@ -1,0 +1,901 @@
+html {
+  background: #f1f1f1;
+  background-image: url('/themes/custom/associatedps/images/throbber.gif');
+  background-position: center 100px;
+  background-repeat: no-repeat;
+  background-size: 150px;
+}
+
+body {
+  background: #f1f1f1;
+  padding-top: 0;
+  visibility: hidden;
+  width: 100%;
+}
+
+body.role-anonymous {
+  padding-top: 0;
+  visibility: visible;
+}
+
+p, .field__item, .field__label, .inline-entity-form-node-label {
+  font-size: 14px !important;
+}
+
+.tabs.secondary .is-active a {
+  color: #6e7500;
+}
+
+.is-horizontal .tabs.secondary .tabs__tab.is-active {
+  border-bottom-color: #6e7500;
+}
+
+.field-multiple-drag {
+  display: none !important;
+}
+
+.tabledrag-toggle-weight-wrapper {
+  display: none !important;
+}
+
+.touchevents .draggable td {
+  padding: 10px;
+}
+
+.paragraphs-collapsed-description {
+  max-width: 96%;
+}
+
+.logo-wrapper {
+  height: auto;
+  position: relative;
+  left: -33px;
+  height: 76px;
+  width: 76px;
+  float: left;
+  background-color: white;
+}
+
+.logo {
+  overflow: hidden;
+  position: absolute;
+  height: auto;
+  background-color: white;
+}
+
+.content-header .layout-container {
+  margin: 0;
+}
+.content-header .logo-wrapper {
+  left: 0;
+}
+.content-header .page-title-header {
+  height: 75px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.content-header .page-title-header .block-page-title-block {
+  margin: 0;
+  margin-left: 20px;
+}
+.content-header .page-title-header .block-page-title-block .page-title {
+  margin: 0;
+  width: 100%;
+}
+.content-header .page-title-header .login-btn:hover .dropdown-menu {
+  display: block;
+}
+.content-header .page-title-header .login-btn .dropdown-menu {
+  display: none;
+  list-style: none;
+  padding: 0;
+}
+.content-header .region-header .block-local-tasks-block nav .tabs.primary {
+  margin: 0;
+  padding: 0;
+}
+.region.region-pre-content {
+  background-color: #a9a9a9;
+}
+.region-pre-content #block-associatedps-page-title .page-title {
+  color: black;
+  margin: 0;
+  padding: 20px 15px;
+  text-transform: uppercase;
+}
+
+.region-content #block-associatedps-content {
+  padding-top: 30px;
+}
+.page-title-header .login-btn {
+  padding: 0 20px;
+}
+.page-title-header .login-btn h2 {
+  /*display: flex;*/
+}
+.page-title-header .login-btn h2 a {
+  color:white;
+  text-decoration: none;
+}
+.page-title-header .login-btn h2 .dropdown-menu {
+  text-align: right;
+}
+.page-title-header .login-btn h2 .dropdown-menu a {
+  color:white;
+}
+.page-title-header .login-btn h2:before {
+  background-image: url(../images/person.svg);
+  background-repeat: no-repeat;
+  background-size: contain;
+  padding-right: 8px;
+  width: 20px;
+  height: 20px;
+  display: inline-block;
+  content: '';
+}
+
+/* Differentiate paragraph section create/edit page */
+.paragraph-type--party td:nth-child(2),
+.paragraph-type--party-side-two- td:nth-child(2),
+.paragraph-type--party-other td:nth-child(2),
+.paragraph-type--document td:nth-child(2),
+.paragraph-type--job-fees td:nth-child(2),
+.paragraph-type--attendance-note td:nth-child(2) {
+  padding: 20px !important;
+  border: 3px solid #b0b0b0;
+}
+
+tr.paragraph-type--party,
+tr.paragraph-type--party-side-two-,
+tr.paragraph-type--party-other,
+tr.paragraph-type--document,
+tr.paragraph-type--job-fees,
+tr.paragraph-type--attendance-note {
+  margin-top: 20px;
+  display: inline-table;
+  width: 100%;
+}
+/*.paragraph-type--attendance-note .paragraph-type .paragraph-type-label*/
+.paragraph-type--document .paragraph-type .paragraph-type-label,
+.paragraph-type--job-fees .paragraph-type .paragraph-type-label {
+  display: none;
+}
+
+/* Party detail Page */
+#parties-panel .paragraphs-tabs-wrapper .field-multiple-table th.field-label {
+  background-color: #909090;
+  color: #fff;
+}
+.paragraph-type--party .paragraph-top,
+.paragraph-type--party-side-two- .paragraph-top,
+.paragraph-type--party-other .paragraph-top {
+  background-color: #a9a9a9;
+  padding: 5px 5px 0;
+  color: #fff;
+  font-weight: bold;
+}
+#field-parties-add-more-wrapper .paragraphs-add-wrapper,
+#field-party-2-add-more-wrapper .paragraphs-add-wrapper {
+  padding-bottom: 30px;
+}
+
+/* Hide paragraph title */
+#documents-panel .paragraphs-tabs-wrapper .field-multiple-table th.field-label,
+#job-fees-panel .paragraphs-tabs-wrapper .field-multiple-table th.field-label,
+#attendance-note-panel .paragraphs-tabs-wrapper .field-multiple-table th.field-label {
+  display: none;
+}
+
+/* client update section */
+#block-views-block-client-update-client-update-block{
+  width: 82.5%;
+  background-color: #fcfcfa;
+  border: 1px solid #c0c0c0;
+  padding: 1px 15px 15px;
+  margin-bottom: 20px;
+}
+#block-views-block-client-update-client-update-block h2 {
+  background-color: #a9a9a9;
+  color: white;
+  padding: 5px;
+  text-transform: uppercase;
+  font-size: 14px;
+}
+.client-update-wrapper {
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid silver;
+}
+.client-update-wrapper .client-update-text, .client-update-wrapper .client-update-time {
+  font-size: 14px;
+  font-weight: bold;
+}
+.client-update-wrapper p {
+  margin-top: 0;
+}
+
+/* main-navigation menu & login-navigation menu & client-menu */
+
+#block-mainnavigation .o-menu.c-menu-main,
+#block-loginnavigation .o-menu.c-menu-login-navigation,
+#block-clientmenu .o-menu.c-menu-client-menu {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  margin-left: 0;
+  background-color: #ebebeb;
+  margin-bottom: 20px;
+}
+#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item,
+#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item,
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item {
+  display: inline-block;
+  padding: 0;
+  padding-right: 4px;
+}
+#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item a,
+#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item a,
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item a {
+  color: white;
+  padding: 8px 2rem;
+  background-color: #6b6b6b;
+  font-weight: 600;
+}
+#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item a.is-active,
+#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item a.is-active,
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item a.is-active {
+text-decoration: underline;
+}
+#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded,
+#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded,
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded {
+  position: relative;
+}
+#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul,
+#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul,
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul {
+  display: none;
+  position: absolute;
+  top: 36px;
+  left: 0;
+  margin: 0;
+  padding: 0;
+  z-index: 9;
+}
+#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li,
+#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul li,
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul li {
+  display: block;
+  background-color: #6b6b6b;
+}
+#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li a,
+#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul li a,
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul li a {
+  display: inline-block;
+}
+#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded:hover ul,
+#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded:hover ul,
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded:hover ul {
+  display: block;
+}
+
+.block-page-title-block {
+  line-height: 0;
+  display: inline-block;
+}
+
+.node--type-basic-page {
+  font-size: 150%;
+  line-height: 200%;
+}
+
+.node--type-basic-page .node__content {
+  margin-top: 6px;
+}
+
+.dialog-off-canvas-main-canvas a, .dialog-off-canvas-main-canvas .link {
+  color: #6e7500;
+}
+
+.dialog-off-canvas-main-canvas a:hover {
+  text-decoration: underline;
+}
+
+.adminimal .action-links .button--primary {
+  color: #6e7500;
+  border: 2px solid #6e7500;
+}
+
+.adminimal .button--custom, .adminimal #edit-submit {
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  background-color: #6e7500;
+  display: inline-block;
+}
+
+.search-results, .search-results li {
+  margin: 0;
+}
+
+nav ul.menu {
+  margin-left: 0;
+  background-color: #ebebeb;
+  margin-bottom: 20px;
+}
+
+nav ul.menu .menu-item--active-trail a {
+  text-decoration: underline;
+}
+
+.menu .button--secondary {
+  padding: 4px 1rem;
+  background-color: #6b6b6b;
+}
+
+.menu .button--secondary a {
+  color: white;
+  font-weight: 600;
+}
+
+.adminimal .button {
+  background-color: #ccc !important;
+  border-color: #6e7500 !important;
+  color: black !important;
+}
+
+.adminimal .button--danger {
+  background-color: darkred !important;
+  border-color: black !important;
+  color: white !important;
+  font-weight: bold !important;
+  padding: 5px 20px !important;
+  display: inline-block;
+  margin-right: 0;
+}
+
+.adminimal .button--primary {
+  background-color: #6e7500 !important;
+  border-color: #6e7500 !important;
+  color: white !important;
+}
+
+.node-document-form .field--name-field-g, .page-node-type-document .field--type-markup {
+  display: none;
+}
+
+.page-node-type-job .field--name-field-add-file {
+  display: none;
+}
+
+.adminimal h1 {
+  white-space: nowrap;
+  display: block;
+  width: 100%;
+  width: 175px;
+  margin-bottom: 0px;
+  line-height: 100%;
+}
+
+.adminimal .button:hover, .adminimal .button:focus, .adminimal .button--primary:hover, .adminimal .button--primary:focus {
+  background-color: #6e7500;
+  color: white;
+  border-color: #6e7500;
+}
+
+.adminimal .action-links .button--primary:hover, .adminimal .action-links .button--primary:focus {
+  background-color: #6e7500;
+  border-color: #6e7500;
+}
+
+.entityconnect-add.add-icon :first-child {
+  background: url(/modules/contrib/entityconnect/assets/images/add.png) no-repeat !important;
+}
+
+.entityconnect-edit.edit-icon :first-child {
+  background: url(/modules/contrib/entityconnect/assets/images/pencil.png) no-repeat !important;
+}
+
+.js .adminimal .form-actions .dropbutton-multiple .dropbutton-widget {
+  background-color: #6e7500;
+}
+#edit-field-instruction-received-wrapper {
+  margin-top: 0.75em;
+}
+
+/* Date fields in Job Status Section */
+#edit-field-instruction-received-wrapper h4, #edit-field-allocation-date-wrapper h4, #edit-field-deadline-wrapper h4, #edit-field-admin-send-to-client-date-wrapper h4, #edit-field-admin-invoiced-date-wrapper h4, #edit-field-admin-email-update-date-wrapper h4, #edit-field-admin-cover-letter-date-wrapper h4, #edit-field-admin-affidavit-date-wrapper h4 {
+  font-size: 14px;
+}
+
+.field--name-field-standard-fee {
+  display: inline-block;
+  margin-right: 15px;
+}
+.calculate-button {
+  font-weight: bold;
+}
+
+/* Job Fees Section Inline Fields */
+.job-fees-fieldgroup-fees legend {
+  display: none;
+}
+.job-fees-fieldgroup-fees {
+  padding-top: 0 !important;
+  max-width: 300px;
+}
+.job-fees-fieldgroup-fees .fieldset-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Online Instruction Service Details */
+.online-instruction-service-detail::before {
+  content: 'Enter Service Details Here or Upload Instructions with Service Documents in Upload Section Below';
+  font-weight: bold;
+  font-size: 14px;
+}
+.online-instruction-service-detail >legend {
+  display: none;
+}
+
+/* Online Instruction Name of Served */
+.online-instruction-name-of-served legend {
+  text-transform: none !important;
+}
+.online-instruction-name-of-served .fieldset-wrapper {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Online Instruction Urgent Service Required */
+.online-instruction-urgent-service-required {
+  padding: 40px 18px 18px !important;
+}
+.online-instruction-urgent-service-required legend {
+  text-transform: none !important;
+}
+.online-instruction-urgent-service-required .fieldset-wrapper {
+  display: flex;
+}
+
+input, label, span {
+  font-size: 14px !important;
+}
+
+input[type=checkbox]:hover, input[type=checkbox]:focus, input[type=radio]:hover, input[type=radio]:focus {
+  border-color: #6e7500;
+  cursor: pointer;
+}
+
+input[type=checkbox]:checked, input[type=checkbox]:disabled:checked, input[type=radio]:checked, input[type=radio]:disabled:checked {
+  background: #6e7500;
+  box-shadow: inset 0px 0px 0px 3px #fff;
+}
+
+.search-block-form {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.adminimal .content-header {
+  background-color: #6b6b6b;
+  border-bottom: 1px solid silver;
+  padding: 0;
+}
+
+.home-menu {
+  text-align: center;
+}
+
+.home-menu li {
+  display: block;
+  margin-bottom: 14px;
+}
+
+.home-menu li a {
+  min-width: 200px;
+}
+
+.tabs.primary {
+  margin-left: -44px !important;
+}
+
+.tabs.primary .tabs__tab.is-active {
+  background-color: #6e7500;
+}
+
+.tabs.primary .tabs__tab.is-active a {
+  color: white;
+}
+
+.tabs.primary a:focus {
+  color: #6e7500;
+}
+
+.page-node-type-job #document-text {
+  display: none;
+  border: 1px solid silver;
+  padding: 30px;
+}
+
+.page-node-type-job .noindent {
+  list-style: none;
+  padding-left: 0;
+  margin-left: 0;
+}
+
+​ #print-button, #preview-button {
+  margin: 20px 0;
+  display: inline-block;
+}
+
+.page-node-type-document #print-button, .page-node-type-document #preview-button {
+  display: none;
+}
+
+#service-details {
+  display: none;
+}
+
+.field--type-string-long {
+  clear: both;
+}
+
+.page-user-type-editor .toolbar-icon-system-admin-config {
+  display: none;
+}
+
+.adminimal .button.agent {
+  display: none;
+}
+
+.page-user-type-agent .button--primary.edit, .page-user-type-agent #parties-panel, .page-user-type-agent #edit-header {
+  display: none !important;
+}
+
+.page-user-type-agent .button--primary.agent {
+  display: inline-block !important;
+}
+
+.address {
+  margin-top: 0;
+}
+
+.field--label-inline {
+  margin: 10px 0;
+  clear: left;
+  min-height: 20px;
+}
+
+.field--label-above {
+  display: block;
+  margin-top: 20px;
+}
+
+.field--label-above>.field__item {
+  clear: left;
+}
+
+.field--name-field-documents .field__item .field-buttons {
+  display: none;
+}
+
+.field--name-field-documents .field__item:first-child .field-buttons {
+  display: block;
+}
+
+.field--name-field-party-to-serve-phone {
+  margin-bottom: 40px;
+}
+
+.chosen-container-single .chosen-single {
+  border-radius: 0;
+  box-shadow: none;
+  background: white;
+  height: 30px;
+  top: -1px;
+  line-height: 26px;
+}
+
+summary {
+  font-size: 15px !important;
+}
+
+.paragraph-type-title {
+  font-size: 15px !important;
+  font-weight: bold;
+  min-width: 157px !important;
+}
+
+.page-title span {
+  margin-top: 0 !important;
+  font-size: 30px !important;
+}
+
+.paragraphs-dropdown-actions input {
+  background-color: transparent !important;
+}
+
+.field-buttons {
+  clear: both;
+}
+
+.page-node-type-job .field--name-field-document .description {
+  display: none;
+}
+
+.seven-details__wrapper .js-form-wrapper .js-form-type-select:first-child {
+  display: none;
+}
+
+.field--type-address.seven-details .seven-details__wrapper .js-form-wrapper .js-form-type-select:first-child {
+  display: block;
+}
+
+.draggable .form-number, .form-number {
+  max-width: 80px;
+}
+
+.seven-details__summary {
+  color: #6e7500 !important;
+}
+
+.bef-exposed-form input, .bef-exposed-form select {
+  max-width: 200px;
+}
+
+label[for='edit-field-served-date-value-max'] {
+  visibility: hidden;
+}
+
+.form-type-checkbox {
+  display: inline;
+  margin-right: 10px;
+}
+
+input[name="field_documents_document_add_more"] {
+  margin-right: 20px !important;
+}
+
+.ajax-progress-throbber {
+  display: none;
+}
+
+.layout-region-node-secondary {
+  display: none;
+}
+
+.layout-region-node-main, .layout-region-node-footer {
+  width: 100% !important;
+  max-width: 1200px;
+}
+
+.bef-exposed-form .form--inline>.form-item {
+  float: left;
+  min-height: 54px;
+}
+
+.paragraphs-dropdown-action {
+  color: black !important;
+}
+
+.filter-wrapper {
+  display: none;
+}
+
+.field--name-field-documents .paragraphs-icon-button-collapse {
+  display: none;
+}
+
+#toolbar-bar {
+  position: fixed;
+  width: 100%;
+  top: 0;
+}
+
+.field--name-field-service-address .field--name-field-party-to-serve-addresses {
+  display: none !important;
+}
+
+.draggable .field--name-field-selected-address {
+  display: none !important;
+}
+
+.paragraphs-icon-button-collapse {
+  display: none !important;
+}
+
+.page-node-type-job .layout-region-node-footer__content {
+  position: fixed;
+  bottom: 0;
+  background-color: #ccc;
+  padding: 0px 20px;
+  width: auto;
+  z-index: 99;
+}
+
+/* Login page */
+
+.container {
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+  margin-right: auto;
+  margin-left: auto;
+}
+@media (min-width: 576px) {
+  .container {
+    max-width: 540px;
+  }
+}
+@media (min-width: 768px) {
+  .container {
+    max-width: 720px;
+  }
+}
+@media (min-width: 992px) {
+  .container {
+    max-width: 960px;
+  }
+}
+@media (min-width: 1200px) {
+  .container {
+    max-width: 1140px;
+  }
+}
+
+.login-wrapper {
+  position: relative;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  width: 100%;
+  border: 1px solid #a9a9a9;
+}
+.login-wrapper .form-left-content {
+  z-index: 5;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  max-width: 51%;
+  width: 100%;
+  -ms-flex-wrap: wrap;
+  flex-wrap: wrap;
+  padding: 60px 30px;
+}
+.login-wrapper .form-right-content {
+  z-index: 5;
+  display: -webkit-inline-box;
+  display: -ms-inline-flexbox;
+  display: inline-flex;
+  max-width: 35.8%;
+  width: 100%;
+  padding: 70px 45px;
+  background-image: url('../Logo.png');
+  background-size: 90% 90%;
+  background-repeat: no-repeat;
+  background-position: center;
+  color: #000;
+}
+.-role-login-page-form .button {
+  margin: 0;
+}
+
+/*fieldset section-title*/
+.node__content > fieldset {
+  max-width: 1080px;
+}
+
+.fieldset--party-details, .fieldset--party-to-serve, .fieldset--service-details, .fieldset--attendance-notes {
+  display: none;
+}
+
+.job-page-section-title >legend {
+  width: 96%;
+  background-color: #a9a9a9;
+  display: inline-block;
+  padding: 5px;
+  height: 20px;
+}
+
+.job-page-section-title >legend span {
+  color: white;
+  font-weight: bold;
+  height: 100%;
+  display: inline-block;
+}
+
+.job-page-section-title .fieldset-wrapper {
+  padding-top: 20px;
+}
+
+.paragraph--type--document, .paragraph--type--cover-letter, .paragraph--type--affidavit  {
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid silver;
+}
+.wrapper-form-add-client .form-submit,
+.wrapper-form-add-document .form-submit {
+    margin: 0;
+}
+.view-client-page thead tr th, .view-job-page thead tr th, .view-user-page thead tr th, .view-services thead tr th, .view-document-page thead tr th, .view-court-name-page thead tr th, .view-templates thead tr th, .view-job-page-per-user thead tr th, .view-job-page-per-agent thead tr th, .view-online-instruction thead tr th, .view-online-instruction-manager thead tr th {
+  background-color: #6b6b6b;
+  color: white;
+}
+.view-client-page thead tr th a, .view-job-page thead tr th a, .view-user-page thead tr th a, .view-services thead tr th a, .view-document-page thead tr th a, .view-court-name-page thead tr th a, .view-templates thead tr th a, .view-job-page-per-user thead tr th a, .view-job-page-per-agent thead tr th a, .view-online-instruction thead tr th a, .view-online-instruction-manager thead tr th a {
+  color: white;
+}
+
+@media (max-width: 600px) {
+  body {
+    padding-top: 39px;
+  }
+  details[data-drupal-selector=edit-field-client] th, details[data-drupal-selector=edit-field-client] td, details[data-drupal-selector=edit-field-client] .field__item, details[data-drupal-selector=edit-field-client] .field__label, details[data-drupal-selector=edit-field-client] .inline-entity-form-node-label, details[data-drupal-selector=edit-field-client] .paragraph-type-title {
+    font-size: 10px !important;
+  }
+  .adminimal .button--danger {
+    float: none;
+    margin-left: 0;
+    margin-right: 0;
+    margin-top: 10px;
+    padding-bottom: 6px;
+    width: 100%;
+    display: block;
+  }
+  .field--widget-inline-entity-form-complex-table-view-mode .button {
+    padding: 4px 2px 2px 2px;
+    font-size: 10px !important;
+  }
+  .tabs.primary {
+    margin-left: -31px !important;
+  }
+  .logo-wrapper img {
+    max-height: 60px;
+  }
+  .logo-wrapper {
+    width: 60px;
+    height: 60px;
+    left: -20px;
+    max-height: 60px;
+  }
+  .block-page-title-block {
+    margin-top: 22px;
+  }
+  
+  .page-title {
+    margin-bottom: 0 !important;
+  }
+  .page-title span {
+    font-size: 22px !important;
+    line-height: 0;
+    margin-top: 0.4rem !important;
+  }
+  .adminimal h1 {
+    font-size: 172%;
+    line-height: 100%;
+  }
+  .js .paragraphs-collapsed-description {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+  fieldset:not(.fieldgroup) {
+    padding: 30px 8px;
+  }
+  .seven-details__wrapper {
+    padding: 4px;
+  }
+  .touchevents .draggable td {
+    padding: 4px;
+  }
+  .page-node-type-job .region-breadcrumb {
+    top: 100px;
+  }
+  .page-node-type-job .page-content {
+    top: 100px;
+  }
+}

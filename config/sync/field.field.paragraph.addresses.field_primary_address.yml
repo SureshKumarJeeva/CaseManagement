@@ -1,0 +1,23 @@
+uuid: 8480001a-8c7d-4bb7-a715-79c8fe441574
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_primary_address
+    - paragraphs.paragraphs_type.addresses
+id: paragraph.addresses.field_primary_address
+field_name: field_primary_address
+entity_type: paragraph
+bundle: addresses
+label: 'Primary Address'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

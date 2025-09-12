@@ -1,0 +1,21 @@
+uuid: a99d4dc4-dd99-4fca-8053-5d6b44dc29dc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_notes
+    - node.type.client
+  module:
+    - text
+id: node.client.field_notes
+field_name: field_notes
+entity_type: node
+bundle: client
+label: Notes
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

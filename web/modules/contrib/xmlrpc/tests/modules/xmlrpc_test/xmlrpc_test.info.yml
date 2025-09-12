@@ -1,0 +1,12 @@
+name: 'XML-RPC Test'
+type: module
+description: 'Support module for XML-RPC tests according to the validator1 specification.'
+package: Testing
+
+dependencies:
+  - xmlrpc:xmlrpc
+
+# Information added by Drupal.org packaging script on 2023-06-14
+version: '8.x-1.0-rc1'
+project: 'xmlrpc'
+datestamp: 1686726699

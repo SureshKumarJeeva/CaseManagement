@@ -1,0 +1,21 @@
+uuid: 52b72589-782d-4c77-ab0d-b6a58070ae73
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_served_party
+    - node.type.job
+  module:
+    - options
+id: node.job.field_served_party
+field_name: field_served_party
+entity_type: node
+bundle: job
+label: 'Name to Serve'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

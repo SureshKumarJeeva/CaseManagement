@@ -1,0 +1,23 @@
+uuid: be410074-f90a-4828-be29-394cf4bb87c6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.taxonomy_term.field_standard_fee
+    - taxonomy.vocabulary.services
+id: taxonomy_term.services.field_standard_fee
+field_name: field_standard_fee
+entity_type: taxonomy_term
+bundle: services
+label: 'Standard Fee'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: $
+  suffix: ''
+field_type: decimal

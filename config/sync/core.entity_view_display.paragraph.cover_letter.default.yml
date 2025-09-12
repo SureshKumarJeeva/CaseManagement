@@ -1,0 +1,22 @@
+uuid: d5033538-6e02-4f32-9b01-5754d5ec7979
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.cover_letter.field_body
+    - paragraphs.paragraphs_type.cover_letter
+  module:
+    - text
+id: paragraph.cover_letter.default
+targetEntityType: paragraph
+bundle: cover_letter
+mode: default
+content:
+  field_body:
+    weight: 0
+    label: hidden
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+hidden: {  }

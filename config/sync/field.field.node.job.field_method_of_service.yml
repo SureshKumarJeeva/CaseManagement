@@ -1,0 +1,21 @@
+uuid: cb44e249-6c6c-4661-aced-1dd8d9a955fe
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_method_of_service
+    - node.type.job
+  module:
+    - options
+id: node.job.field_method_of_service
+field_name: field_method_of_service
+entity_type: node
+bundle: job
+label: 'Method of Service'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

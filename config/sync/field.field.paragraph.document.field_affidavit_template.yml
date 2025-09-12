@@ -1,0 +1,28 @@
+uuid: 5814f0f7-051d-4b0a-a271-c8f427210fd5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_affidavit_template
+    - node.type.library
+    - paragraphs.paragraphs_type.document
+id: paragraph.document.field_affidavit_template
+field_name: field_affidavit_template
+entity_type: paragraph
+bundle: document
+label: 'Affidavit Template'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      library: library
+    sort:
+      field: _none
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

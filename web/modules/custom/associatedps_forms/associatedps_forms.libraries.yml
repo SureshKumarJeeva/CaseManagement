@@ -1,0 +1,9 @@
+global:
+  css:
+    theme:
+      assets/css/form.css: {}
+  js:
+    assets/js/custom.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupalSettings

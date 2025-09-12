@@ -1,0 +1,23 @@
+uuid: 8f0a4b3a-5fc3-449e-b5ec-47e0ea4f7d99
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_override_notice_period
+    - paragraphs.paragraphs_type.document
+id: paragraph.document.field_override_notice_period
+field_name: field_override_notice_period
+entity_type: paragraph
+bundle: document
+label: 'Override Notice Period'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ' day(s)'
+field_type: integer

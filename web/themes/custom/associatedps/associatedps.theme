@@ -1,0 +1,96 @@
+<?php
+
+use Drupal\Core\Url;
+use Drupal\user\Entity\Role;
+use Drupal\user\Entity\User;
+
+/**
+ * @file
+ * Functions to support theming in the Seven theme.
+ */
+
+/**
+ * Implements hook_preprocess_HOOK() for HTML document templates.
+ */
+function associatedps_preprocess_html(&$variables) {
+
+  $current_path = \Drupal::service('path.current')->getPath();
+  $path_args = explode('/', $current_path);
+  $userCurrent = \Drupal::currentUser();
+  $user = Drupal\user\Entity\User::load($userCurrent->id());
+  $roles = $user->getRoles();
+
+  // Add the user role to the body tag.
+  if (isset($roles[1])) {
+    $variables['attributes']['class'][] = 'page-user-type-' . $roles[1];
+  }
+  // Add the content type class to the body tag for add/edit/view.
+  if ($node = \Drupal::request()->attributes->get('node')) {
+    $variables['attributes']['class'][] = 'page-node-type-' . $node->getType() ;
+  }
+
+  if ($path_args[1] == "node" && $path_args[2] == "add" && isset($path_args[3])) {
+    $variables['attributes']['class'][] = 'page-node-' . $path_args[2];
+    $variables['attributes']['class'][] = 'page-node-type-' . $path_args[3];
+  }
+  if (!isset($path_args[3])) {
+    $variables['attributes']['class'][] = 'page-node-type-' . $path_args[1] . "-view";
+  }
+
+  // Add a class name for the user's role to body tag
+
+  foreach ($roles as $role) {
+    $variables['attributes']['class'][] = 'role-' . $role;
+  }
+}
+
+/**
+ * Implements hook_preprocess_page().
+ */
+function associatedps_preprocess_page(&$vars, $hook) {
+  if ($account = \Drupal::currentUser()) {
+    $user = User::load($account->id());
+    $roles = $account->getRoles();
+    $actual_roles = array_diff($roles, ['authenticated']);
+    $vars['user_role'] = (!empty($actual_roles)) ? reset($actual_roles) : '';
+    $vars['user_name'] = $account->getDisplayName();
+    $vars['user_url'] = Url::fromRoute('entity.user.canonical', ['user' => $account->id()])->setAbsolute()->toString();
+    $vars['username'] = '';
+    if (isset($user->field_address) && !empty($user->field_address->getValue())) {
+      $address = $user->field_address->getValue();
+      $address = reset($address);
+      $vars['username'] = $address['given_name'] . ' ' . $address['family_name'];
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function associatedps_preprocess_node(&$variables) {
+  if (($account = \Drupal::currentUser()) && isset($variables['elements']['#node']) && ($variables['elements']['#node']->getType() == 'job')) {
+    $roles = $account->getRoles();
+    $actual_roles = array_diff($roles, ['authenticated']);
+    $variables['user_role'] = (!empty($actual_roles)) ? reset($actual_roles) : '';
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ * @param $form
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
+ * @param $form_id
+ */
+function associatedps_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+
+  if ($form_id == 'user_login_form' || $form_id == '_role_login_page_form' ) {
+
+    $form['#prefix']= '<div class="container"> <div class="login-wrapper"> <div class="form-left-content">';
+    $form['#suffix'] = '</div> <div class="form-right-content"> </div> </div> </div>';
+  }
+
+  if ($form_id == '_role_login_page_form') {
+    $form['name']['#description'] = 'Enter your Associated Process Servers username.';
+    $form['pass']['#description'] = 'Enter the password that accompanies your username.';
+  }
+}

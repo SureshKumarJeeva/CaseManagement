@@ -1,0 +1,19 @@
+uuid: 5ef73a4c-d833-450c-bad3-ff37449360d4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_served_by_full_name
+    - node.type.job
+id: node.job.field_served_by_full_name
+field_name: field_served_by_full_name
+entity_type: node
+bundle: job
+label: 'Served By'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

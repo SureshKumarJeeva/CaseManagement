@@ -1,0 +1,19 @@
+uuid: 5985866e-fb53-420d-b611-7642f5847308
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_additional_information
+    - node.type.online_instruction
+id: node.online_instruction.field_additional_information
+field_name: field_additional_information
+entity_type: node
+bundle: online_instruction
+label: 'Additional Information'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

@@ -1,0 +1,8 @@
+{
+    "name": "drupal/xmlrpc",
+    "type": "drupal-module",
+    "description": "Provide XML-RPC client and server support",
+    "homepage": "http://drupal.org/project/xmlrpc",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev"
+}

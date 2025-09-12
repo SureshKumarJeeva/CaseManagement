@@ -1,0 +1,21 @@
+uuid: 62460735-dccd-4b6f-88d9-9e63580f753a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_instruction_received
+    - node.type.job
+  module:
+    - datetime
+id: node.job.field_instruction_received
+field_name: field_instruction_received
+entity_type: node
+bundle: job
+label: 'Instruction Received'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

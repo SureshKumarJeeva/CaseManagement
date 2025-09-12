@@ -1,0 +1,99 @@
+uuid: e1c8e4fe-6304-4e22-9021-879d993ae460
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.attendance_note.field_address_attendance
+    - field.field.paragraph.attendance_note.field_by
+    - field.field.paragraph.attendance_note.field_date_time
+    - field.field.paragraph.attendance_note.field_employee_first_name
+    - field.field.paragraph.attendance_note.field_employee_full_name
+    - field.field.paragraph.attendance_note.field_employee_last_name
+    - field.field.paragraph.attendance_note.field_notes
+    - field.field.paragraph.attendance_note.field_party_to_serve_addresses
+    - field.field.paragraph.attendance_note.field_selected_address
+    - paragraphs.paragraphs_type.attendance_note
+  module:
+    - address
+    - chosen_field
+    - datetime
+    - datetimehideseconds
+    - select_or_other
+id: paragraph.attendance_note.default
+targetEntityType: paragraph
+bundle: attendance_note
+mode: default
+content:
+  field_address_attendance:
+    weight: 4
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
+    region: content
+  field_by:
+    weight: 0
+    settings: {  }
+    third_party_settings: {  }
+    type: chosen_select
+    region: content
+  field_date_time:
+    weight: 1
+    settings: {  }
+    third_party_settings:
+      datetimehideseconds:
+        hide: true
+    type: datetime_default
+    region: content
+  field_employee_first_name:
+    weight: 6
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_employee_full_name:
+    weight: 9
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_employee_last_name:
+    weight: 7
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_notes:
+    weight: 5
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textarea
+    region: content
+  field_party_to_serve_addresses:
+    weight: 2
+    settings:
+      select_element_type: select_or_other_select
+      sort_options: ''
+      add_other_value_to_allowed_values: true
+    third_party_settings: {  }
+    type: select_or_other_list
+    region: content
+  field_selected_address:
+    weight: 3
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+hidden:
+  created: true
+  status: true
+  uid: true

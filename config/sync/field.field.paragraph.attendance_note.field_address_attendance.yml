@@ -1,0 +1,62 @@
+uuid: c472b845-66df-4dec-8041-bed29a9303cc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_address_attendance
+    - paragraphs.paragraphs_type.attendance_note
+  module:
+    - address
+id: paragraph.attendance_note.field_address_attendance
+field_name: field_address_attendance
+entity_type: paragraph
+bundle: attendance_note
+label: Address
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    langcode: ''
+    country_code: AU
+    administrative_area: ''
+    locality: ''
+    dependent_locality: null
+    postal_code: ''
+    sorting_code: null
+    address_line1: ''
+    address_line2: ''
+    organization: null
+    given_name: null
+    additional_name: null
+    family_name: null
+default_value_callback: ''
+settings:
+  available_countries:
+    AU: AU
+  langcode_override: ''
+  field_overrides:
+    givenName:
+      override: hidden
+    additionalName:
+      override: hidden
+    familyName:
+      override: hidden
+    organization:
+      override: optional
+    addressLine1:
+      override: optional
+    addressLine2:
+      override: optional
+    postalCode:
+      override: optional
+    sortingCode:
+      override: hidden
+    dependentLocality:
+      override: hidden
+    locality:
+      override: optional
+    administrativeArea:
+      override: optional
+  fields: {  }
+field_type: address

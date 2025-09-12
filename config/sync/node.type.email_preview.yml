@@ -1,0 +1,18 @@
+uuid: 0d4da479-b4a0-4e9f-9150-25a7fb536731
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+third_party_settings:
+  menu_ui:
+    available_menus:
+      - main
+    parent: 'main:'
+name: 'Email Preview'
+type: email_preview
+description: 'Use Email Preview for edit or preview email before it will send to a client.'
+help: ''
+new_revision: false
+preview_mode: 1
+display_submitted: false

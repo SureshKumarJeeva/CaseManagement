@@ -1,0 +1,24 @@
+uuid: 1530ddfe-bbe2-49ea-8d8b-7cd942de393d
+langcode: en
+status: true
+dependencies:
+  config:
+    - taxonomy.vocabulary.court_name
+  module:
+    - text
+id: taxonomy_term.court_name.default
+targetEntityType: taxonomy_term
+bundle: court_name
+mode: default
+content:
+  description:
+    label: hidden
+    type: text_default
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true

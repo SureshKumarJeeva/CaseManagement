@@ -1,0 +1,39 @@
+uuid: 84af5c5c-8048-43ed-a985-14cd53e73323
+langcode: en
+status: true
+dependencies:
+  module:
+    - options
+    - paragraphs
+id: paragraph.field_untitled
+field_name: field_untitled
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: 'filed on'
+      label: 'filed on'
+    -
+      value: 'issued on'
+      label: 'issued on'
+    -
+      value: dated
+      label: dated
+    -
+      value: 'sworn on'
+      label: 'sworn on'
+    -
+      value: affirmed
+      label: affirmed
+    -
+      value: 'made on'
+      label: 'made on'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

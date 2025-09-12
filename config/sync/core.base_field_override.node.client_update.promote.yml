@@ -1,0 +1,22 @@
+uuid: 8ef75fc0-86e0-4566-84b8-95d6de666b77
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.client_update
+id: node.client_update.promote
+field_name: promote
+entity_type: node
+bundle: client_update
+label: 'Promoted to front page'
+description: ''
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

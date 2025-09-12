@@ -1,0 +1,31 @@
+associatedps_forms.form_add_client:
+  path: '/add-client/{id}'
+  defaults:
+    _form: '\Drupal\associatedps_forms\Form\CustomAddClient'
+    _title: 'Create New Client'
+  requirements:
+    _permission: 'access content'
+
+associatedps_forms.form_add_document:
+  path: '/add-document/{id}'
+  defaults:
+    _form: '\Drupal\associatedps_forms\Form\CustomAddDocument'
+    _title: 'Create New Document'
+  requirements:
+    _permission: 'access content'
+
+associatedps_forms.open_modal:
+  path: '/ajax-open-modal'
+  defaults:
+    _title: 'Ajax Modal'
+    _controller: '\Drupal\associatedps_forms\Controller\CustomAjaxModalController::openModalContent'
+  requirements:
+    _permission: 'access content'
+
+associatedps_forms.get_node_content:
+  path: '/get-node-content/{id}'
+  defaults:
+    _controller: '\Drupal\associatedps_forms\Controller\GetContentNode::getContent'
+    _title: 'Get Content'
+  requirements:
+    _permission: 'access content'

@@ -1,0 +1,46 @@
+uuid: c69380fd-a99f-4f73-a4e2-5b1bc1bc8469
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.document.field_affidavit_template
+    - field.field.node.document.field_court_name
+    - field.field.node.document.field_notice_period
+    - node.type.document
+  module:
+    - user
+id: node.document.default
+targetEntityType: node
+bundle: document
+mode: default
+content:
+  field_affidavit_template:
+    weight: 2
+    label: inline
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  field_court_name:
+    weight: 1
+    label: inline
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  field_notice_period:
+    weight: 0
+    label: inline
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    type: number_integer
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  links: true

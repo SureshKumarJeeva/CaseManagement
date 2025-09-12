@@ -1,0 +1,17 @@
+role_login_page.settings:
+  route_name: role_login_page.settings
+  title: 'Role login settings'
+  description: 'Configure which roles will be associated with which pages.'
+  parent: system.admin_config
+role_login_page.settings_list:
+  route_name: role_login_page.settings_list
+  title: 'Role login settings list'
+  description: 'List of settings of role login page'
+  parent: role_login_page.settings
+role_login_page.settings_edit:
+  route_name: role_login_page.settings_edit
+  title: 'Role login settings edit'
+  description: 'Configure which roles will be associated with which pages.'
+role_login_page.settings_delete:
+  route_name: role_login_page.settings_delete
+  title: 'Role login settings delete'

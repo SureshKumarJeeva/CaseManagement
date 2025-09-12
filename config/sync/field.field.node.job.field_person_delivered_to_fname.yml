@@ -1,0 +1,19 @@
+uuid: 097e9256-1213-445d-9881-6e4bcca89627
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_person_delivered_to_fname
+    - node.type.job
+id: node.job.field_person_delivered_to_fname
+field_name: field_person_delivered_to_fname
+entity_type: node
+bundle: job
+label: 'Person Delivered to First Name'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

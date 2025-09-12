@@ -1,0 +1,19 @@
+uuid: 37cfda81-a2c5-4312-810d-79bdbecb7aa5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_notes
+    - paragraphs.paragraphs_type.attendance_note
+id: paragraph.attendance_note.field_notes
+field_name: field_notes
+entity_type: paragraph
+bundle: attendance_note
+label: Notes
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

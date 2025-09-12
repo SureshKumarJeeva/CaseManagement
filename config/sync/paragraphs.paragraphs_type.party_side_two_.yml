@@ -1,0 +1,10 @@
+uuid: 4f78226b-25aa-4d3e-90e2-f9c54170b0eb
+langcode: en
+status: true
+dependencies: {  }
+id: party_side_two_
+label: 'Party (Side Two)'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

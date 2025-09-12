@@ -1,0 +1,62 @@
+uuid: 5d6e5484-2807-4ec2-bc70-e48df86196d2
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_address_of_served
+    - node.type.online_instruction
+  module:
+    - address
+id: node.online_instruction.field_address_of_served
+field_name: field_address_of_served
+entity_type: node
+bundle: online_instruction
+label: 'Address of Person/Entity to be Served'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    country_code: AU
+    langcode: ''
+    address_line1: ''
+    locality: ''
+    administrative_area: ''
+    postal_code: ''
+    given_name: null
+    additional_name: null
+    family_name: null
+    organization: null
+    address_line2: null
+    sorting_code: null
+    dependent_locality: null
+default_value_callback: ''
+settings:
+  available_countries:
+    AU: AU
+  langcode_override: ''
+  field_overrides:
+    givenName:
+      override: hidden
+    additionalName:
+      override: hidden
+    familyName:
+      override: hidden
+    organization:
+      override: hidden
+    addressLine1:
+      override: optional
+    addressLine2:
+      override: hidden
+    postalCode:
+      override: optional
+    sortingCode:
+      override: hidden
+    dependentLocality:
+      override: hidden
+    locality:
+      override: optional
+    administrativeArea:
+      override: optional
+  fields: {  }
+field_type: address

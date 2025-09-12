@@ -1,0 +1,21 @@
+uuid: afe9d124-f631-4129-b6fc-21637db6ae90
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_body
+    - paragraphs.paragraphs_type.affidavit
+  module:
+    - text
+id: paragraph.affidavit.field_body
+field_name: field_body
+entity_type: paragraph
+bundle: affidavit
+label: Body
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: text_long

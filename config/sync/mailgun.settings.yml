@@ -1,0 +1,14 @@
+api_endpoint: 'https://api.mailgun.net'
+api_key: ca868ca34487b4ca77fa3c0e196b33c1-e5e67e3e-08857fad
+working_domain: info.associatedps.com.au
+debug_mode: false
+test_mode: false
+tracking_opens: ''
+tracking_clicks: ''
+tracking_exception: 'user:password_reset'
+format_filter: plain_text
+use_queue: false
+use_theme: false
+tagging_mailkey: true
+_core:
+  default_config_hash: LvfoMWPVBV3_b20wBXtGDiT_Mu3pqaAR6wX8E5NfuH0

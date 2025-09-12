@@ -1,0 +1,3 @@
+'administer role login settings':
+  title: 'Administer Role Login Setings'
+  description: 'Configure which roles will be associated with which pages.'

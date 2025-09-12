@@ -1,0 +1,29 @@
+uuid: 3a8e2619-4609-4d79-a4b9-db36b2c1a6d3
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.client_update.field_client_update
+    - field.field.node.client_update.field_client_update_on
+    - field.field.node.client_update.field_job_reference
+    - node.type.client_update
+  module:
+    - user
+id: node.client_update.teaser
+targetEntityType: node
+bundle: client_update
+mode: teaser
+content:
+  links:
+    weight: 100
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_client_update: true
+  field_client_update_on: true
+  field_job_reference: true

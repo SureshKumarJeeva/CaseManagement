@@ -1,0 +1,19 @@
+uuid: 93327aaa-f193-4fe1-bda8-2b00e4079db1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_notes2
+    - node.type.job
+id: node.job.field_notes2
+field_name: field_notes2
+entity_type: node
+bundle: job
+label: 'Additional Notes'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string_long

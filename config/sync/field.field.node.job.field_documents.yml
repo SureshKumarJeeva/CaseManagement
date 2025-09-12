@@ -1,0 +1,58 @@
+uuid: 4c77c8d8-f47e-43e5-9039-acf910bb591c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_documents
+    - node.type.job
+    - paragraphs.paragraphs_type.document
+  module:
+    - entity_reference_revisions
+id: node.job.field_documents
+field_name: field_documents
+entity_type: node
+bundle: job
+label: Documents
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      document: document
+    target_bundles_drag_drop:
+      address:
+        weight: 8
+        enabled: false
+      affidavit:
+        weight: 9
+        enabled: false
+      attendance_note:
+        weight: 9
+        enabled: false
+      cover_letter:
+        weight: 14
+        enabled: false
+      document:
+        enabled: true
+        weight: 7
+      from_library:
+        weight: 12
+        enabled: false
+      job_fees:
+        weight: 17
+        enabled: false
+      party:
+        weight: 10
+        enabled: false
+      party_other:
+        weight: 19
+        enabled: false
+      party_side_two_:
+        weight: 11
+        enabled: false
+field_type: entity_reference_revisions

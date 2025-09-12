@@ -1,0 +1,33 @@
+role_login_page.settings:
+  path: /admin/config/login/role_login_settings
+  defaults:
+    _title: 'Role login settings'
+    _form: \Drupal\role_login_page\Form\RoleLoginPageSettings
+  requirements:
+    _permission: 'administer role login settings'
+role_login_page.settings_list:
+  path: /admin/config/login/role_login_settings/list
+  defaults:
+    _title: 'Role login settings list'
+    _controller: '\Drupal\role_login_page\Controller\RoleLoginPageController::_role_login_page_settings_list'
+  requirements:
+    _permission: 'administer role login settings'
+role_login_page.settings_edit:
+  path: '/admin/config/login/role_login_settings/edit/{rl_id}'
+  defaults:
+    _title: 'Role login settings edit'
+    _form: \Drupal\role_login_page\Form\RoleLoginPageSettingsEdit
+    rl_id: NULL
+  requirements:
+    _permission: 'administer role login settings'
+role_login_page.settings_delete:
+  path: '/admin/config/login/role_login_settings/delete/{rlid}'
+  defaults:
+    _title: 'Role login settings delete'
+    _form: \Drupal\role_login_page\Form\RoleLoginPageSettingsDelete
+    rlid: NULL
+  requirements:
+    _permission: 'administer role login settings'
+
+route_callbacks:
+    - '\Drupal\role_login_page\Routing\RoleLoginRoutes::routes'

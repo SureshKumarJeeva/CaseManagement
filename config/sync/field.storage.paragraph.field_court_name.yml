@@ -1,0 +1,20 @@
+uuid: 0e1157a8-8e34-49d8-bdc0-dcb18b8b6ee4
+langcode: en
+status: true
+dependencies:
+  module:
+    - paragraphs
+    - taxonomy
+id: paragraph.field_court_name
+field_name: field_court_name
+entity_type: paragraph
+type: entity_reference
+settings:
+  target_type: taxonomy_term
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

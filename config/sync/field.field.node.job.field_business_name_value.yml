@@ -1,0 +1,19 @@
+uuid: 79ca5160-8c02-4e3a-a563-e3fbd2d6147d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_business_name_value
+    - node.type.job
+id: node.job.field_business_name_value
+field_name: field_business_name_value
+entity_type: node
+bundle: job
+label: 'Business Name'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

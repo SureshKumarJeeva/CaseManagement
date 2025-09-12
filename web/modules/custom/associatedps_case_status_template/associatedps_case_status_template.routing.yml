@@ -1,0 +1,11 @@
+
+associatedps_case_status_template.settings_form:
+  path: '/admin/config/associatedps_case_status_template/settings'
+  defaults:
+    _form: '\Drupal\associatedps_case_status_template\Form\SettingsForm'
+    _title: 'Case Status Template SettingsForm'
+  requirements:
+    _permission: 'access administration pages'
+  options:
+    _admin_route: TRUE
+

@@ -1,0 +1,28 @@
+uuid: 30f56152-3736-476d-afed-e3fe7919f333
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_client
+    - node.type.client
+    - node.type.job
+id: node.job.field_client
+field_name: field_client
+entity_type: node
+bundle: job
+label: Client
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      client: client
+    sort:
+      field: _none
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

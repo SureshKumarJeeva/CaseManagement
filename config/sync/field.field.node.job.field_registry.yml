@@ -1,0 +1,19 @@
+uuid: 5b329391-366e-4ae6-ad60-d46852f6bb6e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_registry
+    - node.type.job
+id: node.job.field_registry
+field_name: field_registry
+entity_type: node
+bundle: job
+label: Registry
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

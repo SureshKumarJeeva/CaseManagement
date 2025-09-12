@@ -1,0 +1,190 @@
+uuid: 35ac1d07-2c17-4822-8d14-e0c0156c34ab
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.online_instruction.field_additional_information
+    - field.field.node.online_instruction.field_address_of_served
+    - field.field.node.online_instruction.field_client_s_job_reference
+    - field.field.node.online_instruction.field_first_name
+    - field.field.node.online_instruction.field_last_date_for_service
+    - field.field.node.online_instruction.field_last_name
+    - field.field.node.online_instruction.field_next_day
+    - field.field.node.online_instruction.field_representative_name
+    - field.field.node.online_instruction.field_representative_telephone
+    - field.field.node.online_instruction.field_same_day
+    - field.field.node.online_instruction.field_telephone_of_served
+    - field.field.node.online_instruction.field_upload_documents
+    - field.field.node.online_instruction.field_work_details_of_served
+    - node.type.online_instruction
+  module:
+    - address
+    - datetime
+    - field_group
+    - file
+    - telephone
+third_party_settings:
+  field_group:
+    group_service_details:
+      children:
+        - group_name_of_served
+        - field_address_of_served
+        - field_telephone_of_served
+        - field_work_details_of_served
+        - field_last_date_for_service
+        - group_urgent_service_required
+        - field_additional_information
+        - field_upload_documents
+      parent_name: ''
+      weight: 4
+      format_type: fieldset
+      region: content
+      format_settings:
+        description: ''
+        required_fields: true
+        id: ''
+        classes: online-instruction-service-detail
+      label: 'Service Details'
+    group_name_of_served:
+      children:
+        - field_first_name
+        - field_last_name
+      parent_name: group_service_details
+      weight: 11
+      format_type: fieldset
+      region: content
+      format_settings:
+        description: ''
+        required_fields: true
+        id: ''
+        classes: online-instruction-name-of-served
+      label: 'Name of Person/Entity to be Served'
+    group_urgent_service_required:
+      children:
+        - field_same_day
+        - field_next_day
+      parent_name: group_service_details
+      weight: 17
+      format_type: fieldset
+      region: content
+      format_settings:
+        description: ''
+        required_fields: true
+        id: ''
+        classes: online-instruction-urgent-service-required
+      label: 'Urgent Service Required'
+id: node.online_instruction.default
+targetEntityType: node
+bundle: online_instruction
+mode: default
+content:
+  field_additional_information:
+    weight: 18
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textarea
+    region: content
+  field_address_of_served:
+    weight: 12
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
+    region: content
+  field_client_s_job_reference:
+    weight: 1
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_first_name:
+    weight: 9
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_last_date_for_service:
+    weight: 16
+    settings: {  }
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_last_name:
+    weight: 10
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_next_day:
+    weight: 18
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+    region: content
+  field_representative_name:
+    weight: 2
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_representative_telephone:
+    weight: 3
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+    type: telephone_default
+    region: content
+  field_same_day:
+    weight: 17
+    settings:
+      display_label: true
+    third_party_settings: {  }
+    type: boolean_checkbox
+    region: content
+  field_telephone_of_served:
+    weight: 13
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+    type: telephone_default
+    region: content
+  field_upload_documents:
+    weight: 19
+    settings:
+      progress_indicator: throbber
+    third_party_settings: {  }
+    type: file_generic
+    region: content
+  field_work_details_of_served:
+    weight: 15
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textarea
+    region: content
+  title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  created: true
+  path: true
+  promote: true
+  status: true
+  sticky: true
+  uid: true

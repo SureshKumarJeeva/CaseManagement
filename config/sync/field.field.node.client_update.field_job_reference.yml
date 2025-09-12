@@ -1,0 +1,28 @@
+uuid: 5cb465ab-73ca-439a-b78e-781d410e10f5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_job_reference
+    - node.type.client_update
+    - node.type.job
+id: node.client_update.field_job_reference
+field_name: field_job_reference
+entity_type: node
+bundle: client_update
+label: 'Job Reference'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      job: job
+    sort:
+      field: _none
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

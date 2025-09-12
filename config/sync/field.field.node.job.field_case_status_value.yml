@@ -1,0 +1,19 @@
+uuid: 5c203be7-9b59-432b-b2eb-baf921dace67
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_case_status_value
+    - node.type.job
+id: node.job.field_case_status_value
+field_name: field_case_status_value
+entity_type: node
+bundle: job
+label: 'Case Status Value'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

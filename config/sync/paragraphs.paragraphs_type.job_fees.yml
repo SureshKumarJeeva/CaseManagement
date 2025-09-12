@@ -1,0 +1,10 @@
+uuid: eb0b61f9-92d3-4020-beb5-c6cbb6edbd11
+langcode: en
+status: true
+dependencies: {  }
+id: job_fees
+label: 'Job Fees'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

@@ -1,0 +1,18 @@
+uuid: 10baf2f8-b9b7-4db2-9bd5-206058a4a63b
+langcode: en
+status: true
+dependencies:
+  config:
+    - node.type.job
+id: node.job.title
+field_name: title
+entity_type: node
+bundle: job
+label: 'Job Number'
+description: ''
+required: true
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

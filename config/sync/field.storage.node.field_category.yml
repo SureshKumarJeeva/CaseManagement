@@ -1,0 +1,33 @@
+uuid: 8a5741a4-eed1-4a17-95e3-8667d333039e
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_category
+field_name: field_category
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: Correspondence
+      label: Correspondence
+    -
+      value: Affidavit
+      label: Affidavit
+    -
+      value: Email
+      label: Email
+    -
+      value: Invoice
+      label: Invoice
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

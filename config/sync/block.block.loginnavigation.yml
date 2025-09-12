@@ -1,0 +1,33 @@
+uuid: 6ecdb1f7-1908-4d5c-960f-c0c536e0d41b
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.login-navigation
+  module:
+    - system
+    - user
+  theme:
+    - associatedps
+id: loginnavigation
+theme: associatedps
+region: pre_content
+weight: -5
+provider: null
+plugin: 'system_menu_block:login-navigation'
+settings:
+  id: 'system_menu_block:login-navigation'
+  label: 'LogIn Navigation'
+  provider: system
+  label_display: '0'
+  level: 1
+  depth: 0
+  expand_all_items: false
+visibility:
+  user_role:
+    id: user_role
+    roles:
+      anonymous: anonymous
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'

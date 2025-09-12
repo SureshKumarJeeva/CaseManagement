@@ -1,0 +1,25 @@
+uuid: 14016205-f62c-4f12-95ee-cadd6aeb8b8c
+langcode: en
+status: true
+dependencies:
+  config:
+    - views.view.client_update
+  module:
+    - views
+  theme:
+    - associatedps
+id: views_block__client_update_client_update_block
+theme: associatedps
+region: hidden
+weight: -6
+provider: null
+plugin: 'views_block:client_update-client_update_block'
+settings:
+  id: 'views_block:client_update-client_update_block'
+  label: ''
+  provider: views
+  label_display: visible
+  views_label: ''
+  items_per_page: none
+  context_mapping: {  }
+visibility: {  }

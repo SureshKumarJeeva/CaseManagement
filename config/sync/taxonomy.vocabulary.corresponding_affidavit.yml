@@ -1,0 +1,8 @@
+uuid: 964ebd1a-28f2-426e-b814-2adcf8065e3b
+langcode: en
+status: true
+dependencies: {  }
+name: 'Corresponding Affidavit'
+vid: corresponding_affidavit
+description: ''
+weight: 0

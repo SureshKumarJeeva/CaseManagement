@@ -1,0 +1,69 @@
+uuid: c3324210-cf1e-4f10-b92c-e38ce9c82673
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.paragraph.preview
+    - field.field.paragraph.document.field_affidavit_template
+    - field.field.paragraph.document.field_amount
+    - field.field.paragraph.document.field_court_name
+    - field.field.paragraph.document.field_date
+    - field.field.paragraph.document.field_doc_notice_period
+    - field.field.paragraph.document.field_document
+    - field.field.paragraph.document.field_document_title
+    - field.field.paragraph.document.field_name
+    - field.field.paragraph.document.field_notice_period
+    - field.field.paragraph.document.field_override_notice_period
+    - field.field.paragraph.document.field_primary_document
+    - field.field.paragraph.document.field_untitled
+    - paragraphs.paragraphs_type.document
+  module:
+    - field_formatter_class
+id: paragraph.document.preview
+targetEntityType: paragraph
+bundle: document
+mode: preview
+content:
+  field_document:
+    type: entity_reference_entity_view
+    weight: 0
+    region: content
+    label: inline
+    settings:
+      link: true
+      view_mode: default
+    third_party_settings: {  }
+  field_override_notice_period:
+    type: number_integer
+    weight: 2
+    region: content
+    label: inline
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+  field_primary_document:
+    weight: 1
+    label: inline
+    settings:
+      format: yes-no
+      format_custom_true: ''
+      format_custom_false: ''
+    third_party_settings:
+      field_formatter_class:
+        class: ''
+    type: boolean
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_affidavit_template: true
+  field_amount: true
+  field_court_name: true
+  field_date: true
+  field_doc_notice_period: true
+  field_document_title: true
+  field_name: true
+  field_notice_period: true
+  field_untitled: true

@@ -1,0 +1,19 @@
+uuid: efc5205e-d8d8-4667-b887-2d720eabee80
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_client_s_job_email
+    - node.type.job
+id: node.job.field_client_s_job_email
+field_name: field_client_s_job_email
+entity_type: node
+bundle: job
+label: 'Client''s Job Email'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: email

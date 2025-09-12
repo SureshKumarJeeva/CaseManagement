@@ -1,0 +1,7 @@
+associatedps_case_status_template.settings_form:
+  title: 'Case Status Template SettingsForm'
+  route_name: associatedps_case_status_template.settings_form
+  description: 'Case Status Template'
+  parent: system.admin_config_system
+  weight: 99
+

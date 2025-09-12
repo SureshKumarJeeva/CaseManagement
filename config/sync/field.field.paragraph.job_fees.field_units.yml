@@ -1,0 +1,23 @@
+uuid: 60a751b5-abcb-401b-b731-23ac47477140
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_units
+    - paragraphs.paragraphs_type.job_fees
+id: paragraph.job_fees.field_units
+field_name: field_units
+entity_type: paragraph
+bundle: job_fees
+label: Units
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: decimal

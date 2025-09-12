@@ -1,0 +1,22 @@
+uuid: c22a9127-6152-41fb-90c4-01c77667c73c
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - associatedps
+_core:
+  default_config_hash: YRY68JWkaUiGeZlWMv1nzeIgDm0ZZwXYgpqUpLFzwAY
+id: associatedps_content
+theme: associatedps
+region: content
+weight: -5
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 'Main page content'
+  provider: system
+  label_display: '0'
+visibility: {  }

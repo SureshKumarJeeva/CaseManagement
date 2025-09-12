@@ -1,0 +1,144 @@
+uuid: be103be4-f940-44cf-a2d6-0b9a3d63f997
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.client.field_agreed_discount
+    - field.field.node.client.field_client_address
+    - field.field.node.client.field_client_id
+    - field.field.node.client.field_email
+    - field.field.node.client.field_email_interval
+    - field.field.node.client.field_email_template
+    - field.field.node.client.field_notes
+    - field.field.node.client.field_send_auto_email
+    - field.field.node.client.field_telephone
+    - field.field.node.client.field_user
+    - node.type.client
+  module:
+    - address
+    - field_formatter_class
+    - field_group
+    - telephone
+    - text
+    - user
+third_party_settings:
+  field_group:
+    group_address:
+      children:
+        - field_client_address
+      parent_name: ''
+      weight: 2
+      format_type: fieldset
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+      label: Address
+      region: content
+id: node.client.default
+targetEntityType: node
+bundle: client
+mode: default
+content:
+  field_agreed_discount:
+    type: number_integer
+    weight: 5
+    region: content
+    label: inline
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings:
+      field_formatter_class:
+        class: client-agreed-discount-number
+  field_client_address:
+    weight: 2
+    label: hidden
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: client-address
+    type: address_default
+    region: content
+  field_client_id:
+    type: string
+    weight: 1
+    region: content
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: client-id-text
+  field_email:
+    type: email_mailto
+    weight: 4
+    region: content
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: client-generic-email
+  field_email_interval:
+    weight: 9
+    label: inline
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    type: number_integer
+    region: content
+  field_email_template:
+    weight: 10
+    label: inline
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  field_notes:
+    type: text_default
+    weight: 6
+    region: content
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: client-notes-textarea
+  field_send_auto_email:
+    weight: 8
+    label: inline
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    type: boolean
+    region: content
+  field_telephone:
+    type: telephone_link
+    weight: 3
+    region: content
+    label: inline
+    settings:
+      title: ''
+    third_party_settings:
+      field_formatter_class:
+        class: client-phone
+  field_user:
+    weight: 0
+    label: inline
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+  links:
+    weight: 7
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true

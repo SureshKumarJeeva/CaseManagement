@@ -1,0 +1,10 @@
+uuid: bdb9346f-89a4-490d-b2a8-0c35b3331006
+langcode: en
+status: true
+dependencies: {  }
+id: party
+label: 'Party (Side One)'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

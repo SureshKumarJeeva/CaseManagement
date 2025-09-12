@@ -1,0 +1,21 @@
+uuid: 6e6bb370-9606-49a3-b586-6fde8d5c0def
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_representative_telephone
+    - node.type.online_instruction
+  module:
+    - telephone
+id: node.online_instruction.field_representative_telephone
+field_name: field_representative_telephone
+entity_type: node
+bundle: online_instruction
+label: 'Client''s Representative Telephone'
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: telephone

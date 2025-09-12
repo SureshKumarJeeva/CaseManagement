@@ -1,0 +1,19 @@
+uuid: b6247ed5-0cbb-46e2-9a7b-9cb222789637
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_client_email
+    - node.type.email_preview
+id: node.email_preview.field_client_email
+field_name: field_client_email
+entity_type: node
+bundle: email_preview
+label: 'Client Email'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: email

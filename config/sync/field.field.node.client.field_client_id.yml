@@ -1,0 +1,21 @@
+uuid: b3751c16-b544-499e-9823-89afd2b323c2
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_client_id
+    - node.type.client
+id: node.client.field_client_id
+field_name: field_client_id
+entity_type: node
+bundle: client
+label: 'Client ID'
+description: ''
+required: true
+translatable: false
+default_value:
+  -
+    value: '54323'
+default_value_callback: ''
+settings: {  }
+field_type: string

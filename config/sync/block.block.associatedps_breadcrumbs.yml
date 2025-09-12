@@ -1,0 +1,22 @@
+uuid: 2ef8f63b-0ee5-4696-84dc-df15d07af575
+langcode: en
+status: false
+dependencies:
+  module:
+    - system
+  theme:
+    - associatedps
+_core:
+  default_config_hash: WWu2OQswgCztl9OeXjD1stexIEMZsSgPMYIdC-JHx9c
+id: associatedps_breadcrumbs
+theme: associatedps
+region: breadcrumb
+weight: -6
+provider: null
+plugin: system_breadcrumb_block
+settings:
+  id: system_breadcrumb_block
+  label: Breadcrumbs
+  provider: system
+  label_display: '0'
+visibility: {  }

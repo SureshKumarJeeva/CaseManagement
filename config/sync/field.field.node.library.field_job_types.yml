@@ -1,0 +1,29 @@
+uuid: 6335ccd9-ff50-4fe9-a7f5-499142d9ba90
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_job_types
+    - node.type.library
+    - taxonomy.vocabulary.services
+id: node.library.field_job_types
+field_name: field_job_types
+entity_type: node
+bundle: library
+label: 'Job Type'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      services: services
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

@@ -1,0 +1,37 @@
+uuid: 1c0f4916-1e3d-4cca-99a7-1b7130e292af
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.email_preview.body
+    - field.field.node.email_preview.field_client_email
+    - field.field.node.email_preview.field_email_subject
+    - node.type.email_preview
+  module:
+    - text
+    - user
+id: node.email_preview.teaser
+targetEntityType: node
+bundle: email_preview
+mode: teaser
+content:
+  body:
+    label: hidden
+    type: text_summary_or_trimmed
+    weight: 101
+    settings:
+      trim_length: 600
+    third_party_settings: {  }
+    region: content
+  links:
+    weight: 100
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_client_email: true
+  field_email_subject: true

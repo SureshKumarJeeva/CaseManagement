@@ -1,0 +1,27 @@
+uuid: 7eb9c558-06b0-484f-a8ed-130f1e696639
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_upload_documents
+    - node.type.online_instruction
+  module:
+    - file
+id: node.online_instruction.field_upload_documents
+field_name: field_upload_documents
+entity_type: node
+bundle: online_instruction
+label: 'Upload Documents for Service Here'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'txt doc docx pdf'
+  max_filesize: '20 MB'
+  description_field: false
+  handler: 'default:file'
+  handler_settings: {  }
+field_type: file

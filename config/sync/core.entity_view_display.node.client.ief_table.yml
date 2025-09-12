@@ -1,0 +1,60 @@
+uuid: 13cdc50a-f29a-4262-b821-a5654e228e9b
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.ief_table
+    - field.field.node.client.field_agreed_discount
+    - field.field.node.client.field_client_address
+    - field.field.node.client.field_client_id
+    - field.field.node.client.field_email
+    - field.field.node.client.field_email_interval
+    - field.field.node.client.field_email_template
+    - field.field.node.client.field_notes
+    - field.field.node.client.field_send_auto_email
+    - field.field.node.client.field_telephone
+    - field.field.node.client.field_user
+    - node.type.client
+  module:
+    - user
+id: node.client.ief_table
+targetEntityType: node
+bundle: client
+mode: ief_table
+content:
+  field_agreed_discount:
+    type: number_integer
+    weight: 2
+    region: content
+    label: hidden
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+  field_client_id:
+    type: string
+    weight: 1
+    region: content
+    label: hidden
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+  label:
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_client_address: true
+  field_email: true
+  field_email_interval: true
+  field_email_template: true
+  field_notes: true
+  field_send_auto_email: true
+  field_telephone: true
+  field_user: true
+  links: true
+  status: true

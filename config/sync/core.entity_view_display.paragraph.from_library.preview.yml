@@ -1,0 +1,28 @@
+uuid: 11230185-79dd-4e4b-992d-7cc9c483873d
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.paragraph.preview
+    - field.field.paragraph.from_library.field_reusable_paragraph
+    - paragraphs.paragraphs_type.from_library
+  module:
+    - field_formatter_class
+_core:
+  default_config_hash: cwuIPYXF5vCbzfY8wjj_shzx513Cwc122DIqGh2Uqho
+id: paragraph.from_library.preview
+targetEntityType: paragraph
+bundle: from_library
+mode: preview
+content:
+  field_reusable_paragraph:
+    weight: 0
+    label: inline
+    settings:
+      link: true
+    third_party_settings:
+      field_formatter_class:
+        class: ''
+    type: entity_reference_label
+    region: content
+hidden: {  }

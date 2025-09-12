@@ -1,0 +1,21 @@
+uuid: 52747c8b-c8aa-470e-aeb0-b140033a3e39
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_client_update_on
+    - node.type.client_update
+  module:
+    - datetime
+id: node.client_update.field_client_update_on
+field_name: field_client_update_on
+entity_type: node
+bundle: client_update
+label: 'Client Update On'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

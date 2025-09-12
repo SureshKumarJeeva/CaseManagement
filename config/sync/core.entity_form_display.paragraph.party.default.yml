@@ -1,0 +1,49 @@
+uuid: b88d1c4a-9e92-404d-9f7a-42117821e1e9
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.party.field_full_name
+    - field.field.paragraph.party.field_last_name
+    - field.field.paragraph.party.field_name
+    - field.field.paragraph.party.field_party_type
+    - paragraphs.paragraphs_type.party
+id: paragraph.party.default
+targetEntityType: paragraph
+bundle: party
+mode: default
+content:
+  field_full_name:
+    weight: 3
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_last_name:
+    weight: 1
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_name:
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_party_type:
+    weight: 2
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+hidden:
+  created: true
+  status: true
+  uid: true

@@ -1,0 +1,23 @@
+uuid: 0aa993dd-8210-4d21-9462-51f63933fc4f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_email_interval
+    - node.type.client
+id: node.client.field_email_interval
+field_name: field_email_interval
+entity_type: node
+bundle: client
+label: Frequency
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ' day(s)'
+field_type: integer

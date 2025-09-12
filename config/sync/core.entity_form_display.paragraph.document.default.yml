@@ -1,0 +1,121 @@
+uuid: 590a1748-aaf4-46a3-b1cc-6400b5c74f85
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.document.field_affidavit_template
+    - field.field.paragraph.document.field_amount
+    - field.field.paragraph.document.field_court_name
+    - field.field.paragraph.document.field_date
+    - field.field.paragraph.document.field_doc_notice_period
+    - field.field.paragraph.document.field_document
+    - field.field.paragraph.document.field_document_title
+    - field.field.paragraph.document.field_name
+    - field.field.paragraph.document.field_notice_period
+    - field.field.paragraph.document.field_override_notice_period
+    - field.field.paragraph.document.field_primary_document
+    - field.field.paragraph.document.field_untitled
+    - paragraphs.paragraphs_type.document
+  module:
+    - chosen_field
+    - datetime
+    - ief_table_view_mode
+id: paragraph.document.default
+targetEntityType: paragraph
+bundle: document
+mode: default
+content:
+  field_affidavit_template:
+    weight: 10
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+      match_limit: 10
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
+    region: content
+  field_amount:
+    type: number
+    weight: 5
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_court_name:
+    weight: 9
+    settings:
+      match_operator: CONTAINS
+      size: 60
+      placeholder: ''
+      match_limit: 10
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
+    region: content
+  field_date:
+    weight: 3
+    settings: {  }
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_doc_notice_period:
+    weight: 11
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+    type: number
+    region: content
+  field_document:
+    type: chosen_select
+    weight: 0
+    region: content
+    settings: {  }
+    third_party_settings:
+      ief_table_view_mode:
+        entity_browser_id: _none
+  field_document_title:
+    weight: 7
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_name:
+    weight: 4
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_notice_period:
+    weight: 8
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+    type: number
+    region: content
+  field_override_notice_period:
+    type: number
+    weight: 6
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  field_primary_document:
+    type: boolean_checkbox
+    weight: 1
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  field_untitled:
+    type: options_select
+    weight: 2
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  created: true
+  status: true

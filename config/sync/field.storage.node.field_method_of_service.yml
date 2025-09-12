@@ -1,0 +1,30 @@
+uuid: 68513dbe-97bb-48fe-9588-c474b6a30b0f
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_method_of_service
+field_name: field_method_of_service
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: 'Delivering personally to'
+      label: 'Delivering personally to'
+    -
+      value: 'Inserting under the front door'
+      label: 'Inserting under the front door'
+    -
+      value: 'Leaving with reception'
+      label: 'Leaving with reception'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

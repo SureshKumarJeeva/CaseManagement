@@ -1,0 +1,43 @@
+uuid: 4354b5f3-38a5-4c47-a4dd-fcebf356a73c
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.library.body
+    - field.field.node.library.field_available_tokens
+    - field.field.node.library.field_case_status
+    - field.field.node.library.field_category
+    - field.field.node.library.field_email_subject
+    - field.field.node.library.field_job_types
+    - node.type.library
+  module:
+    - text
+    - user
+id: node.library.teaser
+targetEntityType: node
+bundle: library
+mode: teaser
+content:
+  body:
+    label: hidden
+    type: text_summary_or_trimmed
+    weight: 101
+    settings:
+      trim_length: 600
+    third_party_settings: {  }
+    region: content
+  links:
+    weight: 100
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_available_tokens: true
+  field_case_status: true
+  field_category: true
+  field_email_subject: true
+  field_job_types: true

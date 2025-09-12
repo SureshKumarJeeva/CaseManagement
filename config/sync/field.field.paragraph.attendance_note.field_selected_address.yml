@@ -1,0 +1,19 @@
+uuid: 36cf5e98-8994-4bab-ac33-0fdc956d2196
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_selected_address
+    - paragraphs.paragraphs_type.attendance_note
+id: paragraph.attendance_note.field_selected_address
+field_name: field_selected_address
+entity_type: paragraph
+bundle: attendance_note
+label: 'Selected Address'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

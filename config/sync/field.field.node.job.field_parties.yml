@@ -1,0 +1,58 @@
+uuid: 77c67009-bc13-4d1e-a9e6-e7db11084e1d
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_parties
+    - node.type.job
+    - paragraphs.paragraphs_type.party
+  module:
+    - entity_reference_revisions
+id: node.job.field_parties
+field_name: field_parties
+entity_type: node
+bundle: job
+label: 'Side One Parties'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      party: party
+    target_bundles_drag_drop:
+      address:
+        weight: 6
+        enabled: false
+      affidavit:
+        weight: 12
+        enabled: false
+      attendance_note:
+        weight: 6
+        enabled: false
+      cover_letter:
+        weight: 14
+        enabled: false
+      document:
+        weight: 15
+        enabled: false
+      from_library:
+        weight: 16
+        enabled: false
+      job_fees:
+        weight: 17
+        enabled: false
+      party:
+        enabled: true
+        weight: 2
+      party_other:
+        weight: 19
+        enabled: false
+      party_side_two_:
+        weight: 5
+        enabled: false
+field_type: entity_reference_revisions

@@ -1,0 +1,23 @@
+uuid: d6743741-f3d4-4b66-bb39-ed9caff74d68
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_notice_period
+    - node.type.document
+id: node.document.field_notice_period
+field_name: field_notice_period
+entity_type: node
+bundle: document
+label: 'Notice Period'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ' day(s)'
+field_type: integer

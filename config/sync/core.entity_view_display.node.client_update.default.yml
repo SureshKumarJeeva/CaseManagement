@@ -1,0 +1,47 @@
+uuid: 8d160e89-c81e-4700-bb9d-59fe6d9afd64
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.client_update.field_client_update
+    - field.field.node.client_update.field_client_update_on
+    - field.field.node.client_update.field_job_reference
+    - node.type.client_update
+  module:
+    - datetime
+    - text
+    - user
+id: node.client_update.default
+targetEntityType: node
+bundle: client_update
+mode: default
+content:
+  field_client_update:
+    weight: 1
+    label: inline
+    settings: {  }
+    third_party_settings: {  }
+    type: text_default
+    region: content
+  field_client_update_on:
+    weight: 2
+    label: inline
+    settings:
+      format_type: medium
+      timezone_override: ''
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_job_reference:
+    weight: 0
+    label: inline
+    settings:
+      link: true
+    third_party_settings: {  }
+    type: entity_reference_label
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  links: true

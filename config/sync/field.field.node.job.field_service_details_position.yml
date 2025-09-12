@@ -1,0 +1,19 @@
+uuid: 7c4dd823-d077-4943-9e6b-be7b161b1122
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_service_details_position
+    - node.type.job
+id: node.job.field_service_details_position
+field_name: field_service_details_position
+entity_type: node
+bundle: job
+label: 'Relationship or Position'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

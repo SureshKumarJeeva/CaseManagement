@@ -1,0 +1,28 @@
+uuid: 64ab00e9-26fc-49a7-8197-1d88bc659bd3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_email_template
+    - node.type.client
+    - node.type.library
+id: node.client.field_email_template
+field_name: field_email_template
+entity_type: node
+bundle: client
+label: 'Email Template'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:node'
+  handler_settings:
+    target_bundles:
+      library: library
+    sort:
+      field: _none
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

@@ -1,0 +1,33 @@
+uuid: 6f72ff91-5473-4343-a140-f439ffc7485a
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.client-menu
+  module:
+    - system
+    - user
+  theme:
+    - associatedps
+id: clientmenu
+theme: associatedps
+region: pre_content
+weight: -3
+provider: null
+plugin: 'system_menu_block:client-menu'
+settings:
+  id: 'system_menu_block:client-menu'
+  label: 'Client Menu'
+  provider: system
+  label_display: '0'
+  level: 1
+  depth: 0
+  expand_all_items: false
+visibility:
+  user_role:
+    id: user_role
+    roles:
+      client: client
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'

@@ -1,0 +1,21 @@
+uuid: 957aaa5d-88b8-4fe6-af2c-80cd17d357cf
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_available_tokens
+    - node.type.library
+id: node.library.field_available_tokens
+field_name: field_available_tokens
+entity_type: node
+bundle: library
+label: 'Available Tokens'
+description: "Add available Tokens for the selected webform. Tokens must be in [] and add | For separate token and description. Add new token in new line. For display form element use field. as prefix. For display Label of field in PDF use label. as prefix.\r\n For example, \r\n [field_client_name]|Display Client Name Value"
+required: false
+translatable: false
+default_value:
+  -
+    value: "[node:field_client]\r\n[node:field_client_ref]\r\n[node:field_client_s_job_email]\r\n[node:field_client:field_client_id]\r\n[node:field_client:field_client_address]\r\n[node:field_client:field_telephone]\r\n[node:field_client:field_email]\r\n[node:field_client:field_agreed_discount]\r\n[node:field_client:field_notes]\r\n[node:field_court]\r\n[node:field_case_no]\r\n[node:field_division]\r\n[node:field_list]\r\n[node:field_registry]\r\n[node:field_hearing_date]\r\n[node:field_parties:field_full_name]\r\n[node:field_party_2:field_full_name]\r\n[node:field_other_parties:field_name]\r\n[node:field_parties:field_party_type]\r\n[node:field_party_2:field_party_type_2]\r\n[node:field_other_parties:field_party_type_other]\r\n[node:field_parties]\r\n[node:field_party_2]\r\n[node:field_other_parties]\r\n[node:field_name_to_server_value]\r\n[node:field_party_to_serve_phone]\r\n[node:field_service_address]\r\n[node:field_served_notes]\r\n[node:field_case_status]\r\n[node:field_admin_status]\r\n[node:field_admin_send_to_client_date]\r\n[node:field_admin_invoiced_date]\r\n[node:field_admin_email_update_date]\r\n[node:field_admin_cover_letter_date]\r\n[node:field_admin_affidavit_date]\r\n[node:field_job_types]\r\n[node:field_instruction_received]\r\n[node:field_allocation_date]\r\n[node:field_allocated_to_first_name]\r\n[node:field_allocated_to_last_name]\r\n[node:field_allocated_to_full_name]\r\n[node:field_deadline]\r\n[node:field_served_by_first_name]\r\n[node:field_served_by_last_name]\r\n[node:field_served_by_full_name]\r\n[node:field_date_service]\r\n[node:field_para_address]\r\n[node:field_method_of_service]\r\n[node:field_person_delivered_to]\r\n[node:field_person_delivered_to_fname]\r\n[node:field_person_delivered_to_lname]\r\n[node:field_service_details_position]\r\n[node:field_business_name]\r\n[node:field_notes2]\r\n[node:field_attendance_notes]\r\n[node:field_attendance_notes:field_employee_full_name]\r\n[node:field_attendance_notes:field_employee_first_name]\r\n[node:field_attendance_notes:field_employee_last_name]\r\n[node:field_attendance_notes:field_date_time]\r\n[node:field_attendance_notes:field_address_attendance]\r\n[node:field_attendance_notes:field_notes]\r\n[node:field_documents:field_untitled]\r\n[node:field_documents:field_date]\r\n[node:field_documents:field_name]\r\n[node:field_documents:field_amount]\r\n[node:field_documents:field_notice_period]\r\n[node:field_documents:field_document]\r\n[node:field_job_fees:field_standard_fee]\r\n[node:field_job_fees:field_agreed_fee]\r\n[node:field_job_fees:field_type_of_service]\r\n[node:field_job_fees:field_units]\r\n[node:field_job_fees:field_total]"
+default_value_callback: ''
+settings: {  }
+field_type: string_long

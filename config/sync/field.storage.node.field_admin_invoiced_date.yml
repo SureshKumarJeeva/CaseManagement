@@ -1,0 +1,20 @@
+uuid: 0f81fb00-7b9d-4d3d-a757-50b35bbbcb38
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - node
+id: node.field_admin_invoiced_date
+field_name: field_admin_invoiced_date
+entity_type: node
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

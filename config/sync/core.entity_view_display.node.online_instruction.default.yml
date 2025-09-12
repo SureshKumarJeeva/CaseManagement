@@ -1,0 +1,145 @@
+uuid: d4866ab7-8ac1-4b04-b45b-e6b84d4ba7c0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.online_instruction.field_additional_information
+    - field.field.node.online_instruction.field_address_of_served
+    - field.field.node.online_instruction.field_client_s_job_reference
+    - field.field.node.online_instruction.field_first_name
+    - field.field.node.online_instruction.field_last_date_for_service
+    - field.field.node.online_instruction.field_last_name
+    - field.field.node.online_instruction.field_next_day
+    - field.field.node.online_instruction.field_representative_name
+    - field.field.node.online_instruction.field_representative_telephone
+    - field.field.node.online_instruction.field_same_day
+    - field.field.node.online_instruction.field_telephone_of_served
+    - field.field.node.online_instruction.field_upload_documents
+    - field.field.node.online_instruction.field_work_details_of_served
+    - node.type.online_instruction
+  module:
+    - address
+    - datetime
+    - file
+    - telephone
+    - user
+id: node.online_instruction.default
+targetEntityType: node
+bundle: online_instruction
+mode: default
+content:
+  field_additional_information:
+    weight: 112
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: basic_string
+    region: content
+  field_address_of_served:
+    weight: 106
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: address_default
+    region: content
+  field_client_s_job_reference:
+    weight: 101
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_first_name:
+    weight: 104
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_last_date_for_service:
+    weight: 109
+    label: above
+    settings:
+      format_type: medium
+      timezone_override: ''
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_last_name:
+    weight: 105
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_next_day:
+    weight: 111
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    type: boolean
+    region: content
+  field_representative_name:
+    weight: 102
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_representative_telephone:
+    weight: 103
+    label: above
+    settings:
+      title: ''
+    third_party_settings: {  }
+    type: telephone_link
+    region: content
+  field_same_day:
+    weight: 110
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    type: boolean
+    region: content
+  field_telephone_of_served:
+    weight: 107
+    label: above
+    settings:
+      title: ''
+    third_party_settings: {  }
+    type: telephone_link
+    region: content
+  field_upload_documents:
+    weight: 113
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    type: file_table
+    region: content
+  field_work_details_of_served:
+    weight: 108
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    type: basic_string
+    region: content
+  links:
+    weight: 100
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true

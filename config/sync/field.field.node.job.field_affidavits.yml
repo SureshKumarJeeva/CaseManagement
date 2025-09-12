@@ -1,0 +1,51 @@
+uuid: 456a2bce-9963-49e3-b06f-683de2c06b0a
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_affidavits
+    - node.type.job
+    - paragraphs.paragraphs_type.affidavit
+    - paragraphs.paragraphs_type.from_library
+  module:
+    - entity_reference_revisions
+id: node.job.field_affidavits
+field_name: field_affidavits
+entity_type: node
+bundle: job
+label: Affidavits
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      affidavit: affidavit
+      from_library: from_library
+    target_bundles_drag_drop:
+      address:
+        weight: 8
+        enabled: false
+      affidavit:
+        enabled: true
+        weight: 9
+      attendance_note:
+        weight: 10
+        enabled: false
+      document:
+        weight: 11
+        enabled: false
+      from_library:
+        enabled: true
+        weight: 12
+      party:
+        weight: 13
+        enabled: false
+      party_side_two_:
+        weight: 14
+        enabled: false
+field_type: entity_reference_revisions

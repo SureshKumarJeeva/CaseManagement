@@ -1,0 +1,19 @@
+uuid: 33fc5a87-f73c-4111-88e7-02ed81e02bd4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_primary_postal_code
+    - node.type.job
+id: node.job.field_primary_postal_code
+field_name: field_primary_postal_code
+entity_type: node
+bundle: job
+label: 'Primary Postal Code'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

@@ -1,0 +1,19 @@
+uuid: 5ad673b3-b5d5-47b5-9103-b5716f725b96
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_email_subject
+    - node.type.email_preview
+id: node.email_preview.field_email_subject
+field_name: field_email_subject
+entity_type: node
+bundle: email_preview
+label: 'Email Subject'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

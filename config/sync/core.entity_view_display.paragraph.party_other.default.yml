@@ -1,0 +1,53 @@
+uuid: a3a08070-615d-4300-af2b-83a423e27c67
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.party_other.field_name
+    - field.field.paragraph.party_other.field_party_type_other
+    - paragraphs.paragraphs_type.party_other
+  module:
+    - field_formatter_class
+    - field_group
+    - options
+third_party_settings:
+  field_group:
+    group_party_details_other:
+      children:
+        - field_name
+        - field_party_type_other
+      parent_name: ''
+      weight: 0
+      format_type: fieldset
+      region: content
+      format_settings:
+        id: ''
+        classes: ''
+        description: ''
+      label: 'Party Details (Other)'
+id: paragraph.party_other.default
+targetEntityType: paragraph
+bundle: party_other
+mode: default
+content:
+  field_name:
+    weight: 3
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_party_type_other:
+    weight: 4
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: party-other-type-select
+    type: list_default
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true

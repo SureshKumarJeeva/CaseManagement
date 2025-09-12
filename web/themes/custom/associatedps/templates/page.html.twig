@@ -1,0 +1,47 @@
+{#
+/**
+ * @file
+#}
+  <header class="content-header clearfix">
+    <div class="layout-container">
+      <div class="logo-wrapper">
+        <a href="/" class="logo"><img src="/themes/custom/associatedps/logo.png" alt="Associated Process Server"></a>
+      </div>
+      <div class="page-title-header">
+        <div id="block-associatedps-page-title" class="block block-core block-page-title-block">
+          <h1 class="page-title">
+            <span class="field field--name-title field--type-string field--label-hidden">Associated Process Servers</span>
+          </h1>
+        </div>
+        <div>
+        {% if user_name is not same as("Anonymous") %}
+        <input type="hidden" id="user_role" class="logged-in-user-role" value={{ user_role }}>
+          <div class="login-btn">
+            <h2><a href={{ user_url }}>{{ user_name }}</a>
+              <p class="dropdown-menu">
+                <a href="/user/logout">Logout</a>
+              </p>
+            </h2>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </header>
+
+  {{ page.pre_content }}
+
+  <div class="layout-container">
+    {{ page.breadcrumb }}
+    <main class="page-content clearfix" role="main">
+      <div class="visually-hidden"><a id="main-content" tabindex="-1"></a></div>
+      {{ page.highlighted }}
+      {% if page.help %}
+        <div class="help">
+          {{ page.help }}
+        </div>
+      {% endif %}
+      {{ page.content }}
+    </main>
+
+  </div>

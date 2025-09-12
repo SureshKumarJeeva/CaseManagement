@@ -1,0 +1,116 @@
+diff --git a/simple_multistep.module b/simple_multistep.module
+index 171dd0a..118d9f9 100644
+--- a/simple_multistep.module
++++ b/simple_multistep.module
+@@ -7,6 +7,8 @@
+ 
+ use Drupal\Core\Form\FormStateInterface;
+ use Drupal\simple_multistep\MultistepController;
++use Symfony\Component\HttpFoundation\RedirectResponse;
++use Symfony\Component\HttpFoundation\Cookie;
+ 
+ /**
+  * Implements hook_form_alter().
+@@ -44,8 +46,16 @@ function simple_multistep_register_next_step(&$form, FormStateInterface $form_st
+   $multiStep->saveInputValues();
+   $multiStep->saveStoredValues();
+ 
+-  $multiStep->increaseStep();
+ 
++  if(isset($_COOKIE['current_step'])) {
++    $step = $_COOKIE['current_step'];
++    unset($_COOKIE['current_step']);
++    setcookie('current_step', null, -1, '/');
++    $multiStep->increaseStep($step);
++  }
++  else {
++    $multiStep->increaseStep();
++  }
+   // Fill field value previous step.
+   $stored_input = $multiStep->getInputValues();
+ 
+@@ -60,6 +70,22 @@ function simple_multistep_register_next_step(&$form, FormStateInterface $form_st
+   $form_state->setRebuild();
+ }
+ 
++/**
++ * Validator handler for save button.
++ */
++function simple_multistep_after_save_next_step(&$form, FormStateInterface $form_state) {
++  /** @var \Drupal\simple_multistep\MultistepController $multiStep */
++
++  $path = \Drupal::service('path.current')->getPath();
++  $multiStep = $form_state->get('multistep_controller');
++  $multiStep->setFormState($form_state);
++  $current_step = $multiStep->getCurrentStep();
++  $form_state->setRebuild(TRUE);
++  $response = new RedirectResponse($path);
++  setcookie('current_step', $current_step, time() + (86400 * 30), "/"); // 86400 = 1 day
++  $form_state->setResponse($response);
++}
++
+ /**
+  * Validator handler for back button.
+  */
+diff --git a/src/FormButton.php b/src/FormButton.php
+index 9c026a6..35bf99c 100644
+--- a/src/FormButton.php
++++ b/src/FormButton.php
+@@ -76,6 +76,29 @@ class FormButton extends FormStep {
+     }
+   }
+ 
++  /**
++   * Show save button.
++   *
++   * @param array $form
++   *   Reference to form array.
++   */
++  private function showSaveButton(array &$form) {
++
++    if (count($this->steps) - 1 != $this->currentStep) {
++      if ($this->currentStep == 0) {
++        $form['actions']['submit']['#access'] = TRUE;
++      }
++      else {
++        $form['actions']['submit']['#access'] = TRUE;
++        $form['actions']['submit']['#submit'][] = 'simple_multistep_after_save_next_step';
++      }
++    }
++    // On last step hide next button and show save button.
++    else {
++      $form['actions']['submit']['#access'] = TRUE;
++    }
++  }
++
+   /**
+    * Render form button.
+    *
+@@ -85,6 +108,7 @@ class FormButton extends FormStep {
+   public function render(array &$form) {
+     $this->showBackButton($form);
+     $this->showNextButton($form);
++    $this->showSaveButton($form);
+   }
+ 
+ }
+diff --git a/src/FormStep.php b/src/FormStep.php
+index 133333c..99a3dcf 100644
+--- a/src/FormStep.php
++++ b/src/FormStep.php
+@@ -87,8 +87,13 @@ class FormStep {
+   /**
+    * Increase step number.
+    */
+-  public function increaseStep() {
+-    $this->currentStep++;
++  public function increaseStep($step = '') {
++    if (!empty($step)) {
++      $this->currentStep = $this->currentStep + $step;
++    }
++    else {
++      $this->currentStep++;
++    }
+   }
+ 
+   /**

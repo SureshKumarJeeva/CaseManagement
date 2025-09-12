@@ -1,0 +1,14 @@
+uuid: 13c2f080-9e30-4d49-9d97-f0a452df4b9f
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.office
+  module:
+    - user
+id: user_remove_role_action.office
+label: 'Remove the Office role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: office

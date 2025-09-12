@@ -1,0 +1,28 @@
+uuid: b7648609-f1ee-4c13-8ea8-24157ab9bc3f
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_by
+    - paragraphs.paragraphs_type.attendance_note
+id: paragraph.attendance_note.field_by
+field_name: field_by
+entity_type: paragraph
+bundle: attendance_note
+label: Employee
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:user'
+  handler_settings:
+    include_anonymous: true
+    filter:
+      type: _none
+    target_bundles: null
+    sort:
+      field: _none
+    auto_create: false
+field_type: entity_reference

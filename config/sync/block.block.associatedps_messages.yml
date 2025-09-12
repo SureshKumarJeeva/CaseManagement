@@ -1,0 +1,22 @@
+uuid: e52ee438-ee57-4453-979d-8755dd9ab5bd
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - associatedps
+_core:
+  default_config_hash: XJqWwLt1LDCnazcEN6QkJmCLjk4R0__-8s0OO9xeNjg
+id: associatedps_messages
+theme: associatedps
+region: highlighted
+weight: -5
+provider: null
+plugin: system_messages_block
+settings:
+  id: system_messages_block
+  label: 'Status messages'
+  provider: system
+  label_display: '0'
+visibility: {  }

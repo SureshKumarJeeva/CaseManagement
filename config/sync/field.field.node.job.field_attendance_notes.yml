@@ -1,0 +1,43 @@
+uuid: db1344cd-ae78-43ad-b9c2-f0ef47373d03
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attendance_notes
+    - node.type.job
+    - paragraphs.paragraphs_type.attendance_note
+  module:
+    - entity_reference_revisions
+id: node.job.field_attendance_notes
+field_name: field_attendance_notes
+entity_type: node
+bundle: job
+label: 'Attendance Notes'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    negate: 0
+    target_bundles:
+      attendance_note: attendance_note
+    target_bundles_drag_drop:
+      address:
+        weight: 6
+        enabled: false
+      attendance_note:
+        enabled: true
+        weight: 3
+      party:
+        weight: 4
+        enabled: false
+      party_side_two_:
+        weight: 9
+        enabled: false
+      served_party_details:
+        weight: 10
+        enabled: false
+field_type: entity_reference_revisions

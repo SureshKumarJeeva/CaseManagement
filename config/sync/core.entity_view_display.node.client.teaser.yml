@@ -1,0 +1,43 @@
+uuid: 8c988b8b-7ed5-4cbf-bbb5-a171f4459d77
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.client.field_agreed_discount
+    - field.field.node.client.field_client_address
+    - field.field.node.client.field_client_id
+    - field.field.node.client.field_email
+    - field.field.node.client.field_email_interval
+    - field.field.node.client.field_email_template
+    - field.field.node.client.field_notes
+    - field.field.node.client.field_send_auto_email
+    - field.field.node.client.field_telephone
+    - field.field.node.client.field_user
+    - node.type.client
+  module:
+    - user
+id: node.client.teaser
+targetEntityType: node
+bundle: client
+mode: teaser
+content:
+  links:
+    weight: 100
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_agreed_discount: true
+  field_client_address: true
+  field_client_id: true
+  field_email: true
+  field_email_interval: true
+  field_email_template: true
+  field_notes: true
+  field_send_auto_email: true
+  field_telephone: true
+  field_user: true

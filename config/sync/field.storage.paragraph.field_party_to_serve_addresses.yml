@@ -1,0 +1,49 @@
+uuid: ab4da679-3a95-4755-818d-2c4539eef2d3
+langcode: en
+status: true
+dependencies:
+  module:
+    - field_permissions
+    - options
+    - paragraphs
+third_party_settings:
+  field_permissions:
+    permission_type: public
+id: paragraph.field_party_to_serve_addresses
+field_name: field_party_to_serve_addresses
+entity_type: paragraph
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: '12345 abcde street'
+      label: '12345 abcde street'
+    -
+      value: '000, Happy street-sydney-NSW-2037'
+      label: '000, Happy street-sydney-NSW-2037'
+    -
+      value: '12345 abcd street-sydney-NSW-2000'
+      label: '12345 abcd street-sydney-NSW-2000'
+    -
+      value: '234 ABC Street-Asquith-NSW-2077'
+      label: '234 ABC Street-Asquith-NSW-2077'
+    -
+      value: '366 Collins Street-Melbourne-VIC-3000'
+      label: '366 Collins Street-Melbourne-VIC-3000'
+    -
+      value: '12345 abcde street-sydney-NSW-2000'
+      label: '12345 abcde street-sydney-NSW-2000'
+    -
+      value: 'test street-Sydney-NSW-2010'
+      label: 'test street-Sydney-NSW-2010'
+    -
+      value: '123 ABC Street-Sydney-NSW-2000'
+      label: '123 ABC Street-Sydney-NSW-2000'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

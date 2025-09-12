@@ -1,0 +1,30 @@
+uuid: 14a90c37-54c4-4c64-9526-ec396bc822d5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.party_other.field_name
+    - field.field.paragraph.party_other.field_party_type_other
+    - paragraphs.paragraphs_type.party_other
+id: paragraph.party_other.default
+targetEntityType: paragraph
+bundle: party_other
+mode: default
+content:
+  field_name:
+    weight: 0
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: string_textfield
+    region: content
+  field_party_type_other:
+    weight: 1
+    settings: {  }
+    third_party_settings: {  }
+    type: options_select
+    region: content
+hidden:
+  created: true
+  status: true

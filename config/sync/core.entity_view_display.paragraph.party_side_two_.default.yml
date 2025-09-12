@@ -1,0 +1,67 @@
+uuid: 2ccfeb15-471e-4bdd-8489-e30acfbd9f47
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.paragraph.party_side_two_.field_full_name
+    - field.field.paragraph.party_side_two_.field_last_name
+    - field.field.paragraph.party_side_two_.field_name
+    - field.field.paragraph.party_side_two_.field_party_type_2
+    - paragraphs.paragraphs_type.party_side_two_
+  module:
+    - field_formatter_class
+    - field_group
+    - options
+third_party_settings:
+  field_group:
+    group_party_details:
+      children:
+        - field_name
+        - field_last_name
+        - field_party_type_2
+      parent_name: ''
+      weight: 0
+      format_type: fieldset
+      format_settings:
+        description: ''
+        id: ''
+        classes: ''
+      label: 'Party Details (Side Two)'
+      region: content
+id: paragraph.party_side_two_.default
+targetEntityType: paragraph
+bundle: party_side_two_
+mode: default
+content:
+  field_last_name:
+    weight: 2
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+  field_name:
+    weight: 1
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings:
+      field_formatter_class:
+        class: party-side-two-name-text
+    type: string
+    region: content
+  field_party_type_2:
+    weight: 3
+    label: inline
+    settings: {  }
+    third_party_settings:
+      field_formatter_class:
+        class: party-side-two-type-select
+    type: list_default
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_full_name: true

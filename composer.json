@@ -1,0 +1,156 @@
+{
+    "name": "drupal-composer/drupal-project",
+    "description": "Associated Process Server App",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "authors": [
+        {
+            "name": "dresden",
+            "role": "Lord of the Earth"
+        }
+    ],
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "require": {
+        "php": ">=7.4.33",
+        "commerceguys/addressing": "1.0.9",
+        "composer/installers": "^1.0.24",
+        "cweagans/composer-patches": "^1.6",
+        "dompdf/dompdf": " 0.8.5",
+        "drupal/address": "^1.7",
+        "drupal/admin_toolbar": "^2.3",
+        "drupal/adminimal_admin_toolbar": "^1.8",
+        "drupal/adminimal_theme": "^1.4",
+        "drupal/better_exposed_filters": "^5.0@beta",
+        "drupal/chosen": "^2.6",
+        "drupal/conditional_fields": "^1.0@alpha",
+        "drupal/console": "^1.0.2",
+        "drupal/core": "8.9.20",
+        "drupal/core-composer-scaffold": "^8.9",
+        "drupal/csv_serialization": "^1.4",
+        "drupal/ctools": "^3.0",
+        "drupal/datetimehideseconds": "^1.0",
+        "drupal/devel": "^2.0",
+        "drupal/easy_breadcrumb": "^1.13",
+        "drupal/entity_print": "2.2",
+        "drupal/entity_reference_revisions": "^1.6",
+        "drupal/entity_usage": "^2.0@alpha",
+        "drupal/field_formatter": "^1.2",
+        "drupal/field_formatter_class": "^1.1",
+        "drupal/field_group": "^3.0",
+        "drupal/field_permissions": "^1.0",
+        "drupal/form_mode_manager": "^1.3",
+        "drupal/ief_table_view_mode": "^2.0@beta",
+        "drupal/inline_entity_form": "^1.0",
+        "drupal/mailgun": "^1.0@RC",
+        "drupal/markup": "^1.0@beta",
+        "drupal/node_save_redirect": "1.x-dev",
+        "drupal/paragraphs": "^1.5",
+        "drupal/paragraphs_clean": "^1.1",
+        "drupal/pathauto": "^1.3",
+        "drupal/role_login_page": "^1.1",
+        "drupal/rules": "^3.0@alpha",
+        "drupal/select_or_other": "1.x-dev",
+        "drupal/simple_multistep": "^1.0",
+        "drupal/smtp": "^1.0@beta",
+        "drupal/swiftmailer": "^1.0@beta",
+        "drupal/token": "^1.5",
+        "drupal/twig_field_value": "^1.1",
+        "drupal/twig_tweak": "^2.3",
+        "drupal/typed_data": "^1.0@alpha",
+        "drupal/upgrade_status": "^2.0",
+        "drupal/views_data_export": "^1.0@beta",
+        "drupal/xmlrpc": "^1.0@beta",
+        "drush/drush": "10",
+        "vlucas/phpdotenv": "^2.4",
+        "webflo/drupal-finder": "^1.0.0",
+        "webmozart/path-util": "^2.3",
+        "wikimedia/composer-merge-plugin": "^2.0",
+        "zaporylie/composer-drupal-optimizations": "^1.0"
+    },
+    "require-dev": {
+        "webflo/drupal-core-require-dev": "^8.7"
+    },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "cweagans/composer-patches": true,
+            "composer/installers": true,
+            "drupal/core-composer-scaffold": true,
+            "php-http/discovery": true,
+            "wikimedia/composer-merge-plugin": true,
+            "zaporylie/composer-drupal-optimizations": true,
+            "drupal/console-extend-plugin": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "autoload": {
+        "classmap": [
+            "scripts/composer/ScriptHandler.php"
+        ],
+        "files": [
+            "load.environment.php"
+        ]
+    },
+    "scripts": {
+        "pre-install-cmd": [
+            "DrupalProject\\composer\\ScriptHandler::checkComposerVersion"
+        ],
+        "pre-update-cmd": [
+            "DrupalProject\\composer\\ScriptHandler::checkComposerVersion"
+        ],
+        "post-install-cmd": [
+            "DrupalProject\\composer\\ScriptHandler::createRequiredFiles"
+        ],
+        "post-update-cmd": [
+            "DrupalProject\\composer\\ScriptHandler::createRequiredFiles"
+        ]
+    },
+    "extra": {
+        "composer-exit-on-patch-failure": true,
+        "patchLevel": {
+            "drupal/core": "-p2"
+        },
+        "installer-paths": {
+            "web/core": [
+                "type:drupal-core"
+            ],
+            "web/libraries/{$name}": [
+                "type:drupal-library"
+            ],
+            "web/modules/contrib/{$name}": [
+                "type:drupal-module"
+            ],
+            "web/profiles/contrib/{$name}": [
+                "type:drupal-profile"
+            ],
+            "web/themes/contrib/{$name}": [
+                "type:drupal-theme"
+            ],
+            "drush/Commands/{$name}": [
+                "type:drupal-drush"
+            ]
+        },
+        "drupal-scaffold": {
+            "initial": {
+                ".editorconfig": "../.editorconfig",
+                ".gitattributes": "../.gitattributes"
+            }
+        },
+        "enable-patching": true,
+        "patches": {
+            "drupal/simple_multistep": {
+                "Simple MultiStep": "patches/step_redirection.patch"
+            }
+        }
+    }
+}

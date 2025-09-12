@@ -1,0 +1,19 @@
+uuid: b7eb1077-a22d-4a65-975d-8c98c5fdb182
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_affidavit_template
+field_name: field_affidavit_template
+entity_type: node
+type: entity_reference
+settings:
+  target_type: node
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

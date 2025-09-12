@@ -1,0 +1,14 @@
+uuid: dd84057b-53b9-41d0-89e9-a05fac7c246f
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.agent
+  module:
+    - user
+id: user_add_role_action.agent
+label: 'Add the Agent role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: agent

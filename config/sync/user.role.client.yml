@@ -1,0 +1,43 @@
+uuid: ea6b029d-1525-4d40-a0c7-e852e9717f03
+langcode: en
+status: true
+dependencies: {  }
+id: client
+label: Client
+weight: 6
+is_admin: null
+permissions:
+  - 'access files overview'
+  - 'create online_instruction content'
+  - 'use text format basic_html'
+  - 'use text format full_html'
+  - 'view field_agreed_discount'
+  - 'view field_client'
+  - 'view field_client_address'
+  - 'view field_client_name'
+  - 'view field_client_ref'
+  - 'view field_client_s_job_email'
+  - 'view field_documents'
+  - 'view field_email'
+  - 'view field_instruction_received'
+  - 'view field_job_client_id'
+  - 'view field_job_fees'
+  - 'view field_name_to_server_value'
+  - 'view field_notes'
+  - 'view field_served_party'
+  - 'view field_telephone'
+  - 'view own field_agreed_discount'
+  - 'view own field_client'
+  - 'view own field_client_address'
+  - 'view own field_client_name'
+  - 'view own field_client_ref'
+  - 'view own field_client_s_job_email'
+  - 'view own field_documents'
+  - 'view own field_email'
+  - 'view own field_instruction_received'
+  - 'view own field_job_client_id'
+  - 'view own field_job_fees'
+  - 'view own field_name_to_server_value'
+  - 'view own field_notes'
+  - 'view own field_served_party'
+  - 'view own field_telephone'

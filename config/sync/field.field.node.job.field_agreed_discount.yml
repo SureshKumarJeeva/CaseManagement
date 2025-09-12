@@ -1,0 +1,25 @@
+uuid: 7f321a0f-5056-4e40-ad2e-a2187adc7304
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_agreed_discount
+    - node.type.job
+id: node.job.field_agreed_discount
+field_name: field_agreed_discount
+entity_type: node
+bundle: job
+label: 'Agreed Discount'
+description: ''
+required: false
+translatable: true
+default_value:
+  -
+    value: 0
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: '%'
+field_type: integer

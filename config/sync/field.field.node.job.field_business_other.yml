@@ -1,0 +1,19 @@
+uuid: 7d200b16-8bc7-4c9a-a895-17b46a7036dc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_business_other
+    - node.type.job
+id: node.job.field_business_other
+field_name: field_business_other
+entity_type: node
+bundle: job
+label: 'Business Other'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

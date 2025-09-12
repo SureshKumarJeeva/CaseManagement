@@ -1,0 +1,23 @@
+uuid: 8a8a5c9f-e0f1-49ee-b273-f16c754d62c0
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_client_update
+    - node.type.client_update
+  module:
+    - text
+id: node.client_update.field_client_update
+field_name: field_client_update
+entity_type: node
+bundle: client_update
+label: 'Client Update'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  display_summary: false
+  required_summary: false
+field_type: text_with_summary

@@ -1,0 +1,22 @@
+uuid: ad881f7e-22a1-453d-9311-286eb78d1199
+langcode: en
+status: true
+dependencies:
+  theme:
+    - associatedps
+_core:
+  default_config_hash: ddy1OsBbWxjwEI8VL1viD4I69qcLHOkul4BxbTqLBTs
+id: associatedps_primary_local_tasks
+theme: associatedps
+region: content
+weight: -7
+provider: null
+plugin: local_tasks_block
+settings:
+  id: local_tasks_block
+  label: 'Primary tabs'
+  provider: core
+  label_display: '0'
+  primary: true
+  secondary: false
+visibility: {  }

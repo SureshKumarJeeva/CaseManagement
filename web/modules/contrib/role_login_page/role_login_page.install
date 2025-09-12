@@ -1,0 +1,85 @@
+<?php
+
+/**
+   * @file
+   * Install, uninstall functions for the role_login_page module.
+    */
+
+/**
+ * Implements hook_schema().
+ */
+function role_login_page_schema() {
+  $schema['role_login_page_settings'] = array(
+    'description' => 'The data stored against the cutstom login pages created',
+    'fields' => array(
+      'rl_id' => array(
+        'description' => 'Primary Key: Unique role login page ID.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'url' => array(
+        'description' => 'URL of the page',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE,
+      ),
+      'username_label' => array(
+        'description' => 'Label of the username field',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+      ),
+      'password_label' => array(
+        'description' => 'Label of the password field',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+      ),
+      'submit_text' => array(
+        'description' => 'Text for the submit button',
+        'type' => 'varchar',
+        'length' => 50,
+        'default' => '',
+      ),
+      'page_title' => array(
+        'description' => 'Page title.',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+      ),
+      'parent_class' => array(
+        'description' => 'Parent class.',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+      ),
+      'redirect_path' => array(
+        'description' => 'Redirect path.',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+      ),
+      'role_mismatch_error_text' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'Error message when the user role mismatches for the login page',
+      ),
+      'invalid_credentials_error_text' => array(
+        'type' => 'text',
+        'size' => 'big',
+        'description' => 'Error message when the user enters invalid credentials for the login page',
+      ),
+      'roles' => array(
+        'description' => 'Roles allowed for this page',
+        'type' => 'varchar',
+        'length' => 255,
+        'default' => '',
+        'not null' => TRUE,
+      ),
+    ),
+    'primary key' => array('rl_id'),
+  );
+  return $schema;
+}

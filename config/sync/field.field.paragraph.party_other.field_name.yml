@@ -1,0 +1,19 @@
+uuid: d916938a-030d-4065-8443-5de1b0128b3b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_name
+    - paragraphs.paragraphs_type.party_other
+id: paragraph.party_other.field_name
+field_name: field_name
+entity_type: paragraph
+bundle: party_other
+label: 'Other Party Name'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

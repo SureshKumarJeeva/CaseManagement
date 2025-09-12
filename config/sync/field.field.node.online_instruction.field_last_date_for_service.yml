@@ -1,0 +1,21 @@
+uuid: efec00cc-284c-48c5-abae-5d6d42038bb7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_last_date_for_service
+    - node.type.online_instruction
+  module:
+    - datetime
+id: node.online_instruction.field_last_date_for_service
+field_name: field_last_date_for_service
+entity_type: node
+bundle: online_instruction
+label: 'Last Date for Service'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

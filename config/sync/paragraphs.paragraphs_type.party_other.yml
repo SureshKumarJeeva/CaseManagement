@@ -1,0 +1,10 @@
+uuid: 7e908e62-c096-416b-b161-e243d608c9fa
+langcode: en
+status: true
+dependencies: {  }
+id: party_other
+label: 'Party (Other)'
+icon_uuid: null
+icon_default: null
+description: ''
+behavior_plugins: {  }

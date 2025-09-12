@@ -1,0 +1,489 @@
+<?php
+
+/**
+ * @file
+ * This is the module to replace token.
+ */
+
+use Drupal\user\Entity\User;
+use Drupal\node\Entity\Node;
+use Drupal\Core\Render\Markup;
+use Drupal\taxonomy\Entity\Term;
+use Drupal\paragraphs\Entity\Paragraph;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
+/**
+ * @file
+ * This is the module to replace token.
+ */
+
+/**
+ * Implement associatedps_pdf_templates_preprocess_views_view_field().
+ */
+function associatedps_pdf_templates_preprocess_views_view_field(&$variables) {
+
+  $view = $variables['view'];
+  $field = $variables['field'];
+  $views_condition = ($view->storage->id() == 'library_pdf_template' && $view->current_display == 'page_1');
+  $field_condition = ($field->field == 'body');
+  // Check for library pdf template view.
+  if ($views_condition && $field_condition) {
+    $body = $variables['output'];
+    // Using this function get the token and body value of library.
+    $template_array = _associatedps_pdf_templates_library_data($_GET['view_args'][0]);
+    if (isset($_GET['job'])) {
+      // Load the data of job content type.
+      $job_list = Node::load($_GET['job']);
+      $entity_type_id = 'node';
+      $bundle = 'job';
+      // Get the field type and label in array.
+      foreach (\Drupal::service('entity_field.manager')->getFieldDefinitions($entity_type_id, $bundle) as $field_name => $field_definition) {
+        if (!empty($field_definition->getTargetBundle())) {
+          $elements[$field_name]['type'] = $field_definition->getType();
+          $elements[$field_name]['label'] = $field_definition->getLabel();
+          $elements[$field_name]['target_type'] = $field_definition->getSetting('target_type');
+        }
+      }
+      if (!empty($job_list)) {
+        // Call the function for replace the token.
+        $template = _associatedps_pdf_templates_replace_value($elements, $job_list, $template_array);
+      }
+      $current_user = \Drupal::currentUser();
+      $uid = $current_user->id();
+
+      if (isset($_GET['submit_id']) && ($_GET['submit_id'] === 'edit-preview')) {
+        // For edit-preview before download pdf.
+        $library = Node::load($_GET['view_args'][0]);
+        $title = $library->title->value;
+        $node = Node::create([
+          'type' => 'preview',
+          'langcode' => 'en',
+          'uid' => $uid,
+          'title' => $title,
+          'body' => [
+            'value' => $template['body'],
+            'format' => 'full_html',
+          ],
+        ]);
+        $node->save();
+        $id = $node->id();
+        $response = new RedirectResponse("/node/$id/edit");
+        $response->send();
+      }
+
+      elseif (isset($_GET['submit_id']) && ($_GET['submit_id'] === 'edit-email')) {
+        // For edit-email before sending mail.
+        $client_email = $job_list->field_client_s_job_email->value;
+        $library = Node::load($_GET['view_args'][0]);
+        $title = $library->title->value;
+        $node = Node::create([
+          'type' => 'email_preview',
+          'langcode' => 'en',
+          'uid' => $uid,
+          'title' => $title,
+          'body' => [
+            'value' => $template['body'],
+            'format' => 'full_html',
+          ],
+          'field_client_email' => $client_email,
+          'field_email_subject' => $template['subject'],
+        ]);
+        $node->save();
+        $id = $node->id();
+        $response = new RedirectResponse("/node/$id/edit");
+        $response->send();
+      }
+
+      else {
+        // This is for actually layout for pdf.
+        $variables['output'] = Markup::create($template['body']);
+      }
+
+    }
+  }
+}
+
+/**
+ * To get Template body & tokens from Library Node.
+ *
+ * @return: array of Template
+ */
+function _associatedps_pdf_templates_library_data($library_id) {
+  $body = '';
+  $email_sub = '';
+  $template_tokens = [];
+  if (!empty($library_id)) {
+    $template = Node::load($library_id);
+    $body = $template->body->value;
+    $template_tokens = $template->field_available_tokens->value;
+    if (!empty($template_tokens)) {
+      $template_tokens = explode(PHP_EOL, $template_tokens);
+    }
+    if ($template->field_category->value == 'Email') {
+      $email_sub = $template->field_email_subject->value;
+      $template_data['subject'] = $email_sub;
+    }
+    $template_data['body'] = $body;
+    $template_data['tokens'] = $template_tokens;
+    return $template_data;
+  }
+}
+
+/**
+ * Replace token with job list form value in template.
+ *
+ * @return: array of template body
+ */
+function _associatedps_pdf_templates_replace_value($elements, $data, $template) {
+  foreach ($template['tokens'] as $field_token) {
+    $value = '';
+    $token = str_replace('[node:', '', $field_token);
+    $token = trim(str_replace(']', '', $token));
+
+    /* For Inner Fields */
+    if (strpos($token, ':')) {
+      $pos = stripos($token, ':', 0);
+      $out_token = trim(substr($token, 0, $pos));
+      $type = trim($elements[$out_token]['type']);
+      $target_type = trim($elements[$out_token]['target_type']);
+      $in_token = trim(substr($token, $pos + 1));
+
+      if ($type == 'entity_reference') {
+        $entity_reference_data = $data->$out_token->getValue();
+        if (!empty($entity_reference_data)) {
+          $entity_reference_data = reset($entity_reference_data);
+          if ($target_type == 'node') {
+            $node_data = Node::load($entity_reference_data['target_id']);
+            if (!empty($node_data)) {
+              if (strpos($in_token, 'address') == TRUE) {
+                $address = $node_data->$in_token->getValue();
+                if (!empty($address)) {
+                  $address = reset($address);
+                  if (!empty($address['address_line1'])) {
+                    $value .= $address['address_line1'] . ' ';
+                  }
+                  if (!empty($address['address_line2'])) {
+                    $value .= $address['address_line2'] . ' ';
+                  }
+                  if (!empty($address['locality'])) {
+                    $value .= $address['locality'] . ' ';
+                  }
+                  if (!empty($address['administrative_area'])) {
+                    $value .= $address['administrative_area'] . ' ';
+                  }
+                  if (!empty($address['postal_code'])) {
+                    $value .= $address['postal_code'] . ' ';
+                  }
+                  $value .= \Drupal::service('country_manager')->getList()[$address['country_code']]->__toString();
+                }
+              }
+              else {
+                $value = $node_data->$in_token->value;
+              }
+            }
+          }
+        }
+      }
+      elseif ($type == 'entity_reference_revisions') {
+
+        $entity_reference_data = $data->$out_token->getValue();
+        if (!empty($entity_reference_data)) {
+          $values = [];
+          foreach ($entity_reference_data as $para_key => $para_value) {
+            $doc_data = [];
+            $paragraph = Paragraph::load($para_value['target_id']);
+            if (!empty($paragraph)) {
+              if (strpos($in_token, 'document') == TRUE && !empty($paragraph->$in_token->getValue())) {
+
+                $title = !empty($paragraph->field_document_title->value) ? $paragraph->field_document_title->value : '';
+                if (!empty($title)) {
+                  $doc_data[] = $title;
+                }
+
+                $untitled = !empty($paragraph->field_untitled->value) ? $paragraph->field_untitled->value : '';
+                if (!empty($untitled)) {
+                  $doc_data[] = $untitled;
+                }
+
+                $date = !empty($paragraph->field_date->value) ? date("d F Y", strtotime($paragraph->field_date->value)) : '';
+                if (!empty($date)) {
+                  $doc_data[] = $date;
+                }
+
+                $name = !empty($paragraph->field_name->value) ? $paragraph->field_name->value : '';
+                if (!empty($name)) {
+                  $doc_data[] = $name;
+                }
+
+                $amount = !empty($paragraph->field_amount->value) ? $paragraph->field_amount->value : '';
+                if (!empty($amount)) {
+                  $doc_data[] = '$' . $amount;
+                }
+
+                $value = '';
+                foreach ($doc_data as $dockey => $docvalue) {
+                  $value .= '<' . $docvalue . ' ';
+                }
+                $values[] = rtrim($value, ' ');
+              }
+              elseif (strpos($in_token, 'address') == TRUE && !empty($paragraph->$in_token->getValue())) {
+                $address = $paragraph->$in_token->getValue();
+                if (!empty($address)) {
+                  $value = '';
+                  $address = reset($address);
+                  if (!empty($address['address_line1'])) {
+                    $value .= $address['address_line1'] . ' ';
+                  }
+                  if (!empty($address['address_line2'])) {
+                    $value .= $address['address_line2'] . ' ';
+                  }
+                  if (!empty($address['locality'])) {
+                    $value .= $address['locality'] . ' ';
+                  }
+                  if (!empty($address['administrative_area'])) {
+                    $value .= $address['administrative_area'] . ' ';
+                  }
+                  if (!empty($address['postal_code'])) {
+                    $value .= $address['postal_code'] . ' ';
+                  }
+                  $value .= \Drupal::service('country_manager')->getList()[$address['country_code']]->__toString();
+                }
+                $values[] = $value;
+              }
+              elseif (strpos($in_token, 'date') == TRUE && !empty($paragraph->$in_token->value)) {
+                $date = $paragraph->$in_token->value;
+                if (!empty($date)) {
+                  if (strpos($date, 'T') == TRUE) {
+                    $values[] = date("d F Y - h:i a", strtotime($date));
+                  }
+                  else {
+                    $values[] = date("d F Y", strtotime($date));
+                  }
+                }
+              }
+              elseif (stripos($in_token, 'type_of_service') == TRUE && !empty($paragraph->$in_token->getValue())) {
+                $service = $paragraph->$in_token->getValue();
+                $term = Term::load($service[0]["target_id"]);
+                $values[] = $term->getName();
+              }
+              else {
+                if (!empty($paragraph->$in_token->value)) {
+                  $values[] = $paragraph->$in_token->value;
+                }
+              }
+            }
+          }
+          if (preg_grep('/</', $values)) {
+            $count = count($values);
+            $doc_data = [];
+            $value = '';
+            foreach ($values as $doc_value) {
+              $doc_data[] = str_replace('<', '', $doc_value);
+              $count--;
+            }
+            $value = '<ul style="list-style-type: lower-alpha;"><li>' . implode('</li><li>', $doc_data) . '</li></ul>';
+          }
+          else {
+            $value = implode(', ', $values);
+          }
+        }
+      }
+      $template['body'] = str_replace(trim($field_token), $value, $template['body']);
+      if (!empty($template['subject'])) {
+        $template['subject'] = str_replace(trim($field_token), $value, $template['subject']);
+      }
+    }
+
+    /* For Outer Fields */
+    else {
+      $type = $target_type = '';
+      if ($token !== 'address') {
+        $type = trim($elements[$token]['type']);
+        $target_type = trim($elements[$token]['target_type']);
+      }
+      if ($type == 'entity_reference') {
+        $entity_reference_data = $data->$token->getValue();
+        if (!empty($entity_reference_data)) {
+          $entity_reference_data = reset($entity_reference_data);
+          if ($target_type == 'taxonomy_term') {
+            $term = Term::load($entity_reference_data['target_id']);
+            if (!empty($term)) {
+              $value = $term->getName();
+            }
+          }
+          elseif ($target_type == 'user') {
+            $user_data = User::load($entity_reference_data['target_id']);
+            if (!empty($user_data)) {
+              $value = $user_data->name->value;
+            }
+          }
+          elseif ($target_type == 'node') {
+            $node_data = Node::load($entity_reference_data['target_id']);
+            if (!empty($node_data)) {
+              $value = $node_data->title->value;
+            }
+          }
+        }
+      }
+      elseif ($type == 'entity_reference_revisions') {
+        $entity_reference_data = $data->$token->getValue();
+        if (!empty($entity_reference_data)) {
+          // $entity_reference_data = reset($entity_reference_data);
+          $values = [];
+          foreach ($entity_reference_data as $para_key => $para_value) {
+            $paragraph = Paragraph::load($para_value['target_id']);
+            if (!empty($paragraph)) {
+              if ($paragraph->getType() == 'address') {
+                $address = $paragraph->field_address->getValue();
+                if (!empty($address)) {
+                  $value = '';
+                  $address = reset($address);
+                  if (!empty($address['address_line1'])) {
+                    $value .= $address['address_line1'] . ' ';
+                  }
+                  if (!empty($address['address_line2'])) {
+                    $value .= $address['address_line2'] . ' ';
+                  }
+                  if (!empty($address['locality'])) {
+                    $value .= $address['locality'] . ' ';
+                  }
+                  if (!empty($address['administrative_area'])) {
+                    $value .= $address['administrative_area'] . ' ';
+                  }
+                  if (!empty($address['postal_code'])) {
+                    $value .= $address['postal_code'] . ' ';
+                  }
+                  $value .= \Drupal::service('country_manager')->getList()[$address['country_code']]->__toString();
+                }
+                $values[] = $value;
+              }
+              elseif (($paragraph->getType() == 'party') || ($paragraph->getType() == 'party_side_two_') || ($paragraph->getType() == 'party_other')) {
+                $values[] = (isset($paragraph->field_full_name) && !empty($paragraph->field_full_name->value)) ? $paragraph->field_full_name->value : '';
+              }
+              elseif ($paragraph->getType() == 'attendance_note') {
+                $values[] = (isset($paragraph->field_notes) && !empty($paragraph->field_notes->value)) ? $paragraph->field_notes->value : '';
+              }
+            }
+            else {
+              $value = '';
+            }
+          }
+          $value = implode(', ', $values);
+        }
+      }
+      elseif ($type == 'datetime') {
+        $date = $data->$token->value;
+        if (!empty($date)) {
+          if (strpos($date, 'T') == TRUE) {
+            $value = date("d F Y - h:i a", strtotime($date));
+          }
+          else {
+            $value = date("d F Y", strtotime($date));
+          }
+        }
+        else {
+          $value = '';
+        }
+      }
+      elseif ($type == 'boolean') {
+        $boolean_value = $data->$token->value;
+        if (!empty($boolean_value)) {
+          if ($boolean_value == 0) {
+            $value = "NO";
+          }
+          else {
+            $value = "YES";
+          }
+        }
+      }
+      elseif ($type == 'list_string') {
+        if (!empty($data->$token->value)) {
+          $list_array = $data->$token->getValue();
+          if (!empty($list_array)) {
+            $list = [];
+            foreach ($list_array as $list_value) {
+              $list[] = $list_value['value'];
+            }
+            $value = implode(',', $list);
+          }
+        }
+      }
+      elseif ($type == 'address') {
+        $address = $data->$token->getValue();
+        if (!empty($address)) {
+          $address = reset($address);
+          if (!empty($address['address_line1'])) {
+            $value .= $address['address_line1'] . ' ';
+          }
+          if (!empty($address['address_line2'])) {
+            $value .= $address['address_line2'] . ' ';
+          }
+          if (!empty($address['locality'])) {
+            $value .= $address['locality'] . ' ';
+          }
+          if (!empty($address['administrative_area'])) {
+            $value .= $address['administrative_area'] . ' ';
+          }
+          if (!empty($address['postal_code'])) {
+            $value .= $address['postal_code'] . ' ';
+          }
+          $value .= \Drupal::service('country_manager')->getList()[$address['country_code']]->__toString();
+        }
+      }
+      elseif ($type == 'decimal') {
+        if (!empty($data->$token->value)) {
+          $value = $data->$token->value;
+        }
+      }
+      elseif ($type == 'email') {
+        if (!empty($data->$token->value)) {
+          $value = $data->$token->value;
+        }
+      }
+      elseif ($type == 'integer') {
+        $integer_value = $data->$token->value;
+        if (!empty($integer_value)) {
+          $value = $integer_value;
+        }
+      }
+      elseif ($type == 'text_long') {
+        $text_long_value = preg_replace("/[\r\n]/", "", strip_tags($data->$token->value));
+        if (!empty($text_long_value)) {
+          $value = $text_long_value;
+        }
+      }
+      elseif ($type == 'string') {
+        $string_data_value = $data->$token->value;
+        if (!empty($string_data_value)) {
+          if ($string_data_value == '- None -') {
+            $value = '';
+          }
+          else {
+            $value = $string_data_value;
+          }
+        }
+      }
+      elseif ($type == 'telephone') {
+        $telephone_data = $data->$token->getValue();
+        if (!empty($telephone_data)) {
+          $telephone_no = [];
+          foreach ($telephone_data as $telephone_value) {
+            $telephone_no[] = $telephone_value['value'];
+          }
+          $value = implode(', ', $telephone_no);
+        }
+      }
+      elseif ($type == 'string_long') {
+        $value = $data->$token->value;
+      }
+      else {
+        $value = '';
+      }
+      $template['body'] = str_replace(trim($field_token), $value, $template['body']);
+      if (!empty($template['subject'])) {
+        $template['subject'] = str_replace(trim($field_token), $value, $template['subject']);
+      }
+    }
+  }
+  return $template;
+}

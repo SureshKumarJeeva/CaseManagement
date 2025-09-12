@@ -1,0 +1,20 @@
+uuid: 20d68a85-8144-4bef-98a4-953193f240eb
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_email_interval
+field_name: field_email_interval
+entity_type: node
+type: integer
+settings:
+  unsigned: false
+  size: normal
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,27 @@
+track_enabled_base_fields: false
+local_task_enabled_entity_types:
+  - node
+  - paragraphs_library_item
+_core:
+  default_config_hash: D0RcOA_aIiwSPXOZSHQOTm5FXzziEsJHdfXGaF4nhIQ
+edit_warning_message_entity_types:
+  - paragraphs_library_item
+delete_warning_message_entity_types:
+  - paragraphs_library_item
+track_enabled_source_entity_types:
+  - node
+  - paragraphs_library_item
+  - paragraph
+track_enabled_target_entity_types:
+  - node
+  - paragraphs_library_item
+  - paragraph
+track_enabled_plugins:
+  - linkit
+  - dynamic_entity_reference
+  - block_field
+  - link
+  - entity_embed
+  - entity_reference
+  - html_link
+site_domains: {  }

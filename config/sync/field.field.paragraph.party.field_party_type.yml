@@ -1,0 +1,21 @@
+uuid: 36287a3f-af1e-42da-a9c2-0df90a3bf5b6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_party_type
+    - paragraphs.paragraphs_type.party
+  module:
+    - options
+id: paragraph.party.field_party_type
+field_name: field_party_type
+entity_type: paragraph
+bundle: party
+label: 'Party Type'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

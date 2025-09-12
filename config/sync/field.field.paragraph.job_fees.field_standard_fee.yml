@@ -1,0 +1,23 @@
+uuid: 365f2d52-85d2-438c-b520-ba71bab5dde6
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_standard_fee
+    - paragraphs.paragraphs_type.job_fees
+id: paragraph.job_fees.field_standard_fee
+field_name: field_standard_fee
+entity_type: paragraph
+bundle: job_fees
+label: 'Standard Fee'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: $
+  suffix: ''
+field_type: decimal

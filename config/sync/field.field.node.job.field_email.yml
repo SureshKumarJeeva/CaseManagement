@@ -1,0 +1,19 @@
+uuid: a2d29442-56fd-4ba4-9c91-a06f9633f8af
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_email
+    - node.type.job
+id: node.job.field_email
+field_name: field_email
+entity_type: node
+bundle: job
+label: 'Generic Email'
+description: ''
+required: false
+translatable: true
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: email

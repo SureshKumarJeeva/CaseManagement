@@ -1,0 +1,26 @@
+uuid: d18010b4-a4b5-4522-97a8-97ec3fb26060
+langcode: en
+status: true
+dependencies:
+  module:
+    - menu_ui
+    - node_save_redirect
+third_party_settings:
+  menu_ui:
+    available_menus:
+      - main
+    parent: 'main:'
+  node_save_redirect:
+    save_type: '0'
+    save_location: ''
+    save_destination: 0
+    edit_type: '0'
+    edit_location: ''
+    edit_destination: 0
+name: Library
+type: library
+description: 'Use Library for create Templates.'
+help: ''
+new_revision: true
+preview_mode: 1
+display_submitted: false

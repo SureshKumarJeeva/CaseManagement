@@ -1,0 +1,58 @@
+uuid: 5195d7ba-34cf-4fa5-9f1b-7d45936d77e4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.client_update.field_client_update
+    - field.field.node.client_update.field_client_update_on
+    - field.field.node.client_update.field_job_reference
+    - node.type.client_update
+  module:
+    - datetime
+    - text
+id: node.client_update.default
+targetEntityType: node
+bundle: client_update
+mode: default
+content:
+  field_client_update:
+    weight: 2
+    settings:
+      rows: 9
+      summary_rows: 3
+      placeholder: ''
+      show_summary: false
+    third_party_settings: {  }
+    type: text_textarea_with_summary
+    region: content
+  field_client_update_on:
+    weight: 3
+    settings: {  }
+    third_party_settings: {  }
+    type: datetime_default
+    region: content
+  field_job_reference:
+    weight: 1
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+    type: entity_reference_autocomplete
+    region: content
+  title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+hidden:
+  created: true
+  path: true
+  promote: true
+  status: true
+  sticky: true
+  uid: true

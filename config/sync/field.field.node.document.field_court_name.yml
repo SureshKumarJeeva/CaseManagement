@@ -1,0 +1,29 @@
+uuid: 6390f510-72f6-4e43-97a1-d26b0e104fa1
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_court_name
+    - node.type.document
+    - taxonomy.vocabulary.court_name
+id: node.document.field_court_name
+field_name: field_court_name
+entity_type: node
+bundle: document
+label: 'Court Name'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:taxonomy_term'
+  handler_settings:
+    target_bundles:
+      court_name: court_name
+    sort:
+      field: name
+      direction: asc
+    auto_create: false
+    auto_create_bundle: ''
+field_type: entity_reference

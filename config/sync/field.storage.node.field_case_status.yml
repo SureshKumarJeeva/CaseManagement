@@ -1,0 +1,39 @@
+uuid: 81a1af23-27d8-4488-8f08-41edd560c2b1
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+    - options
+id: node.field_case_status
+field_name: field_case_status
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: Ongoing
+      label: Ongoing
+    -
+      value: 'On Hold'
+      label: 'On Hold'
+    -
+      value: 'Completed – Cancelled'
+      label: 'Completed – Cancelled'
+    -
+      value: 'Completed – Attempted'
+      label: 'Completed – Attempted'
+    -
+      value: 'Completed – Served'
+      label: 'Completed – Served'
+    -
+      value: 'Completed – Enquiries'
+      label: 'Completed – Enquiries'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

@@ -1,0 +1,21 @@
+uuid: 84977f13-b0e5-452b-8a56-2b4edfb15640
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_served_date
+    - node.type.job
+  module:
+    - datetime
+id: node.job.field_served_date
+field_name: field_served_date
+entity_type: node
+bundle: job
+label: 'Service Date'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

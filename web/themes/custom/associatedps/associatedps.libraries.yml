@@ -1,0 +1,17 @@
+global-styling:
+  version: 1.x
+  css:
+    base:
+      css/style.css: {weight:200}
+global-scripts:
+  version: 1.x
+  js:
+    js/moment.js: {}
+    js/date.js: {}
+    js/jQuery.print.js: {}
+    js/script.js: {}
+  dependencies:
+    - core/jquery
+    - core/jquery.once
+    - core/drupal.dialog.ajax
+    - core/drupal.ajax

@@ -1,0 +1,29 @@
+{
+    "name": "drupal/datetimehideseconds",
+    "type": "drupal-module",
+    "description": "Provides the option to hide seconds in datetime fields.",
+    "license": "GPL-2.0-or-later",
+    "minimum-stability": "dev",
+    "homepage": "https://www.drupal.org/project/datetimehideseconds",
+    "authors": [
+        {
+            "name": "Andi Rüther (anruether)",
+            "homepage": "https://www.drupal.org/u/anruether",
+            "role": "Maintainer"
+        },
+        {
+            "name": "Merlin Axel Rutz (geek-merlin)",
+            "homepage": "https://www.drupal.org/u/geek-merlin",
+            "role": "Maintainer"
+        },
+        {
+            "name": "Rainer Halbmann (heliogabal)",
+            "homepage": "https://www.drupal.org/u/heliogabal",
+            "role": "Maintainer"
+        }
+    ],
+    "support": {
+        "issues": "https://www.drupal.org/project/issues/datetimehideseconds",
+        "source": "https://git.drupalcode.org/project/datetimehideseconds"
+    }
+}

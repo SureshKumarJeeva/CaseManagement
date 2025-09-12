@@ -1,0 +1,8 @@
+associatedps_pdf_templates_listing_page: 
+  path: 'job_list/{nid}'
+  defaults:
+    # _controller: '\Drupal\dynamic_templates\Controller\PDFController::listing'
+    _form: '\Drupal\associatedps_pdf_templates\Form\TemplateListForm'
+    _title: 'Template List'
+  requirements:
+    _permission: 'access content'

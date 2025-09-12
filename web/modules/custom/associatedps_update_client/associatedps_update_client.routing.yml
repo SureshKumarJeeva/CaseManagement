@@ -1,0 +1,7 @@
+associatedps_update_client: 
+  path: 'add/client_update/{nid}'
+  defaults:
+    _form: '\Drupal\associatedps_update_client\Form\UpdateClientForm'
+    _title: 'Client Update'
+  requirements:
+    _permission: 'access content'

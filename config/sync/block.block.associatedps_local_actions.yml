@@ -1,0 +1,20 @@
+uuid: f9247b88-f15f-4c6e-b1ac-66d8bfc69e05
+langcode: en
+status: true
+dependencies:
+  theme:
+    - associatedps
+_core:
+  default_config_hash: HHryZVJbeKi9WnuBGC8FOhBZmBnk2G1H6KxFuy-rC9A
+id: associatedps_local_actions
+theme: associatedps
+region: content
+weight: -6
+provider: null
+plugin: local_actions_block
+settings:
+  id: local_actions_block
+  label: 'Primary admin actions'
+  provider: core
+  label_display: '0'
+visibility: {  }

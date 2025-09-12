@@ -1,0 +1,23 @@
+uuid: 22db42ef-fa3f-4e07-a863-31c1a8f653a5
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.paragraph.field_notice_period
+    - paragraphs.paragraphs_type.document
+id: paragraph.document.field_notice_period
+field_name: field_notice_period
+entity_type: paragraph
+bundle: document
+label: 'Notice Period'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: null
+  max: null
+  prefix: ''
+  suffix: ' day(s)'
+field_type: integer

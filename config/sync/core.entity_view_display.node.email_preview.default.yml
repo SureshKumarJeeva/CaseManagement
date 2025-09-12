@@ -1,0 +1,44 @@
+uuid: a4aa23db-4715-4d61-b696-3fcf73be6a08
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.email_preview.body
+    - field.field.node.email_preview.field_client_email
+    - field.field.node.email_preview.field_email_subject
+    - node.type.email_preview
+  module:
+    - text
+    - user
+id: node.email_preview.default
+targetEntityType: node
+bundle: email_preview
+mode: default
+content:
+  body:
+    label: inline
+    type: text_default
+    weight: 1
+    settings: {  }
+    third_party_settings: {  }
+    region: content
+  field_client_email:
+    weight: 2
+    label: inline
+    settings: {  }
+    third_party_settings: {  }
+    type: basic_string
+    region: content
+  field_email_subject:
+    weight: 0
+    label: inline
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    type: string
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  links: true
