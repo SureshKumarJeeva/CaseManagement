@@ -45,9 +45,9 @@ jobs:
           cd /var/www/html/
           sudo git config --global --add safe.directory /var/www/html
           sudo git pull origin master
-          echo pwd
+          pwd
           composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
-          echo pwd
+          pwd
           vendor/bin/drush cr
           vendor/bin/drush updb -y
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
