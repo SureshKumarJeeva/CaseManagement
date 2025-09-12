@@ -43,8 +43,8 @@ jobs:
         key: ${{secrets.AZURE_PUBLIC_KEY}}
         script: |
           cd /var/www/html/
-          git config --global --add safe.directory /var/www/html
-          git pull origin master
+          sudo git config --global --add safe.directory /var/www/html
+          sudo git pull origin master
 #          composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
  #         vendor/bin/drush cr
   #        vendor/bin/drush updb -y
