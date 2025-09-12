@@ -38,8 +38,8 @@ jobs:
     - name: Deploy via SSH
       uses: appleboy/ssh-action@master
       with: 
-        host: ${{secrets.AZURE_SSH_HOST}}
-        username: ${{secrets.AZURE_USERNAME}}
+        host: ${{vars.AZURE_SSH_HOST}}
+        username: ${{vars.AZURE_USERNAME}}
         key: ${{secrets.AZURE_PUBLIC_KEY}}
         script: |
           cd /var/www/html/
