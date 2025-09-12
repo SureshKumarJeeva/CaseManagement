@@ -30,7 +30,7 @@ jobs:
     - name: Setup PHP
       uses: shivammathur@setup-php@15c43e89cdef867065b0213be354c2841860869e
       with: 
-        php-version: ">=7.4.33"
+        php-version: '7.4.33'
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
