@@ -14,7 +14,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-
+    - name: composer downgrade to 2.2
+      run: composer self-update --2.2
+      
     - name: Validate composer.json and composer.lock
       run: composer validate
 
