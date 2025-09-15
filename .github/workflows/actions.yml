@@ -47,6 +47,8 @@ jobs:
           cd /var/www/html/
           sudo git config --global --add safe.directory /var/www/html
           sudo git pull origin master
+          sudo chown -R $USER:$USER /var/www/html
+          sudo chmod -R 775 /var/www/html
           pwd
           composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
           pwd
