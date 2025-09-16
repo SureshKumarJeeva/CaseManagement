@@ -45,10 +45,10 @@ jobs:
         password: ${{secrets.STALLIONI_PASS}}
         script: |
           cd /var/www/clients/client0/web16/web/
-          sudo git config --global --add safe.directory /var/www/clients/client0/web16/web
-          sudo git pull origin master
-          sudo chown -R $USER:$USER /var/www/clients/client0/web16/web
-          sudo chmod -R 775 /var/www/clients/client0/web16/web
+          git config --global --add safe.directory /var/www/clients/client0/web16/web
+          git pull origin master
+          chown -R $USER:$USER /var/www/clients/client0/web16/web
+          chmod -R 775 /var/www/clients/client0/web16/web
           pwd
           composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
           pwd
