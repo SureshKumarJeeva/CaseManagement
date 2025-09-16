@@ -36,12 +36,25 @@ jobs:
 
  #   - name: Install dependencies
   #    run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-suggest --no-interaction
-
+    - name: Install sshpass
+      run: sudo apt-get update && sudo apt-get install -y sshpass
     - name: Sync files to server
       run: |
+          sshpass -p "${{ secrets.STALLIONI_PASS }}" \
           rsync -avz --delete \
           -e "ssh -o StrictHostKeyChecking=no" \
           ./ ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }}:/var/www/clients/client0/web16/web
+    - name: Run post-deploy commands
+      run: |
+          sshpass -p "${{ secrets.STALLIONI_PASS }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }} << 'EOF'
+            cd /var/www/clients/client0/web16/web
+            sudo chown -R www-data:www-data /var/www/clients/client0/web16/web
+            EOF
+ #           drush updb -y
+ #           drush cr
+          
  #   - name: Deploy via SSH
  #     uses: appleboy/ssh-action@master
  #     with: 
