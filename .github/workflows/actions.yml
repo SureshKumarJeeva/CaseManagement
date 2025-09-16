@@ -47,7 +47,7 @@ jobs:
           cd /var/www/clients/client0/web16/web/
           git config --global --add safe.directory /var/www/clients/client0/web16/web
           git pull origin master
-          chown -R $USER:$USER /var/www/clients/client0/web16/web
+          chown -R runner:runner /var/www/clients/client0/web16/web
           chmod -R 775 /var/www/clients/client0/web16/web
           pwd
           composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
