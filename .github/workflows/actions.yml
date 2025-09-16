@@ -40,15 +40,15 @@ jobs:
     - name: Deploy via SSH
       uses: appleboy/ssh-action@master
       with: 
-        host: ${{vars.AZURE_SSH_HOST}}
-        username: ${{vars.AZURE_USERNAME}}
-        key: ${{secrets.AZURE_PUBLIC_KEY}}
+        host: ${{vars.STALLIONI_HOST}}
+        username: ${{vars.STALLIONI_USERNAME}}
+        password: ${{secrets.STALLIONI_PASS}}
         script: |
-          cd /var/www/html/
-          sudo git config --global --add safe.directory /var/www/html
+          cd /var/www/clients/client0/web16/web/
+          sudo git config --global --add safe.directory /var/www/clients/client0/web16/web
           sudo git pull origin master
-          sudo chown -R $USER:$USER /var/www/html
-          sudo chmod -R 775 /var/www/html
+          sudo chown -R $USER:$USER /var/www/clients/client0/web16/web
+          sudo chmod -R 775 /var/www/clients/client0/web16/web
           pwd
           composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
           pwd
