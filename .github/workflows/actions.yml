@@ -52,8 +52,8 @@ jobs:
           pwd
           composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
           pwd
-          vendor/bin/drush cr
-          vendor/bin/drush updb -y
+    #      vendor/bin/drush cr
+    #      vendor/bin/drush updb -y
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
