@@ -37,21 +37,26 @@ jobs:
  #   - name: Install dependencies
   #    run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-suggest --no-interaction
 
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@master
-      with: 
-        host: ${{vars.STALLIONI_HOST}}
-        username: ${{vars.STALLIONI_USERNAME}}
-        password: ${{secrets.STALLIONI_PASS}}
-        script: |
-          cd /var/www/clients/client0/web16/web/
-          git config --global --add safe.directory /var/www/clients/client0/web16/web
-          git pull origin master
-          chown -R runner:runner /var/www/clients/client0/web16/web
-          chmod -R 775 /var/www/clients/client0/web16/web
-          pwd
-          composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
-          pwd
+    - name: Sync files to server
+      run: |
+          rsync -avz --delete \
+          -e "ssh -o StrictHostKeyChecking=no" \
+          ./ ${{ secrets.STALLIONI_USERNAME }}@${{ secrets.STALLIONI_HOST }}:/var/www/clients/client0/web16/web
+ #   - name: Deploy via SSH
+ #     uses: appleboy/ssh-action@master
+ #     with: 
+ #       host: ${{vars.STALLIONI_HOST}}
+ #       username: ${{vars.STALLIONI_USERNAME}}
+ #       password: ${{secrets.STALLIONI_PASS}}
+ #       script: |
+ #         cd /var/www/clients/client0/web16/web/
+ #         git config --global --add safe.directory /var/www/clients/client0/web16/web
+ #         git pull origin master
+ #         chown -R runner:runner /var/www/clients/client0/web16/web
+ #         chmod -R 775 /var/www/clients/client0/web16/web
+ #         pwd
+ #         composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
+  #        pwd
     #      vendor/bin/drush cr
     #      vendor/bin/drush updb -y
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
