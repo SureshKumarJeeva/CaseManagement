@@ -44,13 +44,7 @@ jobs:
           rsync -avz --delete \
           -e "ssh -o StrictHostKeyChecking=no" \
           ./ ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }}:/var/www/clients/client0/web16/web
-    - name: Run post-deploy commands
-      run: |
-          sshpass -p "${{ secrets.STALLIONI_PASS }}" \
-          ssh -o StrictHostKeyChecking=no \
-          ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }} << 'EOF'
-            cd /var/www/clients/client0/web16/web
-            EOF
+    
 #            sudo chown -R www-data:www-data /var/www/clients/client0/web16/web
  #           EOF
  #           drush updb -y
