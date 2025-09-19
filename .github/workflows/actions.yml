@@ -8,24 +8,26 @@ permissions:
   contents: read
 
 jobs:
-  deploy:
+  build:
 
     runs-on: ubuntu-latest
 
     steps:
     - uses: actions/checkout@v4
-
+   # - name: composer downgrade to 2.2
+    #  run: sudo composer self-update --2.2
+      
     - name: Validate composer.json and composer.lock
-      run: composer validate --strict
+      run: composer validate
 
-    - name: Cache Composer packages
-      id: composer-cache
-      uses: actions/cache@v3
-      with:
-        path: vendor
-        key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
-        restore-keys: |
-          ${{ runner.os }}-php-
+   # - name: Cache Composer packages
+   #   id: composer-cache
+   #   uses: actions/cache@v3
+    #  with:
+   #     path: vendor
+   #     key: ${{ runner.os }}-php-${{ hashFiles('**/composer.lock') }}
+    #    restore-keys: |
+    #      ${{ runner.os }}-php-
           
     - name: Setup PHP
       uses: shivammathur/setup-php@15c43e89cdef867065b0213be354c2841860869e
@@ -34,19 +36,46 @@ jobs:
 
     - name: Install dependencies
       run: composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-suggest --no-interaction
-
-    - name: Deploy via SSH
-      uses: appleboy/ssh-action@master
-      with: 
-        host: ${{secrets.AZURE_SSH_HOST}}
-        username: ${{secrets.AZURE_USERNAME}}
-        key: ${{secrets.AZURE_PUBLIC_KEY}}
-        script: |
-          cd /var/www/html/
-          git pull origin master
-          composer install --prefer-dist --no-progress --no-dev --optimize-autoloader
-          drush cr
-          drush updb -y
+      
+    - name: Install sshpass
+      run: sudo apt-get update && sudo apt-get install -y sshpass
+    - name: Sync files to server
+      run: |
+          sshpass -p "${{ secrets.STALLIONI_PASS }}" \
+          rsync -avz --delete \
+          -e "ssh -o StrictHostKeyChecking=no" \
+          ./ ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }}:/var/www/clients/client0/web16/web 
+          
+    - name: Run post-deploy commands
+      run: |
+          sshpass -p "${{ secrets.STALLIONI_PASS }}" \
+          ssh -o StrictHostKeyChecking=no \
+          ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }} << 'EOF'
+            cd /var/www/clients/client0/web16/web
+            composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
+          EOF
+#            sudo chown -R www-data:www-data /var/www/clients/client0/web16/web
+ #           EOF
+ #           drush updb -y
+ #           drush cr
+          
+ #   - name: Deploy via SSH
+ #     uses: appleboy/ssh-action@master
+ #     with: 
+ #       host: ${{vars.STALLIONI_HOST}}
+ #       username: ${{vars.STALLIONI_USERNAME}}
+ #       password: ${{secrets.STALLIONI_PASS}}
+ #       script: |
+ #         cd /var/www/clients/client0/web16/web/
+ #         git config --global --add safe.directory /var/www/clients/client0/web16/web
+ #         git pull origin master
+ #         chown -R runner:runner /var/www/clients/client0/web16/web
+ #         chmod -R 775 /var/www/clients/client0/web16/web
+ #         pwd
+ #         composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
+  #        pwd
+    #      vendor/bin/drush cr
+    #      vendor/bin/drush updb -y
     # Add a test script to composer.json, for instance: "test": "vendor/bin/phpunit"
     # Docs: https://getcomposer.org/doc/articles/scripts.md
 
