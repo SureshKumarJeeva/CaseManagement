@@ -10,12 +10,12 @@ use Drupal\system\Entity\Menu;
  *
  * @group jsonapi
  */
-class MenuTest extends ResourceTestBase {
+class MenuTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = [];
+  protected static $modules = [];
 
   /**
    * {@inheritdoc}

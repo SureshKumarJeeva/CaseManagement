@@ -4,14 +4,14 @@ namespace Drupal\FunctionalTests\Rest;
 
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\node\Entity\NodeType;
-use Drupal\Tests\rest\Functional\EntityResource\EntityResourceTestBase;
+use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
 
-abstract class EntityFormDisplayResourceTestBase extends EntityResourceTestBase {
+abstract class EntityFormDisplayResourceTestBase extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['node'];
+  protected static $modules = ['node', 'field_ui'];
 
   /**
    * {@inheritdoc}
@@ -152,10 +152,6 @@ abstract class EntityFormDisplayResourceTestBase extends EntityResourceTestBase 
    * {@inheritdoc}
    */
   protected function getExpectedUnauthorizedAccessMessage($method) {
-    if ($this->config('rest.settings')->get('bc_entity_resource_permissions')) {
-      return parent::getExpectedUnauthorizedAccessMessage($method);
-    }
-
     return "The 'administer node form display' permission is required.";
   }
 

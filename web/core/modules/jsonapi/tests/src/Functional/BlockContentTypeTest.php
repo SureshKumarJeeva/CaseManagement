@@ -10,12 +10,12 @@ use Drupal\Core\Url;
  *
  * @group jsonapi
  */
-class BlockContentTypeTest extends ResourceTestBase {
+class BlockContentTypeTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['block_content'];
+  protected static $modules = ['block_content'];
 
   /**
    * {@inheritdoc}

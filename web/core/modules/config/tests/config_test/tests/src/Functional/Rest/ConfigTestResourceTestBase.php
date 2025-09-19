@@ -3,14 +3,14 @@
 namespace Drupal\Tests\config_test\Functional\Rest;
 
 use Drupal\config_test\Entity\ConfigTest;
-use Drupal\Tests\rest\Functional\EntityResource\EntityResourceTestBase;
+use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
 
-abstract class ConfigTestResourceTestBase extends EntityResourceTestBase {
+abstract class ConfigTestResourceTestBase extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['config_test', 'config_test_rest'];
+  protected static $modules = ['config_test', 'config_test_rest'];
 
   /**
    * {@inheritdoc}
@@ -74,10 +74,6 @@ abstract class ConfigTestResourceTestBase extends EntityResourceTestBase {
    * {@inheritdoc}
    */
   protected function getExpectedUnauthorizedAccessMessage($method) {
-    if ($this->config('rest.settings')->get('bc_entity_resource_permissions')) {
-      return parent::getExpectedUnauthorizedAccessMessage($method);
-    }
-
     switch ($method) {
       case 'GET':
         return "The 'view config_test' permission is required.";

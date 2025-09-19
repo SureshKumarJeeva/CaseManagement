@@ -2,7 +2,7 @@ global-styling:
   version: 1.x
   css:
     base:
-      css/style.css: {weight:200}
+      css/style.css: { weight : 200 }
 global-scripts:
   version: 1.x
   js:

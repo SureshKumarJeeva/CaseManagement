@@ -10,12 +10,12 @@ use Drupal\shortcut\Entity\ShortcutSet;
  *
  * @group jsonapi
  */
-class ShortcutSetTest extends ResourceTestBase {
+class ShortcutSetTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['shortcut'];
+  protected static $modules = ['shortcut'];
 
   /**
    * {@inheritdoc}

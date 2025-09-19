@@ -4,14 +4,14 @@ namespace Drupal\FunctionalTests\Rest;
 
 use Drupal\Core\Field\Entity\BaseFieldOverride;
 use Drupal\node\Entity\NodeType;
-use Drupal\Tests\rest\Functional\EntityResource\EntityResourceTestBase;
+use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
 
-abstract class BaseFieldOverrideResourceTestBase extends EntityResourceTestBase {
+abstract class BaseFieldOverrideResourceTestBase extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['field', 'node'];
+  protected static $modules = ['field', 'field_ui', 'node'];
 
   /**
    * {@inheritdoc}
@@ -101,10 +101,6 @@ abstract class BaseFieldOverrideResourceTestBase extends EntityResourceTestBase 
    * {@inheritdoc}
    */
   protected function getExpectedUnauthorizedAccessMessage($method) {
-    if ($this->config('rest.settings')->get('bc_entity_resource_permissions')) {
-      return parent::getExpectedUnauthorizedAccessMessage($method);
-    }
-
     return "The 'administer node fields' permission is required.";
   }
 

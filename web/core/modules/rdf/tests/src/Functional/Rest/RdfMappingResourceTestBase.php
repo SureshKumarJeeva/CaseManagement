@@ -4,14 +4,14 @@ namespace Drupal\Tests\rdf\Functional\Rest;
 
 use Drupal\node\Entity\NodeType;
 use Drupal\rdf\Entity\RdfMapping;
-use Drupal\Tests\rest\Functional\EntityResource\EntityResourceTestBase;
+use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
 
-abstract class RdfMappingResourceTestBase extends EntityResourceTestBase {
+abstract class RdfMappingResourceTestBase extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['node', 'rdf'];
+  protected static $modules = ['node', 'rdf'];
 
   /**
    * {@inheritdoc}

@@ -45,7 +45,6 @@ module:
   field_ui: 0
   file: 0
   filter: 0
-  form_mode_manager: 0
   history: 0
   ief_table_view_mode: 0
   image: 0
@@ -55,7 +54,6 @@ module:
   jquery_ui_datepicker: 0
   jquery_ui_slider: 0
   jquery_ui_touch_punch: 0
-  kint: 0
   layout_discovery: 0
   link: 0
   mailgun: 0
@@ -85,7 +83,6 @@ module:
   token: 0
   toolbar: 0
   tracker: 0
-  twig_field_value: 0
   twig_tweak: 0
   typed_data: 0
   update: 0

@@ -10,12 +10,12 @@ use Drupal\image\Entity\ImageStyle;
  *
  * @group jsonapi
  */
-class ImageStyleTest extends ResourceTestBase {
+class ImageStyleTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['image'];
+  protected static $modules = ['image'];
 
   /**
    * {@inheritdoc}

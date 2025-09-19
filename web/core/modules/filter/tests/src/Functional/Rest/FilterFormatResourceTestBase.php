@@ -3,14 +3,14 @@
 namespace Drupal\Tests\filter\Functional\Rest;
 
 use Drupal\filter\Entity\FilterFormat;
-use Drupal\Tests\rest\Functional\EntityResource\EntityResourceTestBase;
+use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
 
-abstract class FilterFormatResourceTestBase extends EntityResourceTestBase {
+abstract class FilterFormatResourceTestBase extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = [];
+  protected static $modules = [];
 
   /**
    * {@inheritdoc}

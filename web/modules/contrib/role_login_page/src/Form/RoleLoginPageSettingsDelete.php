@@ -1,9 +1,9 @@
 <?php
 
 /**
-   * @file
-   * Contains \Drupal\role_login_page\Form\RoleLoginPageSettingsDelete.
-    */
+ * @file
+ * Contains \Drupal\role_login_page\Form\RoleLoginPageSettingsDelete.
+ */
 
 namespace Drupal\role_login_page\Form;
 
@@ -11,13 +11,22 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Form\ConfirmFormBase;
 use Drupal\Core\Url;
+use Drupal\Core\Database\Database;
 
 /**
-   * Delete login page form.
-    */
+ * Delete login page form.
+ */
 class RoleLoginPageSettingsDelete extends ConfirmFormBase {
 
   protected $id;
+  protected $connection;
+
+  /**
+   * RoleLoginPageSettingsDelete constructor.
+   */
+  public function __construct() {
+    $this->connection = Database::getConnection();
+  }
 
   /**
    * {@inheritdoc}
@@ -62,32 +71,32 @@ class RoleLoginPageSettingsDelete extends ConfirmFormBase {
   }
 
   /**
-   * 
+   *
    * @param array $form
    * @param FormStateInterface $form_state
    * @param type $rlid
    * @return type
    */
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rlid = NULL) {
-    $form = [];
+  public function buildForm(array $form, FormStateInterface $form_state, $rlid = NULL) {
     $this->id = $rlid;
     return parent::buildForm($form, $form_state);
   }
 
   /**
-   * 
+   *
    * @param array $form
    * @param FormStateInterface $form_state
    */
-  public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $url = db_query_range("SELECT url FROM {role_login_page_settings} WHERE rl_id = :rl_id", 0, 1, [
-      ':rl_id' => $this->id
-      ])->fetchField();
-    $deleted = db_delete('role_login_page_settings')
+  public function submitForm(array &$form, FormStateInterface $form_state) {
+    $url_query = $this->connection->select('role_login_page_settings', 'rlps');
+    $url_query->fields('rlps', ['url']);
+    $url_query->condition('rl_id', $this->id);
+    $url = $url_query->execute()->fetchObject();
+    $deleted = $this->connection->delete('role_login_page_settings')
       ->condition('rl_id', $this->id)
       ->execute();
     if ($deleted) {
-      _role_login_page_settings_cache_clear($url, 'delete');
+      _role_login_page_settings_cache_clear($url->url, 'delete');
     }
   }
 

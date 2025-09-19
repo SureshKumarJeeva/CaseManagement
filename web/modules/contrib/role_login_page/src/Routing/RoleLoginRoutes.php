@@ -3,11 +3,21 @@
 namespace Drupal\role_login_page\Routing;
 
 use Symfony\Component\Routing\Route;
+use Drupal\Core\Database\Database;
 
 /**
  * Defines dynamic routes.
  */
 class RoleLoginRoutes {
+
+    protected $connection;
+
+    /**
+     * RoleLoginRoutes constructor.
+     */
+    public function __construct() {
+        $this->connection = Database::getConnection();
+    }
 
   /**
    * {@inheritdoc}
@@ -16,13 +26,13 @@ class RoleLoginRoutes {
   public function routes() {
     $routes = [];
 
-    $login_menu_arr = db_select('role_login_page_settings', 'rlps')
+    $login_menu_arr = $this->connection->select('role_login_page_settings', 'rlps')
       ->fields('rlps')
       ->execute()
       ->fetchAll();
     $i = 0;
     foreach ($login_menu_arr as $login_menu_data) {
-      // Returns an array of Route objects. 
+      // Returns an array of Route objects.
       $routes['role_login_page.route' . $i] = new Route(
         // Path to attach this route to:
         '/' . $login_menu_data->url,
@@ -30,7 +40,7 @@ class RoleLoginRoutes {
         [
         '_form' => '\Drupal\role_login_page\Form\RoleLoginForm',
         '_title' => $login_menu_data->page_title,
-        'data' => $login_menu_data
+        'rl_id' => $login_menu_data->rl_id
         ],
         // Route requirements:
         [

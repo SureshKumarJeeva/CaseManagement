@@ -10,12 +10,12 @@ use Drupal\Core\Url;
  *
  * @group jsonapi
  */
-class ConfigTestTest extends ResourceTestBase {
+class ConfigTestTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['config_test', 'config_test_rest'];
+  protected static $modules = ['config_test', 'config_test_rest'];
 
   /**
    * {@inheritdoc}

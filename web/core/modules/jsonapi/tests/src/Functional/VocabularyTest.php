@@ -10,12 +10,12 @@ use Drupal\taxonomy\Entity\Vocabulary;
  *
  * @group jsonapi
  */
-class VocabularyTest extends ResourceTestBase {
+class VocabularyTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['taxonomy'];
+  protected static $modules = ['taxonomy'];
 
   /**
    * {@inheritdoc}

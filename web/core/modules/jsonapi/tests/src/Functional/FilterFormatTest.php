@@ -10,12 +10,12 @@ use Drupal\filter\Entity\FilterFormat;
  *
  * @group jsonapi
  */
-class FilterFormatTest extends ResourceTestBase {
+class FilterFormatTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['filter'];
+  protected static $modules = ['filter'];
 
   /**
    * {@inheritdoc}

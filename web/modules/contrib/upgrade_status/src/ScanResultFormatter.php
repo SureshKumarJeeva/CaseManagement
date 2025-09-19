@@ -5,6 +5,7 @@ namespace Drupal\upgrade_status;
 use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Datetime\DateFormatterInterface;
 use Drupal\Core\Extension\Extension;
+use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
@@ -39,6 +40,13 @@ class ScanResultFormatter {
   protected $time;
 
   /**
+   * The module handler.
+   *
+   * @var \Drupal\Core\Extension\ModuleHandlerInterface
+   */
+  protected $moduleHandler;
+
+  /**
    * Constructs a \Drupal\upgrade_status\Controller\ScanResultFormatter.
    *
    * @param \Drupal\Core\KeyValueStore\KeyValueFactoryInterface $key_value_factory
@@ -47,15 +55,19 @@ class ScanResultFormatter {
    *   The date formatter service.
    * @param \Drupal\Component\Datetime\TimeInterface $time
    *   The time service.
+   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
+   *   The module handler.
    */
   public function __construct(
     KeyValueFactoryInterface $key_value_factory,
     DateFormatterInterface $dateFormatter,
-    TimeInterface $time
+    TimeInterface $time,
+    ModuleHandlerInterface $module_handler
   ) {
     $this->scanResultStorage = $key_value_factory->get('upgrade_status_scan_results');
     $this->dateFormatter = $dateFormatter;
     $this->time = $time;
+    $this->moduleHandler = $module_handler;
   }
 
   /**
@@ -65,28 +77,28 @@ class ScanResultFormatter {
     return new static(
       $container->get('keyvalue'),
       $container->get('date.formatter'),
-      $container->get('datetime.time')
+      $container->get('datetime.time'),
+      $container->get('module_handler')
     );
   }
 
   /**
    * Get scanning result for an extension.
    *
-   * @param Extension $extension
+   * @param \Drupal\Core\Extension\Extension $extension
    *   Drupal extension object.
    * @return null|array
    *   Scan results array or null if no scan results are saved.
    */
   public function getRawResult(Extension $extension) {
-    $scan_results = $this->scanResultStorage->get($extension->getName());
-    if (!empty($scan_results)) {
-      $scan_results = json_decode($scan_results, TRUE);
-    }
-    return $scan_results;
+    return $this->scanResultStorage->get($extension->getName()) ?: NULL;
   }
 
   /**
    * Format results output for an extension.
+   *
+   * @param \Drupal\Core\Extension\Extension $extension
+   *   Drupal extension object.
    *
    * @return array
    *   Build array.
@@ -100,9 +112,14 @@ class ScanResultFormatter {
     if (empty($result)) {
       return [
         '#title' => $label,
-        'data' => [
+        'result' => [
           '#type' => 'markup',
-          '#markup' => $this->t('No deprecation scanning data available.'),
+          '#markup' => $this->t(
+            'No deprecation scanning data available. <a href="@url">Go to the Upgrade Status form</a>.',
+            [
+              '@url' => Url::fromRoute('upgrade_status.report')->toString()
+            ]
+          ),
         ],
       ];
     }
@@ -115,6 +132,7 @@ class ScanResultFormatter {
     }
 
     $build = [
+      '#attached' => ['library' => ['upgrade_status/upgrade_status.admin']],
       '#title' => $label,
       'date' => [
         '#type' => 'markup',
@@ -140,22 +158,8 @@ class ScanResultFormatter {
       return $build;
     }
 
-    // Otherwise prepare list of errors in a table.
-    $table = [
-      '#type' => 'table',
-      '#attributes' => [
-        'class' => ['upgrade-status-summary'],
-      ],
-      '#header' => [
-        'status' => $this->t('Status'),
-        'filename' => $this->t('File name'),
-        'line' => $this->t('Line'),
-        'issue' => $this->t('Error'),
-      ],
-      '#weight' => 100,
-    ];
-
-    $hasFixNow = FALSE;
+    // Otherwise prepare list of errors in groups.
+    $groups = [];
     foreach ($result['data']['files'] as $filepath => $errors) {
       foreach ($errors['messages'] as $error) {
 
@@ -188,7 +192,7 @@ class ScanResultFormatter {
         $formatted_error = preg_replace('!deprecated function ([^(]+)\(\)!', 'deprecated function <a target="_blank" href="' . $api_link . '\1">\1()</a>', $error['message']);
 
         // Replace deprecated class links.
-        if (preg_match('!class (Drupal\\\\.+)\.( |$)!', $formatted_error, $found)) {
+        if (preg_match('!class (Drupal\\\\\S+)\.( |$)!', $formatted_error, $found)) {
           if (preg_match('!Drupal\\\\([a-z_0-9A-Z]+)\\\\(.+)$!', $found[1], $namespace)) {
 
             $path_parts = explode('\\', $namespace[2]);
@@ -216,37 +220,28 @@ class ScanResultFormatter {
         // Allow error messages to wrap.
         $formatted_error = str_replace('\\', '\\<wbr>', $formatted_error);
 
-        $error_class = 'known-warnings';
-        $level_label = $this->t('Check manually');
+        // Make drupal.org documentation links clickable.
+        $formatted_error = preg_replace('!See (https://(www.)?drupal.org\S*?)(\.|\s|$)!', 'See <a href="\1">\1</a>\3', $formatted_error);
+
+        // Format core_version_requirement message.
+        $formatted_error = preg_replace('!(core_version_requirement: .+) (to designate|is not)!', '<code>\1</code> \2', $formatted_error);
+
+        $category = 'uncategorized';
         if (!empty($error['upgrade_status_category'])) {
-          if ($error['upgrade_status_category'] == 'ignore') {
-            $level_label = $this->t('Ignore');
-            $error_class = 'known-ignore';
+          if (in_array($error['upgrade_status_category'], ['safe', 'old'])) {
+            $category = 'now';
           }
-          elseif ($error['upgrade_status_category'] == 'later') {
-            $level_label = $this->t('Fix later');
-          }
-          elseif (in_array($error['upgrade_status_category'], ['safe', 'old'])) {
-            $level_label = $this->t('Fix now');
-            $error_class = 'known-errors';
-            $hasFixNow = TRUE;
+          else {
+            $category = $error['upgrade_status_category'];
           }
         }
-
-        $table[] = [
-          '#attributes' => [
-            'class' => [$error_class],
-          ],
-          'status' => [
-            '#type' => 'markup',
-            '#markup' => $level_label,
-            '#wrapper_attributes' => [
-              'class' => ['status-info'],
-            ],
-          ],
+        @$groups[$category][] = [
           'filename' => [
             '#type' => 'markup',
             '#markup' => $short_path,
+            '#wrapper_attributes' => [
+              'class' => ['status-info'],
+            ]
           ],
           'line' => [
             '#type' => 'markup',
@@ -260,6 +255,75 @@ class ScanResultFormatter {
       }
     }
 
+    $build['groups'] = [
+      '#weight' => 100,
+    ];
+    $group_help = [
+      'rector' => [
+        $this->t('Fix now with automation'),
+        'rector-covered',
+        $this->t('Avoid some manual work by using <a href="@drupal-rector">drupal-rector to fix issues automatically</a> or <a href="@upgrade-rector">Upgrade Rector to generate patches</a>.', ['@drupal-rector' => 'https://www.drupal.org/project/rector', '@upgrade-rector' => 'https://www.drupal.org/project/upgrade_rector']),
+      ],
+      'now' => [
+        $this->t('Fix now manually'),
+        'known-errors',
+        $this->t('It does not seem like these are covered by automation yet. <a href="@drupal-rector">Contribute to drupal-rector to provide coverage</a>. Fix manually in the meantime.', ['@drupal-rector' => 'https://www.drupal.org/project/rector']),
+      ],
+      'uncategorized' => [
+        $this->t('Check manually'),
+        'known-warnings',
+        $this->t('Errors without Drupal source version numbers including parse errors and use of APIs from dependencies.'),
+      ],
+      'later' => [
+        $this->t('Fix later'),
+        'known-later',
+        // Issues to fix later need different guidance based on whether they
+        // were found in a contributed project or a custom project.
+        !empty($extension->info['project']) ?
+          $this->t('Based on the Drupal deprecation version number of these, fixing them may make the contributed project incompatible with supported Drupal core versions.') :
+          $this->t('Based on the Drupal deprecation version number of these, fixing them will likely make them incompatible with your current Drupal version.')
+      ],
+      'ignore' => [
+        $this->t('Ignore'),
+        'known-ignore',
+        $this->t('Deprecated API use for APIs removed in future Drupal major versions is not required to fix yet.'),
+      ],
+    ];
+    foreach ($group_help as $group_key => $group_info) {
+      if (empty($groups[$group_key])) {
+        // Skip this group if there was no error to display.
+        continue;
+      }
+      $build['groups'][$group_key] = [
+        'title' => [
+          '#type' => 'markup',
+          '#markup' => '<h3 class="upgrade-status-group">' . $group_info[0] . '</h3>',
+        ],
+        'description' => [
+          '#type' => 'markup',
+          '#markup' => '<div class="upgrade-status-description">' . $group_info[2] . '</div>',
+        ],
+        'errors' => [
+          '#type' => 'table',
+          '#attributes' => [
+            'class' => ['upgrade-status-error-list'],
+          ],
+          '#header' => [
+            'filename' => $this->t('File name'),
+            'line' => $this->t('Line'),
+            'issue' => $this->t('Error'),
+          ],
+        ],
+      ];
+      foreach ($groups[$group_key] as $item) {
+        $item['#attributes']['class'] = [$group_info[1]];
+        $build['groups'][$group_key]['errors'][] = $item;
+      }
+      // All modules (thinking of Upgrade Rector here primarily) to alter
+      // results display.
+      $this->moduleHandler->alter('upgrade_status_result', $build['groups'][$group_key], $extension, $group_key);
+    }
+
     $summary = [];
     if (!empty($result['data']['totals']['upgrade_status_split']['error'])) {
       $summary[] = $this->formatPlural($result['data']['totals']['upgrade_status_split']['error'], '@count error found.', '@count errors found.');
@@ -267,21 +331,11 @@ class ScanResultFormatter {
     if (!empty($result['data']['totals']['upgrade_status_split']['warning'])) {
       $summary[] = $this->formatPlural($result['data']['totals']['upgrade_status_split']['warning'], '@count warning found.', '@count warnings found.');
     }
-    if ($hasFixNow) {
-      if (!empty($extension->info['project'])) {
-        $summary[] = $this->t('Items categorized "Fix now" are uses of deprecated APIs from community unsupported core versions.');
-      }
-      else {
-        $summary[] = $this->t('Items categorized "Fix now" are uses of deprecated APIs in custom code from current or older Drupal core version.');
-      }
-    }
     $build['summary'] = [
       '#type' => '#markup',
       '#markup' => '<div class="list-description">' . join(' ', $summary) . '</div>',
       '#weight' => 5,
     ];
-
-    $build['data'] = $table;
 
     $build['export'] = [
       '#type' => 'link',
@@ -306,7 +360,7 @@ class ScanResultFormatter {
 
     $build['export_ascii'] = [
       '#type' => 'link',
-      '#title' => $this->t('Export as ASCII'),
+      '#title' => $this->t('Export as text'),
       '#name' => 'export_ascii',
       '#url' => Url::fromRoute(
         'upgrade_status.export',
@@ -387,7 +441,7 @@ class ScanResultFormatter {
     // Otherwise prepare list of errors in tables.
     $tables = '';
 
-    $hasFixNow = FALSE;
+    $hasFixRector = FALSE;
     foreach ($result['data']['files'] as $filepath => $errors) {
       // Remove the Drupal root directory name. If this is a composer setup,
       // then the webroot is in a web/ directory, add that back in for easy
@@ -411,7 +465,10 @@ class ScanResultFormatter {
           }
           elseif (in_array($error['upgrade_status_category'], ['safe', 'old'])) {
             $level_label = $this->t('Fix now');
-            $hasFixNow = TRUE;
+          }
+          elseif ($error['upgrade_status_category'] == 'rector') {
+            $level_label = $this->t('Fix with rector');
+            $hasFixRector = TRUE;
           }
         }
 
@@ -434,13 +491,8 @@ class ScanResultFormatter {
     if (!empty($result['data']['totals']['upgrade_status_split']['warning'])) {
       $summary[] = $this->formatPlural($result['data']['totals']['upgrade_status_split']['warning'], '@count warning found.', '@count warnings found.');
     }
-    if ($hasFixNow) {
-      if (!empty($extension->info['project'])) {
-        $summary[] = $this->t('Items categorized "Fix now" are uses of deprecated APIs from community unsupported core versions.');
-      }
-      else {
-        $summary[] = $this->t('Items categorized "Fix now" are uses of deprecated APIs in custom code from current or older Drupal core version.');
-      }
+    if ($hasFixRector) {
+      $summary[] = $this->t('Avoid some manual work by using drupal-rector for fixing issues automatically or Upgrade Rector to generate patches.');
     }
     $build['summary'] = [
       '#type' => '#markup',

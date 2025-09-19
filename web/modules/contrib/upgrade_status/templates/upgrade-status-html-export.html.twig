@@ -14,8 +14,11 @@
     th, td {
       border-bottom: 1px solid #cdcdcd;
     }
-    th:nth-child(2), td:nth-child(2) {
-      width: 6%;
+    th:nth-child(1), td:nth-child(3) {
+      width: 40%;
+    }
+    th:nth-child(2) {
+      width: 10%;
     }
     .list-description {
       margin-bottom: 1em;
@@ -33,7 +36,7 @@
     {{ project.date }}
     {{ project.summary }}
     {{ project.plans }}
-    {{ project.data }}
+    {{ project.groups }}
   {% endfor %}
 {% endif %}
 
@@ -44,7 +47,7 @@
     {{ project.date }}
     {{ project.summary }}
     {{ project.plans }}
-    {{ project.data }}
+    {{ project.groups }}
   {% endfor %}
 {% endif %}
 

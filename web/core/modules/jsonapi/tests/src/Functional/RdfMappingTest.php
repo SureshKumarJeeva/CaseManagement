@@ -11,12 +11,12 @@ use Drupal\rdf\Entity\RdfMapping;
  *
  * @group jsonapi
  */
-class RdfMappingTest extends ResourceTestBase {
+class RdfMappingTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['node', 'rdf'];
+  protected static $modules = ['node', 'rdf'];
 
   /**
    * {@inheritdoc}

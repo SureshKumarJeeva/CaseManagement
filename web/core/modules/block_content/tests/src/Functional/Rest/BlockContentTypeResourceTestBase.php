@@ -2,15 +2,15 @@
 
 namespace Drupal\Tests\block_content\Functional\Rest;
 
-use Drupal\Tests\rest\Functional\EntityResource\EntityResourceTestBase;
+use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
 use Drupal\block_content\Entity\BlockContentType;
 
-abstract class BlockContentTypeResourceTestBase extends EntityResourceTestBase {
+abstract class BlockContentTypeResourceTestBase extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['block_content'];
+  protected static $modules = ['block_content'];
 
   /**
    * {@inheritdoc}

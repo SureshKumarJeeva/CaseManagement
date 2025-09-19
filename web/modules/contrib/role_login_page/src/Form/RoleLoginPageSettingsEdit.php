@@ -1,17 +1,19 @@
 <?php
 
 /**
-   * @file
-   * Contains \Drupal\role_login_page\Form\RoleLoginPageSettingsEdit.
-    */
+  ï¿½* @file
+  ï¿½* Contains \Drupal\role_login_page\Form\RoleLoginPageSettingsEdit.
+  ï¿½ */
 
 namespace Drupal\role_login_page\Form;
 
+use Drupal\user\Entity\Role;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Core\Url;
+use Drupal\Core\Database\Database;
 
 /**
  * Edit login page form.
@@ -19,6 +21,13 @@ use Drupal\Core\Url;
 class RoleLoginPageSettingsEdit extends FormBase {
 
   protected $rlid;
+  protected $connection;
+  /**
+   * RoleLoginPageSettingsEdit constructor.
+   */
+  public function __construct() {
+    $this->connection = Database::getConnection();
+  }
 
   /**
    * {@inheritdoc}
@@ -28,19 +37,19 @@ class RoleLoginPageSettingsEdit extends FormBase {
   }
 
   /**
-   * 
+   *
    * @param array $form
    * @param FormStateInterface $form_state
    * @param type $rl_id
    * @return string
    */
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state, $rl_id = NULL) {
-    $login_menu_data = db_select('role_login_page_settings', 'rlps')
+  public function buildForm(array $form, FormStateInterface $form_state, $rl_id = NULL) {
+    $login_menu_data = $this->connection->select('role_login_page_settings', 'rlps')
       ->fields('rlps')
       ->condition('rl_id', $rl_id)
       ->execute()
       ->fetchObject();
-    $roles_arr = \Drupal\user\Entity\Role::loadMultiple();
+    $roles_arr = Role::loadMultiple();
     foreach ($roles_arr as $role => $rolesObj) {
       $roles[$role] = $rolesObj->get('label');
     }
@@ -115,19 +124,19 @@ class RoleLoginPageSettingsEdit extends FormBase {
       return $form;
     }
     else {
-      drupal_set_message(t('Invalid login page ID'), 'warning');
+      $this->messenger()->addWarning(t('Invalid login page ID'));
       $redirect = new RedirectResponse(Url::fromUserInput('/admin/config/login/role_login_settings/list')->toString());
       $redirect->send();
     }
   }
 
   /**
-   * 
+   *
    * @global type $base_url
    * @param array $form
    * @param FormStateInterface $form_state
    */
-  public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function validateForm(array &$form, FormStateInterface $form_state) {
     global $base_url;
     $rl_id = $this->rlid;
     $url = trim($form_state->getValue(['loginmenu_url']));
@@ -150,15 +159,18 @@ class RoleLoginPageSettingsEdit extends FormBase {
     }
     else {
       $menu_exists = \Drupal::service('path.validator')->getUrlIfValid($url);
-      $login_page_exists = db_query_range("SELECT 1 FROM {role_login_page_settings} WHERE url = :link_path and rl_id <> :rl_id", 0, 1, [
-        ':link_path' => $url,
-        ':rl_id' => $rl_id,
-        ])->fetchField();
+      $login_page_exists_query = $this->connection->select('role_login_page_settings', 'rlps');
+      $login_page_exists_query->fields('rlps', ['rl_id']);
+      $login_page_exists_query->condition('url', $url);
+      $login_page_exists_query->condition('rl_id', $rl_id, '<>');
+      $login_page_exists = $login_page_exists_query->execute()->fetchObject();
 
-      $current_data_match = db_query_range("SELECT 1 FROM {role_login_page_settings} WHERE url = :link_path and rl_id = :rl_id", 0, 1, [
-        ':link_path' => $url,
-        ':rl_id' => $rl_id,
-        ])->fetchField();
+      $current_data_match_query = $this->connection->select('role_login_page_settings', 'rlps');
+      $current_data_match_query->fields('rlps', ['rl_id']);
+      $current_data_match_query->condition('url', $url);
+      $current_data_match_query->condition('rl_id', $rl_id);
+      $current_data_match = $current_data_match_query->execute()->fetchObject();
+
       if ($login_page_exists && !$current_data_match) {
         $form_state->setErrorByName('loginmenu_url', $this->t('The menu URL already exists'));
       }
@@ -171,11 +183,11 @@ class RoleLoginPageSettingsEdit extends FormBase {
   }
 
   /**
-   * 
+   *
    * @param array $form
    * @param FormStateInterface $form_state
    */
-  public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $rl_id = $this->rlid;
     $url = trim($form_state->getValue(['loginmenu_url']));
     $replacements = [
@@ -204,7 +216,7 @@ class RoleLoginPageSettingsEdit extends FormBase {
     $parent_class = $form_state->getValue(['parent_class']);
     $roles = $form_state->getValue(['roles']);
     $roles = implode(',', $roles);
-    db_update('role_login_page_settings')
+    $this->connection->update('role_login_page_settings')
       ->fields([
         "url" => $url,
         "username_label" => $username_label,

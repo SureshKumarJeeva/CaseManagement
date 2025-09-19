@@ -3,14 +3,14 @@
 namespace Drupal\Tests\system\Functional\Rest;
 
 use Drupal\system\Entity\Menu;
-use Drupal\Tests\rest\Functional\EntityResource\EntityResourceTestBase;
+use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
 
-abstract class MenuResourceTestBase extends EntityResourceTestBase {
+abstract class MenuResourceTestBase extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = [];
+  protected static $modules = [];
 
   /**
    * {@inheritdoc}

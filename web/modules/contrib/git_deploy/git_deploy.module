@@ -103,10 +103,7 @@ function git_deploy_system_info_alter(array &$info, Extension $file, $type) {
                   }
                   else {
                     $release = $available[$project_name]['releases'][$version];
-                    if (
-                      isset($available[$project_name]['releases'][$upstream['last_tag']]['date']) &&
-                      $available[$project_name]['releases'][$upstream['last_tag']]['date'] > $release['date']
-                    ) {
+                    if ($available[$project_name]['releases'][$upstream['last_tag']]['date'] > $release['date']) {
                       // Dev release is out of date, so use official release.
                       $release = $available[$project_name]['releases'][$upstream['last_tag']];
                     }

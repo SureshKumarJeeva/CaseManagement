@@ -40,7 +40,7 @@ class DeprecationMessage {
    * @param int $line
    *   The line associated to the deprecation message.
    */
-  public function __construct(string $message, string $file, int $line) {
+  public function __construct(string $message, string $file = '', int $line = 0) {
     $this->message = $message;
     $this->file = $file;
     $this->line = $line;
@@ -71,6 +71,26 @@ class DeprecationMessage {
    */
   public function getLine(): int {
     return $this->line;
+  }
+
+  /**
+   * Sets the line value.
+   *
+   * @param int $line
+   *   The line associated to the deprecation message.
+   */
+  public function setLine(int $line) {
+    $this->line = $line;
+  }
+
+  /**
+   * Sets the file value.
+   *
+   * @param string $file
+   *   The file related to the deprecation message.
+   */
+  public function setFile(string $file) {
+    $this->file = $file;
   }
 
 }

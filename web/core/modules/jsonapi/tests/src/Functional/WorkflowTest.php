@@ -10,12 +10,12 @@ use Drupal\workflows\Entity\Workflow;
  *
  * @group jsonapi
  */
-class WorkflowTest extends ResourceTestBase {
+class WorkflowTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['workflows', 'workflow_type_test'];
+  protected static $modules = ['workflows', 'workflow_type_test'];
 
   /**
    * {@inheritdoc}

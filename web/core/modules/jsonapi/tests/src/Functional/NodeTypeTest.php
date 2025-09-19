@@ -10,12 +10,12 @@ use Drupal\node\Entity\NodeType;
  *
  * @group jsonapi
  */
-class NodeTypeTest extends ResourceTestBase {
+class NodeTypeTest extends ConfigEntityResourceTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['node'];
+  protected static $modules = ['node'];
 
   /**
    * {@inheritdoc}

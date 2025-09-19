@@ -67,81 +67,94 @@ class UpgradeStatusCommands extends DrushCommands {
   }
 
   /**
-   * Analyze installed projects for use of deprecated APIs in code and templates.
+   * Analyze projects output as XML.
    *
    * @param array $projects
-   *   List of projects to analyze. Only installed projects are supported.
+   *   List of projects to analyze.
+   * @param array $options
+   *   Additional options for the command.
+   *
+   * @command upgrade_status:checkstyle
+   * @option all Analyze all projects.
+   * @option skip-existing Return results from a previous scan of a project if available, otherwise start a new one.
+   * @option ignore-uninstalled Ignore uninstalled projects.
+   * @option ignore-contrib Ignore contributed projects.
+   * @option ignore-custom Ignore custom projects.
+   * @option phpstan-memory-limit Set memory limit for PHPStan.
+   * @aliases us-cs
+   *
+   * @throws \InvalidArgumentException
+   *   Thrown when one of the passed arguments is invalid or no arguments were provided.
+   */
+  public function checkstyle(array $projects, array $options = ['all' => FALSE, 'skip-existing' => FALSE, 'ignore-uninstalled' => FALSE, 'ignore-contrib' => FALSE, 'ignore-custom' => FALSE, 'phpstan-memory-limit' => '1500M']) {
+    $extensions = $this->doAnalyze($projects, $options);
+    $xml = new \SimpleXMLElement("<?xml version='1.0'?><checkstyle/>");
+
+    foreach ($extensions as $type => $list) {
+      foreach ($list as $name => $extension) {
+        $result = $this->resultFormatter->getRawResult($extension);
+
+        if (is_null($result)) {
+          $this->logger()->error('Project scan @name failed.', ['@name' => $name]);
+          continue;
+        }
+
+        foreach ($result['data']['files'] as $filepath => $errors) {
+          $short_path = str_replace(DRUPAL_ROOT . '/', '', $filepath);
+          $file_xml = $xml->addChild('file');
+          $file_xml->addAttribute('name', $short_path);
+          foreach ($errors['messages'] as $error) {
+            $severity = 'error';
+            if ($error['upgrade_status_category'] == 'ignore') {
+              $severity = 'info';
+            }
+            elseif ($error['upgrade_status_category'] == 'later') {
+              $severity = 'warning';
+            }
+            $error_xml = $file_xml->addChild('error');
+            $error_xml->addAttribute('line', $error['line']);
+            $error_xml->addAttribute('message', $error['message']);
+            $error_xml->addAttribute('severity', $severity);
+          }
+        }
+      }
+    }
+
+    $this->output()->writeln($xml->asXML());
+  }
+
+  /**
+   * Analyze projects output as ASCII.
+   *
+   * @param array $projects
+   *   List of projects to analyze.
+   * @param array $options
+   *   Additional options for the command.
    *
    * @command upgrade_status:analyze
+   * @option all Analyze all projects.
+   * @option skip-existing Return results from a previous scan of a project if available, otherwise start a new one.
+   * @option ignore-uninstalled Ignore uninstalled projects.
+   * @option ignore-contrib Ignore contributed projects.
+   * @option ignore-custom Ignore custom projects.
+   * @option phpstan-memory-limit Set memory limit for PHPStan.
    * @aliases us-a
    *
    * @throws \InvalidArgumentException
    *   Thrown when one of the passed arguments is invalid or no arguments were provided.
    */
-  public function analyze(array $projects) {
-    // Group by type here so we can tell loader what is type of each one of
-    // these.
-    $extensions = [];
-    $invalid_names = [];
-
-    if (empty($projects)) {
-      $message = dt('You need to provide at least one installed project\'s machine_name.');
-      throw new \InvalidArgumentException($message);
-    }
-
-    // Gather project list grouped by custom and contrib projects.
-    $available_projects = $this->projectCollector->collectProjects();
-
-    foreach ($projects as $name) {
-      if (array_key_exists($name, $available_projects['custom'])) {
-        $type = $available_projects['custom'][$name]->getType();
-        $extensions[$type][$name] = $available_projects['custom'][$name];
-      }
-      elseif (array_key_exists($name, $available_projects['contrib'])) {
-        $type = $available_projects['contrib'][$name]->getType();
-        $extensions[$type][$name] = $available_projects['contrib'][$name];
-      }
-      else {
-        $invalid_names[] = $name;
-      }
-    }
-
-    if (!empty($invalid_names)) {
-      if (count($invalid_names) == 1) {
-        $message = dt('The project machine name @invalid_name is invalid. Is this a project installed on this site? (For community projects, use the machine name of the drupal.org project itself).', [
-          '@invalid_name' => $invalid_names[0],
-        ]);
-      }
-      else {
-        $message = dt('The project machine names @invalid_names are invalid. Are these projects installed on this site? (For community projects, use the machine name of the drupal.org project itself).', [
-          '@invalid_names' => implode(', ', $invalid_names),
-        ]);
-      }
-      throw new InvalidArgumentException($message);
-    }
-    else {
-      $this->output()
-        ->writeln(dt('Starting the analysis. This may take a while.'));
-    }
-
-    foreach ($extensions as $type => $list) {
-      foreach ($list as $extension) {
-        $this->deprecationAnalyzer->analyze($extension);
-      }
-    }
+  public function analyze(array $projects, array $options = ['all' => FALSE, 'skip-existing' => FALSE, 'ignore-uninstalled' => FALSE, 'ignore-contrib' => FALSE, 'ignore-custom' => FALSE, 'phpstan-memory-limit' => '1500M']) {
+    $extensions = $this->doAnalyze($projects, $options);
 
     foreach ($extensions as $type => $list) {
       $this->output()->writeln('');
       $this->output()->writeln(str_pad('', 80, '='));
 
-      $track = 0;
       foreach ($list as $name => $extension) {
-
         $result = $this->resultFormatter->getRawResult($extension);
 
         if (is_null($result)) {
-          $this->logger()
-            ->error('Project scan @name failed.', ['@name' => $name]);
+          $this->logger()->error('Project scan @name failed.', ['@name' => $name]);
           continue;
         }
 
@@ -149,11 +162,110 @@ class UpgradeStatusCommands extends DrushCommands {
         foreach ($output as $line) {
           $this->output()->writeln($line);
         }
-        if (++$track < count($list)) {
-          $this->output()->writeln(str_pad('', 80, '='));
-        }
       }
     }
+  }
+
+  /**
+   * Analyze projects and return all processed extensions.
+   *
+   * @param array $projects
+   *   List of projects to analyze.
+   * @param array $options
+   *   Additional options for the command.
+   *
+   * @option all Analyze all projects.
+   * @option skip-existing Return results from a previous scan of a project if available, otherwise start a new one.
+   * @option ignore-uninstalled Ignore uninstalled projects.
+   * @option ignore-contrib Ignore contributed projects.
+   * @option ignore-custom Ignore custom projects.
+   * @option phpstan-memory-limit Set memory limit for PHPStan (default: 1500M).
+   *
+   * @throws \InvalidArgumentException
+   *   Thrown when one of the passed arguments is invalid or no arguments were provided.
+   */
+  public function doAnalyze(array $projects, array $options = ['all' => FALSE, 'skip-existing' => FALSE, 'ignore-uninstalled' => FALSE, 'ignore-contrib' => FALSE, 'ignore-custom' => FALSE, 'phpstan-memory-limit' => '1500M']) {
+    // Group by type here so we can tell loader what is type of each one of
+    // these.
+    $extensions = [];
+    $invalid_names = [];
+
+    if (empty($projects) && !$options['all']) {
+      $message = dt('You need to provide at least one installed project\'s machine_name.');
+      throw new \InvalidArgumentException($message);
+    }
+
+    // Gather project list grouped by custom and contrib projects.
+    $available_projects = $this->projectCollector->collectProjects();
+
+    if ($options['all']) {
+      foreach ($available_projects as $name => $project) {
+        if ($options['ignore-uninstalled'] && $project->status === 0) {
+          continue;
+        }
+        if ($options['ignore-contrib'] && $project->info['upgrade_status_type'] == ProjectCollector::TYPE_CONTRIB) {
+          continue;
+        }
+        if ($options['ignore-custom'] && $project->info['upgrade_status_type'] == ProjectCollector::TYPE_CUSTOM) {
+          continue;
+        }
+        $extensions[$project->getType()][$name] = $project;
+      }
+    }
+    else {
+      foreach ($projects as $name) {
+        if (!isset($available_projects[$name])) {
+          $invalid_names[] = $name;
+          continue;
+        }
+        if ($options['ignore-uninstalled'] && $available_projects[$name]->status === 0) {
+          $invalid_names[] = $name;
+          continue;
+        }
+        if ($options['ignore-contrib'] && $available_projects[$name]->info['upgrade_status_type'] == ProjectCollector::TYPE_CONTRIB) {
+          $invalid_names[] = $name;
+          continue;
+        }
+        if ($options['ignore-custom'] && $available_projects[$name]->info['upgrade_status_type'] == ProjectCollector::TYPE_CUSTOM) {
+          $invalid_names[] = $name;
+          continue;
+        }
+        $extensions[$available_projects[$name]->getType()][$name] = $available_projects[$name];
+      }
+    }
+
+    if (!empty($invalid_names)) {
+      if (count($invalid_names) == 1) {
+        $message = dt('The project machine name @invalid_name is invalid. Is this a project on this site? (For community projects, use the machine name of the drupal.org project itself).', [
+          '@invalid_name' => $invalid_names[0],
+        ]);
+      }
+      else {
+        $message = dt('The project machine names @invalid_names are invalid. Are these projects on this site? (For community projects, use the machine name of the drupal.org project itself).', [
+          '@invalid_names' => implode(', ', $invalid_names),
+        ]);
+      }
+      throw new \InvalidArgumentException($message);
+    }
+    else {
+      $this->logger()->info(dt('Starting the analysis. This may take a while.'));
+    }
+
+    foreach ($extensions as $type => $list) {
+      foreach ($list as $name => $extension) {
+        if ($options['skip-existing']) {
+          $scan_result = \Drupal::service('keyvalue')->get('upgrade_status_scan_results')->get($name);
+          if (!empty($scan_result)) {
+            $this->logger()->info(dt('Using previous results for @name.', ['@name' => $name]));
+            continue;
+          }
+        }
+        $this->logger()->info(dt('Processing @name.', ['@name' => $name]));
+        $this->deprecationAnalyzer->analyze($extension, $options);
+      }
+    }
+
+    return $extensions;
   }
 
   /**
@@ -223,7 +335,6 @@ class UpgradeStatusCommands extends DrushCommands {
         elseif (in_array($error['upgrade_status_category'], ['safe', 'old'])) {
           $level_label = dt('Fix now');
         }
-        // Remove the Drupal root directory and allow paths to wrap.
         $linecount = 0;
 
         $msg_parts = explode("\n", wordwrap($error['message'], 60, "\n", TRUE));

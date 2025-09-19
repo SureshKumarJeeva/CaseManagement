@@ -1,21 +1,33 @@
 <?php
 
 /**
-   * @file
-   * Contains \Drupal\role_login_page\Form\RoleLoginPageSettings.
-    */
+ * @file
+ * Contains \Drupal\role_login_page\Form\RoleLoginPageSettings.
+ */
 
 namespace Drupal\role_login_page\Form;
 
+use Drupal\user\Entity\Role;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Database\Database;
 
 /**
-   * Add login page form.
-    */
+ * Add login page form.
+ */
 class RoleLoginPageSettings extends FormBase {
+  /**
+   * @var
+   */
+  protected $connection;
 
+  /**
+   * RoleLoginPageSettings constructor.
+   */
+  public function __construct() {
+    $this->connection = Database::getConnection();
+  }
   /**
    * {@inheritdoc}
    */
@@ -24,13 +36,13 @@ class RoleLoginPageSettings extends FormBase {
   }
 
   /**
-   * 
+   *
    * @param array $form
    * @param FormStateInterface $form_state
    * @return string
    */
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $roles_arr = \Drupal\user\Entity\Role::loadMultiple();
+  public function buildForm(array $form, FormStateInterface $form_state) {
+    $roles_arr = Role::loadMultiple();
     foreach ($roles_arr as $role => $rolesObj) {
       $roles[$role] = $rolesObj->get('label');
     }
@@ -94,12 +106,12 @@ class RoleLoginPageSettings extends FormBase {
   }
 
   /**
-   * 
+   *
    * @global type $base_url
    * @param array $form
    * @param FormStateInterface $form_state
    */
-  public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function validateForm(array &$form, FormStateInterface $form_state) {
     global $base_url;
     $url = trim($form_state->getValue(['loginmenu_url']));
     $complete_url = $base_url . '/' . $url;
@@ -130,11 +142,11 @@ class RoleLoginPageSettings extends FormBase {
   }
 
   /**
-   * 
+   *
    * @param array $form
    * @param FormStateInterface $form_state
    */
-  public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function submitForm(array &$form, FormStateInterface $form_state) {
     $url = trim($form_state->getValue(['loginmenu_url']));
     $replacements = [
       '!',
@@ -162,7 +174,7 @@ class RoleLoginPageSettings extends FormBase {
     $parent_class = $form_state->getValue(['parent_class']);
     $roles = $form_state->getValue(['roles']);
     $roles = implode(',', $roles);
-    $add_login_url = db_insert('role_login_page_settings')
+    $add_login_url = $this->connection->insert('role_login_page_settings')
       ->fields([
         "url" => $url,
         "username_label" => $username_label,
