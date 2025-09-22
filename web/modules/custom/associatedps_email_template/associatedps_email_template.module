@@ -44,9 +44,9 @@ function associatedps_email_template_cron() {
     if ($send_mail === '1') {
 
       $db = Database::getConnection();
-      $query = db_select('node__field_client', 'fc');
-      $query->fields('fc', ['entity_id']);
-      $query->condition('fc.field_client_target_id', $nid, '=');
+      $query = $db->select('node__field_client', 'fc')
+        ->fields('fc', ['entity_id'])
+        ->condition('fc.field_client_target_id', $nid, '=');
       $job_nodes = $query->execute();
       foreach ($job_nodes as $job_node) {
 

@@ -23,14 +23,14 @@ class ConditionalFieldControllerTest extends UnitTestCase {
   /**
    * CF Controller.
    *
-   * @var ConditionalFieldController
+   * @var \Drupal\conditional_fields\Controller\ConditionalFieldController
    */
   protected $controller;
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $entity_types = [];

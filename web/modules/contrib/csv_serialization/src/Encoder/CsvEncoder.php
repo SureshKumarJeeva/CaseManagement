@@ -2,13 +2,13 @@
 
 namespace Drupal\csv_serialization\Encoder;
 
+use Drupal\Component\Serialization\Exception\InvalidDataTypeException;
+use Drupal\Component\Utility\Html;
+use League\Csv\ByteSequence;
+use League\Csv\Reader;
+use League\Csv\Writer;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
-use League\Csv\Writer;
-use League\Csv\Reader;
-use SplTempFileObject;
-use Drupal\Component\Utility\Html;
-use Drupal\Component\Serialization\Exception\InvalidDataTypeException;
 
 /**
  * Adds CSV encoder support for the Serialization API.
@@ -35,6 +35,13 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
    * @var string
    */
   protected $escapeChar;
+
+  /**
+   * Indicates the character used for new line. Defaults to "\n".
+   *
+   * @var string
+   */
+  protected $newline;
 
   /**
    * Whether to strip tags from values or not. Defaults to TRUE.
@@ -91,10 +98,6 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
     $this->escapeChar = $escape_char;
     $this->stripTags = $strip_tags;
     $this->trimValues = $trim_values;
-
-    if (!ini_get("auto_detect_line_endings")) {
-      ini_set("auto_detect_line_endings", '1');
-    }
   }
 
   /**
@@ -131,20 +134,27 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
         break;
     }
 
-    if (!empty($context['views_style_plugin']->options['csv_settings'])) {
+    if (!empty($context['csv_settings'])) {
+      $this->setSettings($context['csv_settings']);
+    }
+    elseif (!empty($context['views_style_plugin']->options['csv_settings'])) {
       $this->setSettings($context['views_style_plugin']->options['csv_settings']);
     }
 
     try {
       // Instantiate CSV writer with options.
-      $csv = Writer::createFromFileObject(new SplTempFileObject());
+      $csv = Writer::createFromFileObject(new \SplTempFileObject());
       $csv->setDelimiter($this->delimiter);
       $csv->setEnclosure($this->enclosure);
       $csv->setEscape($this->escapeChar);
 
+      if ($this->newline) {
+        $csv->setNewline(stripcslashes($this->newline));
+      }
+
       // Set data.
       if ($this->useUtf8Bom) {
-        $csv->setOutputBOM(Writer::BOM_UTF8);
+        $csv->setOutputBOM(ByteSequence::BOM_UTF8);
       }
       // Set headers.
       if ($this->outputHeader) {
@@ -153,9 +163,11 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
       }
       $csv->addFormatter([$this, 'formatRow']);
       foreach ($data as $row) {
-        $csv->insertOne($row);
+        if (is_array($row)) {
+          $csv->insertOne($row);
+        }
       }
-      $output = $csv->__toString();
+      $output = $csv->toString();
 
       return trim($output);
     }
@@ -186,14 +198,11 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
       $allowed_headers = array_keys($first_row);
 
       if (!empty($context['views_style_plugin'])) {
-        $fields = $context['views_style_plugin']
-          ->view
-          ->getDisplay('rest_export_attachment_1')
-          ->getOption('fields');
+        $fields = $context['views_style_plugin']->view->field;
       }
 
       foreach ($allowed_headers as $allowed_header) {
-        $headers[] = !empty($fields[$allowed_header]['label']) ? $fields[$allowed_header]['label'] : $allowed_header;
+        $headers[] = !empty($fields[$allowed_header]->options['label']) ? $fields[$allowed_header]->options['label'] : $allowed_header;
       }
     }
 
@@ -215,12 +224,12 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
   public function formatRow(array $row) {
     $formatted_row = [];
 
-    foreach ($row as $column_name => $cell_data) {
+    foreach ($row as $cell_data) {
       if (is_array($cell_data)) {
         $cell_value = $this->flattenCell($cell_data);
       }
       else {
-        $cell_value = $cell_data;
+        $cell_value = (string) $cell_data;
       }
 
       $formatted_row[] = $this->formatValue($cell_value);
@@ -239,19 +248,19 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
    *   The string value of the CSV cell, un-sanitized.
    */
   protected function flattenCell(array $data) {
-    $depth = $this->arrayDepth($data);
+    $depth = (int) $this->arrayDepth($data);
 
-    if ($depth == 1) {
+    if ($depth === 1) {
       // @todo Allow customization of this in-cell separator.
       return implode('|', $data);
     }
-    else {
-      $cell_value = "";
-      foreach ($data as $item) {
-        $cell_value .= '|' . $this->flattenCell($item);
-      }
-      return trim($cell_value, '|');
+
+    $cell_value = "";
+    foreach ($data as $item) {
+      $cell_value .= '|' . (is_array($item) ? $this->flattenCell($item) : $item);
     }
+
+    return trim($cell_value, '|');
   }
 
   /**
@@ -277,6 +286,10 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
 
   /**
    * {@inheritdoc}
+   *
+   * @throws \League\Csv\Exception
+   * @throws \League\Csv\Exception
+   * @throws \League\Csv\Exception
    */
   public function decode($data, $format, array $context = []) {
     $csv = Reader::createFromString($data);
@@ -285,7 +298,7 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
     $csv->setEscape($this->escapeChar);
 
     $results = [];
-    foreach ($csv->fetchAssoc() as $row) {
+    foreach ($csv->getRecords() as $row) {
       $results[] = $this->expandRow($row);
     }
 
@@ -353,20 +366,28 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
   /**
    * Set CSV settings from the Views settings array.
    *
+   * This allows modules which provides integration
+   * (views_data_export for example) to change default settings.
+   *
    * If a tab character ('\t') is used for the delimiter, it will be properly
    * converted to "\t".
+   *
+   * @param array $settings
+   *   Array of settings.
+   *
+   * @see \Drupal\views_data_export\Plugin\views\style\DataExport()
+   * for list of settings.
    */
   public function setSettings(array $settings) {
     // Replace tab character with one that will be properly interpreted.
-    $this->delimiter = str_replace('\t', "\t", $settings['delimiter']);
-    $this->enclosure = $settings['enclosure'];
-    $this->escapeChar = $settings['escape_char'];
-    $this->useUtf8Bom = ($settings['encoding'] === 'utf8' && !empty($settings['utf8_bom']));
-    $this->stripTags = $settings['strip_tags'];
-    $this->trimValues = $settings['trim'];
-    if (array_key_exists('output_header', $settings)) {
-      $this->outputHeader = $settings['output_header'];
-    }
+    $this->delimiter = isset($settings['delimiter']) ? str_replace('\t', "\t", $settings['delimiter']) : $this->delimiter;
+    $this->enclosure = $settings['enclosure'] ?? $this->enclosure;
+    $this->escapeChar = $settings['escape_char'] ?? $this->escapeChar;
+    $this->useUtf8Bom = isset($settings['encoding']) ? ($settings['encoding'] === 'utf8' && !empty($settings['utf8_bom'])) : $this->useUtf8Bom;
+    $this->newline = $settings['new_line'] ?? $this->newline;
+    $this->stripTags = $settings['strip_tags'] ?? $this->stripTags;
+    $this->trimValues = $settings['trim'] ?? $this->trimValues;
+    $this->outputHeader = $settings['output_header'] ?? $this->outputHeader;
   }
 
 }

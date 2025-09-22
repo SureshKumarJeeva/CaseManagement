@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "3c109470be7477a58b48e7de73475ab7",
+    "content-hash": "188d3b502dff791801f8ab94bddec179",
     "packages": [
         {
             "name": "alchemy/zippy",
@@ -2260,26 +2260,29 @@
         },
         {
             "name": "drupal/conditional_fields",
-            "version": "1.0.0-alpha10",
+            "version": "4.0.0-alpha2",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/conditional_fields.git",
-                "reference": "8.x-1.0-alpha10"
+                "reference": "4.0.0-alpha2"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/conditional_fields-8.x-1.0-alpha10.zip",
-                "reference": "8.x-1.0-alpha10",
-                "shasum": "ac11881a07eaf3ce796dea1cb0e537434d1fbd3d"
+                "url": "https://ftp.drupal.org/files/projects/conditional_fields-4.0.0-alpha2.zip",
+                "reference": "4.0.0-alpha2",
+                "shasum": "acc5658cb370583449d119a4172b7e0c2d81c86a"
             },
             "require": {
-                "drupal/core": "^8 || ^9"
+                "drupal/core": "^8 || ^9 || ^10"
+            },
+            "require-dev": {
+                "drupal/paragraphs": "*"
             },
             "type": "drupal-module",
             "extra": {
                 "drupal": {
-                    "version": "8.x-1.0-alpha10",
-                    "datestamp": "1610130227",
+                    "version": "4.0.0-alpha2",
+                    "datestamp": "1677271425",
                     "security-coverage": {
                         "status": "not-covered",
                         "message": "Alpha releases are not covered by Drupal security advisories."
@@ -2292,8 +2295,8 @@
             ],
             "authors": [
                 {
-                    "name": "Adyax",
-                    "homepage": "https://www.adyax.com/"
+                    "name": "benjifisher",
+                    "homepage": "https://www.drupal.org/user/683300"
                 },
                 {
                     "name": "colan",
@@ -2344,7 +2347,7 @@
                     "homepage": "https://www.drupal.org/user/3589086"
                 }
             ],
-            "description": "Conditional fields",
+            "description": "Define dependencies between fields based on their states and values.",
             "homepage": "https://www.drupal.org/project/conditional_fields",
             "support": {
                 "source": "https://git.drupalcode.org/project/conditional_fields"
@@ -3073,44 +3076,48 @@
         },
         {
             "name": "drupal/csv_serialization",
-            "version": "1.5.0",
+            "version": "dev-3.x",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/csv_serialization.git",
-                "reference": "8.x-1.5"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://ftp.drupal.org/files/projects/csv_serialization-8.x-1.5.zip",
-                "reference": "8.x-1.5",
-                "shasum": "7bdc1f1f410ce3f394887d1c130dc42ef760dda2"
+                "reference": "753c02cd8290ef9968457a3696843c509ab297b1"
             },
             "require": {
-                "drupal/core": "^8.7.12 || ^9.0",
-                "league/csv": "^8.0"
+                "drupal/core": "^9.4",
+                "league/csv": "^9.7"
             },
             "require-dev": {
-                "dealerdirect/phpcodesniffer-composer-installer": "^0.5.0",
                 "drupal/coder": "^8.3"
             },
             "type": "drupal-module",
             "extra": {
+                "branch-alias": {
+                    "dev-3.x": "3.x-dev"
+                },
                 "drupal": {
-                    "version": "8.x-1.5",
-                    "datestamp": "1612800374",
+                    "version": "3.0.1+2-dev",
+                    "datestamp": "1704400867",
                     "security-coverage": {
-                        "status": "covered",
-                        "message": "Covered by Drupal's security advisory policy"
+                        "status": "not-covered",
+                        "message": "Dev releases are not covered by Drupal security advisories."
                     }
                 }
             },
             "notification-url": "https://packages.drupal.org/8/downloads",
+            "scripts": {
+                "phpcs": [
+                    "vendor/bin/phpcs"
+                ],
+                "test": [
+                    "@phpcs"
+                ]
+            },
             "license": [
-                "GPL-2.0+"
+                "GPL-2.0-or-later"
             ],
             "authors": [
                 {
-                    "name": "grasmash",
+                    "name": "Matthew Grasmick",
                     "homepage": "https://www.drupal.org/user/455714"
                 },
                 {
@@ -3121,7 +3128,8 @@
             "description": "Provides CSV as a serialization format.",
             "homepage": "https://www.drupal.org/project/csv_serialization",
             "support": {
-                "source": "https://git.drupalcode.org/project/csv_serialization"
+                "source": "http://cgit.drupalcode.org/csv_serialization",
+                "issues": "https://www.drupal.org/project/issues/csv_serialization"
             }
         },
         {
@@ -5292,7 +5300,7 @@
         },
         {
             "name": "drupal/views_data_export",
-            "version": "1.1.0",
+            "version": "1.6",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/views_data_export.git",
@@ -5306,7 +5314,7 @@
             },
             "require": {
                 "drupal/core": "^8.8 || ^9",
-                "drupal/csv_serialization": "~1.4 || ~2.0"
+                "drupal/csv_serialization": "~1.4 || ~2.0 || 3.x-dev@dev"
             },
             "require-dev": {
                 "drupal/search_api": "~1.12",
@@ -6776,7 +6784,7 @@
         },
         {
             "name": "league/csv",
-            "version": "8.2.3",
+            "version": "9.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/thephpleague/csv.git",
@@ -12990,7 +12998,7 @@
     "minimum-stability": "dev",
     "stability-flags": {
         "drupal/better_exposed_filters": 10,
-        "drupal/conditional_fields": 15,
+        "drupal/csv_serialization": 20,
         "drupal/entity_usage": 15,
         "drupal/ief_table_view_mode": 10,
         "drupal/mailgun": 5,
@@ -13000,13 +13008,12 @@
         "drupal/select_or_other": 20,
         "drupal/smtp": 10,
         "drupal/typed_data": 15,
-        "drupal/views_data_export": 10,
         "drupal/xmlrpc": 10
     },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.1"
+        "php": ">=8.1.31"
     },
     "platform-dev": {},
     "plugin-api-version": "2.6.0"
