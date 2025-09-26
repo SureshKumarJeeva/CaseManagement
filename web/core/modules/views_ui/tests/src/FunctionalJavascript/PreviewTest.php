@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\views_ui\FunctionalJavascript;
 
 use Behat\Mink\Element\NodeElement;
@@ -39,7 +41,7 @@ class PreviewTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp(): void {
+  protected function setUp(): void {
     parent::setUp();
 
     ViewTestData::createTestViews(self::class, ['views_test_config']);
@@ -114,7 +116,7 @@ class PreviewTest extends WebDriverTestBase {
    *
    * @see https://www.drupal.org/node/2452659
    */
-  public function testTaxonomyAJAX() {
+  public function testTaxonomyAJAX(): void {
     \Drupal::service('module_installer')->install(['taxonomy']);
     $this->getPreviewAJAX('taxonomy_term', 'page_1', 0);
   }
@@ -122,7 +124,7 @@ class PreviewTest extends WebDriverTestBase {
   /**
    * Tests pagers in the preview form.
    */
-  public function testPreviewWithPagersUI() {
+  public function testPreviewWithPagersUI(): void {
     // Create 11 nodes and make sure that everyone is returned.
     $this->drupalCreateContentType(['type' => 'page']);
     for ($i = 0; $i < 11; $i++) {
@@ -133,8 +135,8 @@ class PreviewTest extends WebDriverTestBase {
     $this->getPreviewAJAX('test_pager_full_ajax', 'default', 5);
 
     // Test that the pager is present and rendered.
-    $elements = $this->xpath('//ul[contains(@class, :class)]/li', [':class' => 'pager__items']);
-    $this->assertNotEmpty($elements, 'Full pager found.');
+    $elements = $this->xpath('//ul[contains(@class, "pager__items")]/li');
+    $this->assertNotEmpty($elements);
 
     // Verify elements and links to pages.
     // We expect to find 5 elements: current page == 1, links to pages 2 and
@@ -159,8 +161,8 @@ class PreviewTest extends WebDriverTestBase {
     $this->clickPreviewLinkAJAX($element, 5);
 
     // Test that the pager is present and rendered.
-    $elements = $this->xpath('//ul[contains(@class, :class)]/li', [':class' => 'pager__items']);
-    $this->assertNotEmpty($elements, 'Full pager found.');
+    $elements = $this->xpath('//ul[contains(@class, "pager__items")]/li');
+    $this->assertNotEmpty($elements);
 
     // Verify elements and links to pages.
     // We expect to find 7 elements: links to '<< first' and '< previous'
@@ -191,8 +193,8 @@ class PreviewTest extends WebDriverTestBase {
     $this->getPreviewAJAX('test_mini_pager_ajax', 'default', 3);
 
     // Test that the pager is present and rendered.
-    $elements = $this->xpath('//ul[contains(@class, :class)]/li', [':class' => 'pager__items']);
-    $this->assertNotEmpty($elements, 'Mini pager found.');
+    $elements = $this->xpath('//ul[contains(@class, "pager__items")]/li');
+    $this->assertNotEmpty($elements);
 
     // Verify elements and links to pages.
     // We expect to find current pages element with no link, next page element
@@ -207,8 +209,8 @@ class PreviewTest extends WebDriverTestBase {
     $this->clickPreviewLinkAJAX($next_page_link, 3);
 
     // Test that the pager is present and rendered.
-    $elements = $this->xpath('//ul[contains(@class, :class)]/li', [':class' => 'pager__items']);
-    $this->assertNotEmpty($elements, 'Mini pager found.');
+    $elements = $this->xpath('//ul[contains(@class, "pager__items")]/li');
+    $this->assertNotEmpty($elements);
 
     // Verify elements and links to pages.
     // We expect to find 3 elements: previous page with a link, current
@@ -227,7 +229,7 @@ class PreviewTest extends WebDriverTestBase {
   /**
    * Tests the link to sort in the preview form.
    */
-  public function testPreviewSortLink() {
+  public function testPreviewSortLink(): void {
     // Get the preview.
     $this->getPreviewAJAX('test_click_sort_ajax', 'page_1', 0);
 

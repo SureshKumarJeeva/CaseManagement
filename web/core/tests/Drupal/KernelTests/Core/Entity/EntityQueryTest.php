@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\KernelTests\Core\Entity;
 
 use Drupal\Core\Database\Database;
+use Drupal\Core\Entity\Query\QueryException;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\entity_test\Entity\EntityTestMulRev;
 use Drupal\field\Entity\FieldConfig;
@@ -10,8 +13,12 @@ use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
-use Drupal\Tests\field\Traits\EntityReferenceTestTrait;
+use Drupal\Tests\field\Traits\EntityReferenceFieldCreationTrait;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\Session;
+use Symfony\Component\HttpFoundation\Session\Storage\MockArraySessionStorage;
+
+// cspell:ignore merhaba siema xsiemax
 
 /**
  * Tests Entity Query functionality.
@@ -20,12 +27,10 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class EntityQueryTest extends EntityKernelTestBase {
 
-  use EntityReferenceTestTrait;
+  use EntityReferenceFieldCreationTrait;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['field_test', 'language'];
 
@@ -62,6 +67,9 @@ class EntityQueryTest extends EntityKernelTestBase {
    */
   protected $storage;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -69,8 +77,8 @@ class EntityQueryTest extends EntityKernelTestBase {
 
     $this->installConfig(['language']);
 
-    $figures = mb_strtolower($this->randomMachineName());
-    $greetings = mb_strtolower($this->randomMachineName());
+    $figures = $this->randomMachineName();
+    $greetings = $this->randomMachineName();
     foreach ([$figures => 'shape', $greetings => 'text'] as $field_name => $field_type) {
       $field_storage = FieldStorageConfig::create([
         'field_name' => $field_name,
@@ -88,7 +96,7 @@ class EntityQueryTest extends EntityKernelTestBase {
       do {
         $bundle = $this->randomMachineName();
       } while ($bundles && strtolower($bundles[0]) >= strtolower($bundle));
-      entity_test_create_bundle($bundle);
+      entity_test_create_bundle($bundle, entity_type: $field_storage->getTargetEntityTypeId());
       foreach ($field_storages as $field_storage) {
         FieldConfig::create([
           'field_storage' => $field_storage,
@@ -98,24 +106,34 @@ class EntityQueryTest extends EntityKernelTestBase {
       $bundles[] = $bundle;
     }
     // Each unit is a list of field name, langcode and a column-value array.
-    $units[] = [$figures, 'en', [
+    $units[] = [$figures, 'en',
+      [
         'color' => 'red',
         'shape' => 'triangle',
       ],
     ];
-    $units[] = [$figures, 'en', [
+    $units[] = [
+      $figures,
+      'en',
+      [
         'color' => 'blue',
         'shape' => 'circle',
       ],
     ];
     // To make it easier to test sorting, the greetings get formats according
     // to their langcode.
-    $units[] = [$greetings, 'tr', [
+    $units[] = [
+      $greetings,
+      'tr',
+      [
         'value' => 'merhaba',
         'format' => 'format-tr',
       ],
     ];
-    $units[] = [$greetings, 'pl', [
+    $units[] = [
+      $greetings,
+      'pl',
+      [
         'value' => 'siema',
         'format' => 'format-pl',
       ],
@@ -157,7 +175,7 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests basic functionality.
    */
-  public function testEntityQuery() {
+  public function testEntityQuery(): void {
     $greetings = $this->greetings;
     $figures = $this->figures;
     $this->queryResults = $this->storage
@@ -178,7 +196,7 @@ class EntityQueryTest extends EntityKernelTestBase {
       ->condition("$figures.color", 'red')
       ->sort('id');
     $count_query = clone $query;
-    $this->assertEquals(12, $count_query->count()->execute());
+    $this->assertSame(12, $count_query->count()->execute());
     $this->queryResults = $query->execute();
     // Now bit 0 (1, 3, 5, 7, 9, 11, 13, 15) or bit 2 (4, 5, 6, 7, 12, 13, 14,
     // 15) needs to be set.
@@ -381,7 +399,7 @@ class EntityQueryTest extends EntityKernelTestBase {
    *
    * Warning: this is complicated.
    */
-  public function testSort() {
+  public function testSort(): void {
     $greetings = $this->greetings;
     $figures = $this->figures;
     // Order up and down on a number.
@@ -438,7 +456,7 @@ class EntityQueryTest extends EntityKernelTestBase {
     // 13 red  tr
     // 15 red  tr
     $count_query = clone $query;
-    $this->assertEquals(15, $count_query->count()->execute());
+    $this->assertSame(15, $count_query->count()->execute());
     $this->queryResults = $query->execute();
     $this->assertResult(8, 12, 4, 2, 3, 10, 11, 14, 15, 6, 7, 1, 9, 13, 5);
 
@@ -448,6 +466,7 @@ class EntityQueryTest extends EntityKernelTestBase {
     $request->query->replace([
       'page' => '0,2',
     ]);
+    $request->setSession(new Session(new MockArraySessionStorage()));
     \Drupal::getContainer()->get('request_stack')->push($request);
     $this->queryResults = $this->storage
       ->getQuery()
@@ -467,7 +486,7 @@ class EntityQueryTest extends EntityKernelTestBase {
       ->sort("$greetings.format", 'DESC')
       ->sort('id', 'DESC');
     $count_query = clone $query;
-    $this->assertEquals(15, $count_query->count()->execute());
+    $this->assertSame(15, $count_query->count()->execute());
     $this->queryResults = $query->execute();
     $this->assertResult(15, 13, 7, 5, 11, 9, 3, 1, 14, 6, 10, 2, 12, 4, 8);
   }
@@ -475,7 +494,7 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests tablesort().
    */
-  public function testTableSort() {
+  public function testTableSort(): void {
     // While ordering on bundles do not give us a definite order, we can still
     // assert that all entities from one bundle are after the other as the
     // order dictates.
@@ -484,6 +503,7 @@ class EntityQueryTest extends EntityKernelTestBase {
       'sort' => 'asc',
       'order' => 'Type',
     ]);
+    $request->setSession(new Session(new MockArraySessionStorage()));
     \Drupal::getContainer()->get('request_stack')->push($request);
 
     $header = [
@@ -530,7 +550,7 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests that count queries are separated across entity types.
    */
-  public function testCount() {
+  public function testCount(): void {
     // Create a field with the same name in a different entity type.
     $field_name = $this->figures;
     $field_storage = FieldStorageConfig::create([
@@ -542,6 +562,7 @@ class EntityQueryTest extends EntityKernelTestBase {
     ]);
     $field_storage->save();
     $bundle = $this->randomMachineName();
+    entity_test_create_bundle($bundle);
     FieldConfig::create([
       'field_storage' => $field_storage,
       'bundle' => $bundle,
@@ -563,13 +584,13 @@ class EntityQueryTest extends EntityKernelTestBase {
       ->exists("$field_name.color")
       ->count()
       ->execute();
-    $this->assertEquals(0, $count);
+    $this->assertSame(0, $count);
   }
 
   /**
    * Tests that nested condition groups work as expected.
    */
-  public function testNestedConditionGroups() {
+  public function testNestedConditionGroups(): void {
     // Query for all entities of the first bundle that have either a red
     // triangle as a figure or the Turkish greeting as a greeting.
     $query = $this->storage->getQuery()->accessCheck(FALSE);
@@ -597,7 +618,7 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests that condition count returns expected number of conditions.
    */
-  public function testConditionCount() {
+  public function testConditionCount(): void {
     // Query for all entities of the first bundle that
     // have red as a color AND are triangle shaped.
     $query = $this->storage->getQuery()->accessCheck(FALSE);
@@ -608,7 +629,7 @@ class EntityQueryTest extends EntityKernelTestBase {
       ->condition($this->figures . '.shape', 'triangle');
 
     // We added 2 conditions so count should be 2.
-    $this->assertEquals(2, $and_condition_group->count());
+    $this->assertSame(2, $and_condition_group->count());
 
     // Add an OR condition group with 2 conditions in it.
     $or_condition_group = $query->orConditionGroup()
@@ -616,13 +637,13 @@ class EntityQueryTest extends EntityKernelTestBase {
       ->condition($this->figures . '.shape', 'triangle');
 
     // We added 2 conditions so count should be 2.
-    $this->assertEquals(2, $or_condition_group->count());
+    $this->assertSame(2, $or_condition_group->count());
   }
 
   /**
    * Tests queries with delta conditions.
    */
-  public function testDelta() {
+  public function testDelta(): void {
     $figures = $this->figures;
     // Test numeric delta value in field condition.
     $this->queryResults = $this->storage
@@ -775,7 +796,7 @@ class EntityQueryTest extends EntityKernelTestBase {
    *
    * The tags and metadata should propagate to the SQL query object.
    */
-  public function testMetaData() {
+  public function testMetaData(): void {
     field_test_memorize();
 
     $query = $this->storage->getQuery()->accessCheck(FALSE);
@@ -791,8 +812,9 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests case sensitive and in-sensitive query conditions.
    */
-  public function testCaseSensitivity() {
+  public function testCaseSensitivity(): void {
     $bundle = $this->randomMachineName();
+    entity_test_create_bundle($bundle, entity_type: 'entity_test_mulrev');
 
     $field_storage = FieldStorageConfig::create([
       'field_name' => 'field_ci',
@@ -1034,7 +1056,7 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests base fields with multiple columns.
    */
-  public function testBaseFieldMultipleColumns() {
+  public function testBaseFieldMultipleColumns(): void {
     $this->enableModules(['taxonomy']);
     $this->installEntitySchema('taxonomy_term');
 
@@ -1093,7 +1115,7 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests pending revisions.
    */
-  public function testPendingRevisions() {
+  public function testPendingRevisions(): void {
     // Ensure entity 14 is returned.
     $result = $this->storage
       ->getQuery()
@@ -1200,10 +1222,11 @@ class EntityQueryTest extends EntityKernelTestBase {
   }
 
   /**
-   * Tests against SQL inject of condition field. This covers a
-   * database driver's EntityQuery\Condition class.
+   * Tests SQL inject of condition field.
+   *
+   * This covers a database driver's EntityQuery\Condition class.
    */
-  public function testInjectionInCondition() {
+  public function testInjectionInCondition(): void {
     $this->expectException(\Exception::class);
     $this->queryResults = $this->storage
       ->getQuery()
@@ -1216,7 +1239,7 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests that EntityQuery works when querying the same entity from two fields.
    */
-  public function testWithTwoEntityReferenceFieldsToSameEntityType() {
+  public function testWithTwoEntityReferenceFieldsToSameEntityType(): void {
     // Create two entity reference fields referring 'entity_test' entities.
     $this->createEntityReferenceField('entity_test', 'entity_test', 'ref1', $this->randomMachineName(), 'entity_test');
     $this->createEntityReferenceField('entity_test', 'entity_test', 'ref2', $this->randomMachineName(), 'entity_test');
@@ -1270,9 +1293,63 @@ class EntityQueryTest extends EntityKernelTestBase {
   }
 
   /**
+   * Test the entity query alter hooks are invoked.
+   *
+   * Hook functions in field_test.module add additional conditions to the query
+   * removing entities with specific ids.
+   */
+  public function testAlterHook(): void {
+    $basicQuery = $this->storage
+      ->getQuery()
+      ->accessCheck(FALSE)
+      ->exists($this->greetings, 'tr')
+      ->condition($this->figures . ".color", 'red')
+      ->sort('id');
+
+    // Verify assumptions about the unaltered result.
+    $query = clone $basicQuery;
+    $this->queryResults = $query->execute();
+    $this->assertResult(5, 7, 13, 15);
+
+    // field_test_entity_query_alter() removes the entity with id '5'.
+    $query = clone $basicQuery;
+    $this->queryResults = $query
+      // Add a tag that no hook function matches.
+      ->addTag('entity_query_alter_hook_test')
+      ->execute();
+    $this->assertResult(7, 13, 15);
+
+    // field_test_entity_query_entity_test_mulrev_alter() removes the
+    // entity with id '7'.
+    $query = clone $basicQuery;
+    $this->queryResults = $query
+      // Add a tag that no hook function matches.
+      ->addTag('entity_query_entity_test_mulrev_alter_hook_test')
+      ->execute();
+    $this->assertResult(5, 13, 15);
+
+    // field_test_entity_query_tag__entity_query_alter_tag_test_alter() removes
+    // the entity with id '13'.
+    $query = clone $basicQuery;
+    $this->queryResults = $query
+      ->addTag('entity_query_alter_tag_test')
+      ->execute();
+    $this->assertResult(5, 7, 15);
+
+    // field_test_entity_query_tag__entity_test_mulrev__entity_query_
+    // entity_test_mulrev_alter_tag_test_alter()
+    // removes the entity with id '15'.
+    $query = clone $basicQuery;
+    $this->queryResults = $query
+      ->addTag('entity_query_entity_test_mulrev_alter_tag_test')
+      ->execute();
+    $this->assertResult(5, 7, 13);
+  }
+
+  /**
    * Tests entity queries with condition on the revision metadata keys.
    */
-  public function testConditionOnRevisionMetadataKeys() {
+  public function testConditionOnRevisionMetadataKeys(): void {
     $this->installModule('entity_test_revlog');
     $this->installEntitySchema('entity_test_revlog');
 
@@ -1312,7 +1389,7 @@ class EntityQueryTest extends EntityKernelTestBase {
   /**
    * Tests __toString().
    */
-  public function testToString() {
+  public function testToString(): void {
     $query = $this->storage->getQuery()->accessCheck(FALSE);
     $group_blue = $query->andConditionGroup()->condition("{$this->figures}.color", ['blue'], 'IN');
     $group_red = $query->andConditionGroup()->condition("{$this->figures}.color", ['red'], 'IN');
@@ -1358,11 +1435,13 @@ class EntityQueryTest extends EntityKernelTestBase {
 
   /**
    * Test the accessCheck method is called.
-   *
-   * @group legacy
    */
-  public function testAccessCheckSpecified() {
-    $this->expectDeprecation('Relying on entity queries to check access by default is deprecated in drupal:9.2.0 and an error will be thrown from drupal:10.0.0. Call \Drupal\Core\Entity\Query\QueryInterface::accessCheck() with TRUE or FALSE to specify whether access should be checked. See https://www.drupal.org/node/3201242');
+  public function testAccessCheckSpecified(): void {
+    $this->expectException(QueryException::class);
+    $this->expectExceptionMessage('Entity queries must explicitly set whether the query should be access checked or not. See Drupal\Core\Entity\Query\QueryInterface::accessCheck().');
+    // We are purposely testing an entity query without access check, so we need
+    // to tell PHPStan to ignore this.
+    // @phpstan-ignore-next-line
     $this->storage->getQuery()->execute();
   }
 

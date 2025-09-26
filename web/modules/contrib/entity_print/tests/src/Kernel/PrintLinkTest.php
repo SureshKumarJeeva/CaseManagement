@@ -22,7 +22,7 @@ class PrintLinkTest extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = ['system', 'block', 'entity_print'];
+  protected static $modules = ['system', 'block', 'entity_print'];
 
   /**
    * Test placing the block so we pick-up any schema errors.

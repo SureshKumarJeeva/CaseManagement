@@ -9,7 +9,9 @@ use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\Core\Entity\EntityRepositoryInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Field\FieldItemInterface;
-use Drupal\entity_usage\EntityUsage;
+use Drupal\Core\Path\PathValidatorInterface;
+use Drupal\Core\StreamWrapper\StreamWrapperInterface;
+use Drupal\entity_usage\EntityUsageInterface;
 use Drupal\entity_usage\EntityUsageTrackBase;
 use Drupal\layout_builder\Plugin\Field\FieldType\LayoutSectionItem;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -42,7 +44,7 @@ class LayoutBuilder extends EntityUsageTrackBase {
    *   The plugin_id for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
-   * @param \Drupal\entity_usage\EntityUsage $usage_service
+   * @param \Drupal\entity_usage\EntityUsageInterface $usage_service
    *   The usage tracking service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
    *   The EntityTypeManager service.
@@ -54,9 +56,13 @@ class LayoutBuilder extends EntityUsageTrackBase {
    *   The EntityRepositoryInterface service.
    * @param \Drupal\Core\Block\BlockManagerInterface $blockManager
    *   Block manager.
+   * @param \Drupal\Core\Path\PathValidatorInterface $path_validator
+   *   The Drupal Path Validator service.
+   * @param \Drupal\Core\StreamWrapper\StreamWrapperInterface $public_stream
+   *   The Public Stream service.
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityUsage $usage_service, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, ConfigFactoryInterface $config_factory, EntityRepositoryInterface $entity_repository, BlockManagerInterface $blockManager) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $usage_service, $entity_type_manager, $entity_field_manager, $config_factory, $entity_repository);
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, EntityUsageInterface $usage_service, EntityTypeManagerInterface $entity_type_manager, EntityFieldManagerInterface $entity_field_manager, ConfigFactoryInterface $config_factory, EntityRepositoryInterface $entity_repository, BlockManagerInterface $blockManager, PathValidatorInterface $path_validator, StreamWrapperInterface $public_stream) {
+    parent::__construct($configuration, $plugin_id, $plugin_definition, $usage_service, $entity_type_manager, $entity_field_manager, $config_factory, $entity_repository, $path_validator, $public_stream);
     $this->blockManager = $blockManager;
   }
 
@@ -73,7 +79,9 @@ class LayoutBuilder extends EntityUsageTrackBase {
       $container->get('entity_field.manager'),
       $container->get('config.factory'),
       $container->get('entity.repository'),
-      $container->get('plugin.manager.block')
+      $container->get('plugin.manager.block'),
+      $container->get('path.validator'),
+      $container->get('stream_wrapper.public')
     );
   }
 
@@ -96,16 +104,25 @@ class LayoutBuilder extends EntityUsageTrackBase {
         $configuration = $component->toArray()['configuration'];
         try {
           $def = $this->blockManager->getDefinition($component->getPluginId());
+          ['id' => $pluginId] = $def;
         }
         catch (PluginNotFoundException $e) {
           // Block has since been removed, continue.
           continue;
         }
-        if ($def['id'] === 'inline_block') {
+        if ($pluginId === 'inline_block') {
           $blockContentRevisionIds[] = $configuration['block_revision_id'];
         }
-        elseif ($def['id'] === 'entity_browser_block' && !empty($configuration['entity_ids'])) {
+        elseif ($pluginId === 'entity_browser_block' && !empty($configuration['entity_ids'])) {
           $ebbContentIds = array_unique(array_merge($ebbContentIds, (array) $configuration['entity_ids']));
+        }
+        elseif ($pluginId === 'block_content') {
+          [1 => $uuid] = explode(':', $configuration['id']);
+          /** @var \Drupal\block_content\BlockContentInterface|null $blockContent */
+          $blockContent = $this->entityRepository->loadEntityByUuid('block_content', $uuid);
+          if ($blockContent) {
+            $blockContentRevisionIds[] = $blockContent->getRevisionId();
+          }
         }
 
         // Check the block plugin's content dependencies.
@@ -151,6 +168,7 @@ class LayoutBuilder extends EntityUsageTrackBase {
 
     /** @var \Drupal\block_content\BlockContentInterface[] $blockContent */
     $ids = $blockContentStorage->getQuery()
+      ->accessCheck(FALSE)
       ->condition($blockContentStorage->getEntityType()->getKey('revision'), $blockContentRevisionIds, 'IN')
       ->execute();
 
@@ -176,7 +194,7 @@ class LayoutBuilder extends EntityUsageTrackBase {
     $ids = array_filter($ebbContentIds, function ($item) {
       // Entity Browser Block stores each entity in "entity_ids" in the format:
       // "{$entity_type_id}:{$entity_id}".
-      list($entity_type_id, $entity_id) = explode(":", $item);
+      [$entity_type_id, $entity_id] = explode(":", $item);
       $storage = $this->entityTypeManager->getStorage($entity_type_id);
       if (!$storage) {
         return FALSE;
@@ -218,7 +236,7 @@ class LayoutBuilder extends EntityUsageTrackBase {
     $ids = array_map(function ($item) {
       // Content dependencies are stored in the format:
       // "{$entity_type_id}:{$bundle_id}:{$entity_uuid}".
-      list($entity_type_id, , $entity_uuid) = explode(':', $item);
+      [$entity_type_id, , $entity_uuid] = explode(':', $item);
       if ($entity = $this->entityRepository->loadEntityByUuid($entity_type_id, $entity_uuid)) {
         return "{$entity_type_id}|{$entity->id()}";
       }

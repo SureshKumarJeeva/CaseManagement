@@ -1,0 +1,27 @@
+{
+  "name": "drupal/simple_multistep",
+  "description": "Converts an existing entity form into a multi-step form.",
+  "type": "drupal-module",
+  "license": "GPL-2.0-or-later",
+  "authors": [
+    {
+      "name": "Vitaliy Bogomazyuk (VitaliyB98)",
+      "homepage": "https://www.drupal.org/u/vitaliyb98",
+      "role": "Maintainer"
+    },
+    {
+      "name": "Andrei Vesterli (andrei.vesterli)",
+      "email": "vesterli.andrei@gmail.com",
+      "homepage": "https://www.drupal.org/u/andreivesterli",
+      "role": "Co-maintainer"
+    }
+  ],
+  "homepage": "https://drupal.org/project/simple_multistep",
+  "support": {
+    "issues": "https://drupal.org/project/issues/simple_multistep",
+    "source": "https://git.drupalcode.org/project/simple_multistep"
+  },
+  "require": {
+    "drupal/field_group": "^3.0"
+  }
+}

@@ -17,7 +17,7 @@ class EntityPrintTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'user',
     'node',
     'entity_print_test',
@@ -77,6 +77,15 @@ class EntityPrintTest extends BrowserTestBase {
 
     $this->assertSession()->elementContains('css', '[aria-label="Error message"]', 'Error generating document: Exception thrown by PrintExceptionEngine');
     $this->assertSession()->pageTextNotContains('The website encountered an unexpected error');
+  }
+
+  /**
+   * Regular 404s should work.
+   */
+  public function testPageNotFoundException() {
+    $this->drupalGet('/this-page-does-not-exist');
+    $this->assertSession()->pageTextNotContains('The website encountered an unexpected error');
+    $this->assertSession()->statusCodeEquals(404);
   }
 
 }

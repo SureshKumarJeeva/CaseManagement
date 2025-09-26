@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\Core\Block;
 
 use Drupal\Component\Plugin\Discovery\DiscoveryInterface;
@@ -11,6 +13,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Tests\UnitTestCase;
 use Psr\Log\LoggerInterface;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * @coversDefaultClass \Drupal\Core\Block\BlockManager
@@ -18,6 +21,8 @@ use Drupal\Core\DependencyInjection\ContainerBuilder;
  * @group block
  */
 class BlockManagerTest extends UnitTestCase {
+
+  use StringTranslationTrait;
 
   /**
    * The block manager under test.
@@ -42,6 +47,7 @@ class BlockManagerTest extends UnitTestCase {
     $container = new ContainerBuilder();
     $current_user = $this->prophesize(AccountInterface::class);
     $container->set('current_user', $current_user->reveal());
+    $container->set('string_translation', $this->getStringTranslationStub());
     \Drupal::setContainer($container);
 
     $cache_backend = $this->prophesize(CacheBackendInterface::class);
@@ -55,34 +61,33 @@ class BlockManagerTest extends UnitTestCase {
     // that are purposefully not in alphabetical order.
     $discovery->getDefinitions()->willReturn([
       'broken' => [
-        'admin_label' => 'Broken/Missing',
-        'category' => 'Block',
+        'admin_label' => $this->t('Broken/Missing'),
+        'category' => $this->t('Block'),
         'class' => Broken::class,
         'provider' => 'core',
       ],
       'block1' => [
-        'admin_label' => 'Coconut',
-        'category' => 'Group 2',
+        'admin_label' => $this->t('Coconut'),
+        'category' => $this->t('Group 2'),
       ],
       'block2' => [
-        'admin_label' => 'Apple',
-        'category' => 'Group 1',
+        'admin_label' => $this->t('Apple'),
+        'category' => $this->t('Group 1'),
       ],
       'block3' => [
-        'admin_label' => 'Banana',
-        'category' => 'Group 2',
+        'admin_label' => $this->t('Banana'),
+        'category' => $this->t('Group 2'),
       ],
     ]);
     // Force the discovery object onto the block manager.
     $property = new \ReflectionProperty(BlockManager::class, 'discovery');
-    $property->setAccessible(TRUE);
     $property->setValue($this->blockManager, $discovery->reveal());
   }
 
   /**
    * @covers ::getDefinitions
    */
-  public function testDefinitions() {
+  public function testDefinitions(): void {
     $definitions = $this->blockManager->getDefinitions();
     $this->assertSame(['broken', 'block1', 'block2', 'block3'], array_keys($definitions));
   }
@@ -90,7 +95,7 @@ class BlockManagerTest extends UnitTestCase {
   /**
    * @covers ::getSortedDefinitions
    */
-  public function testSortedDefinitions() {
+  public function testSortedDefinitions(): void {
     $definitions = $this->blockManager->getSortedDefinitions();
     $this->assertSame(['block2', 'block3', 'block1'], array_keys($definitions));
   }
@@ -98,7 +103,7 @@ class BlockManagerTest extends UnitTestCase {
   /**
    * @covers ::getGroupedDefinitions
    */
-  public function testGroupedDefinitions() {
+  public function testGroupedDefinitions(): void {
     $definitions = $this->blockManager->getGroupedDefinitions();
     $this->assertSame(['Group 1', 'Group 2'], array_keys($definitions));
     $this->assertSame(['block2'], array_keys($definitions['Group 1']));
@@ -108,8 +113,8 @@ class BlockManagerTest extends UnitTestCase {
   /**
    * @covers ::handlePluginNotFound
    */
-  public function testHandlePluginNotFound() {
-    $this->logger->warning('The "%plugin_id" was not found', ['%plugin_id' => 'invalid'])->shouldBeCalled();
+  public function testHandlePluginNotFound(): void {
+    $this->logger->warning('The "%plugin_id" block plugin was not found', ['%plugin_id' => 'invalid'])->shouldBeCalled();
     $plugin = $this->blockManager->createInstance('invalid');
     $this->assertSame('broken', $plugin->getPluginId());
   }

@@ -2,10 +2,12 @@
 
 namespace Drupal\text\Plugin\Field\FieldFormatter;
 
+use Drupal\Core\Field\Attribute\FieldFormatter;
 use Drupal\Core\Field\FormatterBase;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Security\TrustedCallbackInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Plugin implementation of the 'text_trimmed' formatter.
@@ -14,20 +16,16 @@ use Drupal\Core\Security\TrustedCallbackInterface;
  * 'text_summary_or_trimmed' formatter.
  *
  * @see \Drupal\text\Field\Formatter\TextSummaryOrTrimmedFormatter
- *
- * @FieldFormatter(
- *   id = "text_trimmed",
- *   label = @Translation("Trimmed"),
- *   field_types = {
- *     "text",
- *     "text_long",
- *     "text_with_summary"
- *   },
- *   quickedit = {
- *     "editor" = "form"
- *   }
- * )
  */
+#[FieldFormatter(
+  id: 'text_trimmed',
+  label: new TranslatableMarkup('Trimmed'),
+  field_types: [
+    'text',
+    'text_long',
+    'text_with_summary',
+  ],
+)]
 class TextTrimmedFormatter extends FormatterBase implements TrustedCallbackInterface {
 
   /**
@@ -44,11 +42,11 @@ class TextTrimmedFormatter extends FormatterBase implements TrustedCallbackInter
    */
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $element['trim_length'] = [
-      '#title' => t('Trimmed limit'),
+      '#title' => $this->t('Trimmed limit'),
       '#type' => 'number',
-      '#field_suffix' => t('characters'),
+      '#field_suffix' => $this->t('characters'),
       '#default_value' => $this->getSetting('trim_length'),
-      '#description' => t('If the summary is not set, the trimmed %label field will end at the last full sentence before this character limit.', ['%label' => $this->fieldDefinition->getLabel()]),
+      '#description' => $this->t('If the summary is not set, the trimmed %label field will end at the last full sentence before this character limit.', ['%label' => $this->fieldDefinition->getLabel()]),
       '#min' => 1,
       '#required' => TRUE,
     ];
@@ -60,7 +58,7 @@ class TextTrimmedFormatter extends FormatterBase implements TrustedCallbackInter
    */
   public function settingsSummary() {
     $summary = [];
-    $summary[] = t('Trimmed limit: @trim_length characters', ['@trim_length' => $this->getSetting('trim_length')]);
+    $summary[] = $this->t('Trimmed limit: @trim_length characters', ['@trim_length' => $this->getSetting('trim_length')]);
     return $summary;
   }
 

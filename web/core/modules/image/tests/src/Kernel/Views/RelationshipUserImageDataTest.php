@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\image\Kernel\Views;
 
 use Drupal\field\Entity\FieldConfig;
@@ -18,9 +20,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 class RelationshipUserImageDataTest extends ViewsKernelTestBase {
 
   /**
-   * Modules to install.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
     'file',
@@ -38,6 +38,9 @@ class RelationshipUserImageDataTest extends ViewsKernelTestBase {
    */
   public static $testViews = ['test_image_user_image_data'];
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp($import_test_views = TRUE): void {
     parent::setUp($import_test_views);
 
@@ -67,7 +70,7 @@ class RelationshipUserImageDataTest extends ViewsKernelTestBase {
   /**
    * Tests using the views image relationship.
    */
-  public function testViewsHandlerRelationshipUserImageData() {
+  public function testViewsHandlerRelationshipUserImageData(): void {
     $file = File::create([
       'fid' => 2,
       'uid' => 2,

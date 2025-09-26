@@ -2,7 +2,7 @@
 
 namespace Drupal\entity_print\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * An event to alter the HTML string.
@@ -22,6 +22,17 @@ class PrintHtmlAlterEvent extends Event {
    * @var \Drupal\Core\Entity\EntityInterface[]
    */
   protected $entities;
+
+  /**
+   * The server application programming interface string.
+   *
+   * Will be some like 'fpm-fcgi' or 'cgi-fcgi' for PHP
+   * running through a browser call. Will be 'cli' for calls
+   * initiated through the console (e.g. drush).
+   *
+   * @var string
+   */
+  protected $phpSapi = PHP_SAPI;
 
   /**
    * PrintHtmlAlterEvent constructor.
@@ -54,6 +65,13 @@ class PrintHtmlAlterEvent extends Event {
    */
   public function getEntities() {
     return $this->entities;
+  }
+
+  /**
+   * Gets the initialized PHP SAPI.
+   */
+  public function getPhpSapi() {
+    return $this->phpSapi;
   }
 
 }

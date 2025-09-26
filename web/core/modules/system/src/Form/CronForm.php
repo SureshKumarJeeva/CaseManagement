@@ -65,6 +65,7 @@ class CronForm extends FormBase {
    *   The module handler service.
    */
   public function __construct(ConfigFactoryInterface $config_factory, StateInterface $state, CronInterface $cron, DateFormatterInterface $date_formatter, ModuleHandlerInterface $module_handler) {
+    $this->configFactory = $config_factory;
     $this->state = $state;
     $this->cron = $cron;
     $this->dateFormatter = $date_formatter;
@@ -122,7 +123,7 @@ class CronForm extends FormBase {
 
     if (!$this->moduleHandler->moduleExists('automated_cron')) {
       $form['automated_cron'] = [
-        '#markup' => $this->t('Enable the <em>Automated Cron</em> module to allow cron execution at the end of a server response.'),
+        '#markup' => $this->t('Install the <em>Automated Cron</em> module to allow cron execution at the end of a server response.'),
       ];
     }
 

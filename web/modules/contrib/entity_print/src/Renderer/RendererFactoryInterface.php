@@ -3,7 +3,7 @@
 namespace Drupal\entity_print\Renderer;
 
 /**
- * The renderer factory inteface.
+ * The renderer factory interface.
  */
 interface RendererFactoryInterface {
 

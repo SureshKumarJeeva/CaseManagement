@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\Form;
 
 use Drupal\form_test\Form\FormTestLabelForm;
@@ -13,9 +15,7 @@ use Drupal\Tests\BrowserTestBase;
 class ElementsLabelsTest extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['form_test'];
 
@@ -25,10 +25,25 @@ class ElementsLabelsTest extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * Tests form elements, labels, title attributes and required marks output
-   * correctly and have the correct label option class if needed.
+   * Tests form elements.
    */
-  public function testFormLabels() {
+  public function testFormElements(): void {
+    $this->testFormLabels();
+    $this->testTitleEscaping();
+    $this->testFormDescriptions();
+    $this->testFormsInThemeLessEnvironments();
+  }
+
+  /**
+   * Tests form element rendering.
+   *
+   * This method provides test coverage for:
+   * - Form label rendering with different form elements.
+   * - Rendering of the "Required" field marker.
+   * - Prefix and suffix render element placement.
+   * - Form element title attributes.
+   */
+  protected function testFormLabels(): void {
     $this->drupalGet('form_test/form-labels');
 
     // Check that the checkbox/radio processing is not interfering with
@@ -97,7 +112,7 @@ class ElementsLabelsTest extends BrowserTestBase {
   /**
    * Tests XSS-protection of element labels.
    */
-  public function testTitleEscaping() {
+  protected function testTitleEscaping(): void {
     $this->drupalGet('form_test/form-labels');
     foreach (FormTestLabelForm::$typesWithTitle as $type) {
       $this->assertSession()->responseContains("$type alert('XSS') is XSS filtered!");
@@ -108,7 +123,7 @@ class ElementsLabelsTest extends BrowserTestBase {
   /**
    * Tests different display options for form element descriptions.
    */
-  public function testFormDescriptions() {
+  protected function testFormDescriptions(): void {
     $this->drupalGet('form_test/form-descriptions');
 
     // Check #description placement with #description_display='after'.
@@ -135,11 +150,11 @@ class ElementsLabelsTest extends BrowserTestBase {
   /**
    * Tests forms in theme-less environments.
    */
-  public function testFormsInThemeLessEnvironments() {
+  protected function testFormsInThemeLessEnvironments(): void {
     $form = $this->getFormWithLimitedProperties();
     $render_service = $this->container->get('renderer');
     // This should not throw any notices.
-    $render_service->renderPlain($form);
+    $render_service->renderInIsolation($form);
   }
 
   /**

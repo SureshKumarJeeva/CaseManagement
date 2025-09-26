@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\views\Functional\Wizard;
 
 /**
@@ -17,12 +19,12 @@ class PagerTest extends WizardTestBase {
   /**
    * Tests the pager option.
    */
-  public function testPager() {
+  public function testPager(): void {
     // Create nodes, each with a different creation time so that we have
     // conditions that are meaningful for the use of a pager.
     $this->drupalCreateContentType(['type' => 'page']);
     for ($i = 0; $i < 12; $i++) {
-      $this->drupalCreateNode(['created' => REQUEST_TIME - $i]);
+      $this->drupalCreateNode(['created' => \Drupal::time()->getRequestTime() - $i]);
     }
 
     // Make a View that uses a pager.
@@ -32,15 +34,13 @@ class PagerTest extends WizardTestBase {
 
     // This technique for finding the existence of a pager
     // matches that used in Drupal\views_ui\Tests\PreviewTest.php.
-    $elements = $this->xpath('//ul[contains(@class, :class)]/li', [':class' => 'pager__items']);
-    $this->assertNotEmpty($elements, 'Full pager found.');
+    $this->assertSession()->elementExists('xpath', '//ul[contains(@class, "pager__items")]/li');
 
     // Make a View that does not have a pager.
     $path_with_no_pager = 'test-view-without-pager';
     $this->createViewAtPath($path_with_no_pager, FALSE);
     $this->drupalGet($path_with_no_pager);
-    $elements = $this->xpath('//ul[contains(@class, :class)]/li', [':class' => 'pager__items']);
-    $this->assertEmpty($elements, 'Full pager not found.');
+    $this->assertSession()->elementNotExists('xpath', '//ul[contains(@class, "pager__items")]/li');
   }
 
   /**
@@ -54,7 +54,7 @@ class PagerTest extends WizardTestBase {
   protected function createViewAtPath($path, $pager = TRUE) {
     $view = [];
     $view['label'] = $this->randomMachineName(16);
-    $view['id'] = strtolower($this->randomMachineName(16));
+    $view['id'] = $this->randomMachineName(16);
     $view['show[sort]'] = 'node_field_data-created:ASC';
     $view['page[create]'] = 1;
     $view['page[title]'] = $this->randomMachineName(16);

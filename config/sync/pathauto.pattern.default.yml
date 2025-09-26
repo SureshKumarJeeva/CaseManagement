@@ -8,9 +8,9 @@ id: default
 label: Default
 type: 'canonical_entities:node'
 pattern: '[node:content-type]/[node:title]'
-selection_criteria:
-  d281170e-4728-474d-b8d6-fabf2f97bd8e:
-    id: node_type
+conditions_config:
+  entity_bundle:node:
+    id: entity_bundle:node
     bundles:
       client: client
       document: document

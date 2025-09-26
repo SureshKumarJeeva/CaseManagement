@@ -5,6 +5,7 @@ namespace Drupal\views\Plugin\views\filter;
 use Drupal\Component\Render\MarkupInterface;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\views\Attribute\ViewsFilter;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ViewExecutable;
 use Drupal\Core\Form\OptGroup;
@@ -17,10 +18,9 @@ use Drupal\Core\Form\OptGroup;
  * - options arguments: An array of arguments to pass to the options callback.
  *
  * @ingroup views_filter_handlers
- *
- * @ViewsFilter("in_operator")
  */
-class InOperator extends FilterPluginBase {
+#[ViewsFilter("in_operator")]
+class InOperator extends FilterPluginBase implements FilterOperatorsInterface {
 
   protected $valueFormType = 'checkboxes';
 
@@ -40,7 +40,7 @@ class InOperator extends FilterPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL) {
+  public function init(ViewExecutable $view, DisplayPluginBase $display, ?array &$options = NULL) {
     parent::init($view, $display, $options);
 
     $this->valueTitle = $this->t('Options');
@@ -48,6 +48,8 @@ class InOperator extends FilterPluginBase {
   }
 
   /**
+   * Gets the value options.
+   *
    * Child classes should be used to override this function and set the
    * 'value options', unless 'options callback' is defined as a valid function
    * or static public method to generate these values.
@@ -72,7 +74,7 @@ class InOperator extends FilterPluginBase {
       }
     }
     else {
-      $this->valueOptions = [t('Yes'), $this->t('No')];
+      $this->valueOptions = [$this->t('Yes'), $this->t('No')];
     }
 
     return $this->valueOptions;
@@ -105,9 +107,7 @@ class InOperator extends FilterPluginBase {
   }
 
   /**
-   * This kind of construct makes it relatively easy for a child class
-   * to add or remove functionality by overriding this function and
-   * adding/removing items from this array.
+   * {@inheritdoc}
    */
   public function operators() {
     $operators = [
@@ -126,7 +126,7 @@ class InOperator extends FilterPluginBase {
         'values' => 1,
       ],
     ];
-    // if the definition allows for the empty operator, add it.
+    // If the definition allows for the empty operator, add it.
     if (!empty($this->definition['allow empty'])) {
       $operators += [
         'empty' => [
@@ -192,7 +192,7 @@ class InOperator extends FilterPluginBase {
       $identifier = $this->options['expose']['identifier'];
 
       if (empty($this->options['expose']['use_operator']) || empty($this->options['expose']['operator_id'])) {
-        // exposed and locked.
+        // Exposed and locked.
         $which = in_array($this->operator, $this->operatorValues(1)) ? 'value' : 'none';
       }
       else {

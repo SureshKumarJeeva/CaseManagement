@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\System;
 
 use Drupal\Tests\BrowserTestBase;
@@ -23,6 +25,9 @@ class DefaultMobileMetaTagsTest extends BrowserTestBase {
    */
   protected $defaultTheme = 'stark';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
     $this->defaultMetaTags = [
@@ -33,7 +38,7 @@ class DefaultMobileMetaTagsTest extends BrowserTestBase {
   /**
    * Verifies that the default mobile meta tags are added.
    */
-  public function testDefaultMetaTagsExist() {
+  public function testDefaultMetaTagsExist(): void {
     $this->drupalGet('');
     foreach ($this->defaultMetaTags as $name => $metatag) {
       $this->assertSession()->responseContains($metatag);
@@ -43,7 +48,7 @@ class DefaultMobileMetaTagsTest extends BrowserTestBase {
   /**
    * Verifies that the default mobile meta tags can be removed.
    */
-  public function testRemovingDefaultMetaTags() {
+  public function testRemovingDefaultMetaTags(): void {
     \Drupal::service('module_installer')->install(['system_module_test']);
     $this->drupalGet('');
     foreach ($this->defaultMetaTags as $name => $metatag) {

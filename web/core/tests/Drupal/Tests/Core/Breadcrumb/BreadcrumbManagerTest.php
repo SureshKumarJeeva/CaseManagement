@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\Core\Breadcrumb;
 
 use Drupal\Core\Breadcrumb\Breadcrumb;
@@ -47,6 +49,8 @@ class BreadcrumbManagerTest extends UnitTestCase {
    * {@inheritdoc}
    */
   protected function setUp(): void {
+    parent::setUp();
+
     $this->moduleHandler = $this->createMock('Drupal\Core\Extension\ModuleHandlerInterface');
     $this->breadcrumbManager = new BreadcrumbManager($this->moduleHandler);
     $this->breadcrumb = new Breadcrumb();
@@ -62,7 +66,7 @@ class BreadcrumbManagerTest extends UnitTestCase {
   /**
    * Tests the breadcrumb manager without any set breadcrumb.
    */
-  public function testBuildWithoutBuilder() {
+  public function testBuildWithoutBuilder(): void {
     $route_match = $this->createMock('Drupal\Core\Routing\RouteMatchInterface');
     $this->moduleHandler->expects($this->once())
       ->method('alter')
@@ -78,7 +82,7 @@ class BreadcrumbManagerTest extends UnitTestCase {
   /**
    * Tests the build method with a single breadcrumb builder.
    */
-  public function testBuildWithSingleBuilder() {
+  public function testBuildWithSingleBuilder(): void {
     $builder = $this->createMock('Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface');
     $links = ['<a href="/example">Test</a>'];
     $this->breadcrumb->setLinks($links);
@@ -86,7 +90,7 @@ class BreadcrumbManagerTest extends UnitTestCase {
 
     $builder->expects($this->once())
       ->method('applies')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $builder->expects($this->once())
       ->method('build')
@@ -109,7 +113,7 @@ class BreadcrumbManagerTest extends UnitTestCase {
   /**
    * Tests multiple breadcrumb builder with different priority.
    */
-  public function testBuildWithMultipleApplyingBuilders() {
+  public function testBuildWithMultipleApplyingBuilders(): void {
     $builder1 = $this->createMock('Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface');
     $builder1->expects($this->never())
       ->method('applies');
@@ -122,7 +126,7 @@ class BreadcrumbManagerTest extends UnitTestCase {
     $this->breadcrumb->addCacheContexts(['baz'])->addCacheTags(['qux']);
     $builder2->expects($this->once())
       ->method('applies')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
     $builder2->expects($this->once())
       ->method('build')
       ->willReturn($this->breadcrumb);
@@ -146,11 +150,11 @@ class BreadcrumbManagerTest extends UnitTestCase {
   /**
    * Tests multiple breadcrumb builders of which one returns NULL.
    */
-  public function testBuildWithOneNotApplyingBuilders() {
+  public function testBuildWithOneNotApplyingBuilders(): void {
     $builder1 = $this->createMock('Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface');
     $builder1->expects($this->once())
       ->method('applies')
-      ->will($this->returnValue(FALSE));
+      ->willReturn(FALSE);
     $builder1->expects($this->never())
       ->method('build');
 
@@ -160,7 +164,7 @@ class BreadcrumbManagerTest extends UnitTestCase {
     $this->breadcrumb->addCacheContexts(['baz'])->addCacheTags(['qux']);
     $builder2->expects($this->once())
       ->method('applies')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
     $builder2->expects($this->once())
       ->method('build')
       ->willReturn($this->breadcrumb);
@@ -184,14 +188,14 @@ class BreadcrumbManagerTest extends UnitTestCase {
   /**
    * Tests a breadcrumb builder with a bad return value.
    */
-  public function testBuildWithInvalidBreadcrumbResult() {
+  public function testBuildWithInvalidBreadcrumbResult(): void {
     $builder = $this->createMock('Drupal\Core\Breadcrumb\BreadcrumbBuilderInterface');
     $builder->expects($this->once())
       ->method('applies')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
     $builder->expects($this->once())
       ->method('build')
-      ->will($this->returnValue('invalid_result'));
+      ->willReturn('invalid_result');
 
     $this->breadcrumbManager->addBuilder($builder, 0);
     $this->expectException(\UnexpectedValueException::class);

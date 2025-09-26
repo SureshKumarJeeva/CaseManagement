@@ -4,10 +4,14 @@ namespace Drupal\entity_print\Plugin\EntityPrint\PrintEngine;
 
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Form\OptGroup;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Site\Settings;
 use Drupal\entity_print\Plugin\ExportTypeInterface;
 use Drupal\entity_print\PrintEngineException;
 use mikehaertl\wkhtmlto\Pdf;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
  * PHP wkhtmltopdf plugin.
@@ -25,7 +29,27 @@ use mikehaertl\wkhtmlto\Pdf;
  *     composer require "mikehaertl/phpwkhtmltopdf ~2.1"
  * @endcode
  */
-class PhpWkhtmlToPdf extends PdfEngineBase implements AlignableHeaderFooterInterface {
+class PhpWkhtmlToPdf extends PdfEngineBase implements AlignableHeaderFooterInterface, ContainerFactoryPluginInterface {
+
+  /**
+   * Popular viewport sizes.
+   *
+   * @var array
+   * @constant
+   */
+  public static $viewportSizeOptions
+    = [
+      '_none' => 'Default',
+      '1920x1080' => '1920x1080',
+      '1366x768' => '1366x768',
+      '1280x1024' => '1280x1024',
+      '1280x800' => '1280x800',
+      '1024x768' => '1024x768',
+      '768x1024' => '768x1024',
+      '720x1280' => '720x1280',
+      '375x667' => '375x667',
+      '360x640' => '360x640',
+    ];
 
   /**
    * The library instance.
@@ -35,32 +59,26 @@ class PhpWkhtmlToPdf extends PdfEngineBase implements AlignableHeaderFooterInter
   protected $pdf;
 
   /**
-   * Popular viewport sizes.
+   * The current request.
    *
-   * @var array
-   * @constant
+   * @var \Symfony\Component\HttpFoundation\Request
    */
-  public static $viewportSizeOptions = [
-    '_none'     => 'Default',
-    '1920x1080' => '1920x1080',
-    '1366x768'  => '1366x768',
-    '1280x1024' => '1280x1024',
-    '1280x800'  => '1280x800',
-    '1024x768'  => '1024x768',
-    '768x1024'  => '768x1024',
-    '720x1280'  => '720x1280',
-    '375x667'   => '375x667',
-    '360x640'   => '360x640',
-  ];
+  protected $request;
 
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, ExportTypeInterface $export_type) {
+  public function __construct(array $configuration, $plugin_id, $plugin_definition, ExportTypeInterface $export_type, Request $request, SessionInterface $session) {
+    // Ensure request includes the session (eg running in CLI).
+    if (!$request->hasSession()) {
+      $request->setSession($session);
+    }
+    $this->request = $request;
+
     parent::__construct($configuration, $plugin_id, $plugin_definition, $export_type);
     $this->pdf = new Pdf([
       'binary' => $this->configuration['binary_location'],
-      'orientation' => $this->configuration['orientation'],
+      'orientation' => $this->configuration['default_paper_orientation'],
       'username' => $this->configuration['username'],
       'password' => $this->configuration['password'],
       'page-size' => $this->configuration['default_paper_size'],
@@ -106,6 +124,40 @@ class PhpWkhtmlToPdf extends PdfEngineBase implements AlignableHeaderFooterInter
         'proxy' => $config['proxy']['http'],
       ]);
     }
+
+    // When embedding images from Drupal's private file system, the library
+    // fails because it's seen as an anonymous user. See DomPDF for details.
+    if ($this->request->hasSession()) {
+      $session = $this->request->getSession();
+      $options = [
+        'cookie' => [
+          $session->getName() => $session->getId(),
+        ],
+      ];
+      $this->getPrintObject()->setOptions($options);
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPrintObject() {
+    return $this->pdf;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $configuration,
+      $plugin_id,
+      $plugin_definition,
+      $container->get('plugin.manager.entity_print.export_type')
+        ->createInstance($plugin_definition['export_type']),
+      $container->get('request_stack')->getCurrentRequest(),
+      $container->get('session'),
+    );
   }
 
   /**
@@ -113,6 +165,13 @@ class PhpWkhtmlToPdf extends PdfEngineBase implements AlignableHeaderFooterInter
    */
   public static function getInstallationInstructions() {
     return t('Please install with: @command', ['@command' => 'composer require "mikehaertl/phpwkhtmltopdf ~2.1"']);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function dependenciesAvailable() {
+    return class_exists('mikehaertl\wkhtmlto\Pdf') && !drupal_valid_test_ua();
   }
 
   /**
@@ -210,7 +269,7 @@ class PhpWkhtmlToPdf extends PdfEngineBase implements AlignableHeaderFooterInter
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::validateConfigurationForm($form, $form_state);
     $values = OptGroup::flattenOptions($form_state->getValues());
-    $binary_location = isset($values['binary_location']) ? $values['binary_location'] : NULL;
+    $binary_location = $values['binary_location'] ?? NULL;
     if ($binary_location && !file_exists($binary_location)) {
       $form_state->setErrorByName('binary_location', sprintf('The wkhtmltopdf binary does not exist at %s', $binary_location));
     }
@@ -239,13 +298,23 @@ class PhpWkhtmlToPdf extends PdfEngineBase implements AlignableHeaderFooterInter
    */
   public function addPage($content) {
     $this->pdf->addPage($content);
+    return $this;
   }
 
   /**
    * {@inheritdoc}
    */
-  public static function dependenciesAvailable() {
-    return class_exists('mikehaertl\wkhtmlto\Pdf') && !drupal_valid_test_ua();
+  public function setHeaderText($text, $alignment) {
+    $this->pdf->setOptions(['header-' . $alignment => $text]);
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setFooterText($text, $alignment) {
+    $this->pdf->setOptions(['footer-' . $alignment => $text]);
+    return $this;
   }
 
   /**
@@ -284,29 +353,6 @@ class PhpWkhtmlToPdf extends PdfEngineBase implements AlignableHeaderFooterInter
       'letter' => 'Letter',
       'tabloid' => 'Tabloid',
     ];
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setHeaderText($text, $alignment) {
-    $this->pdf->setOptions(['header-' . $alignment => $text]);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function setFooterText($text, $alignment) {
-    $this->pdf->setOptions(['footer-' . $alignment => $text]);
-    return $this;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function getPrintObject() {
-    return $this->pdf;
   }
 
 }

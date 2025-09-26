@@ -8,19 +8,17 @@ use Drupal\file\Entity\File;
  *
  * @group token
  */
-class FileTest extends KernelTestBase {
-
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = ['file'];
+class FileTest extends TokenKernelTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  protected static $modules = ['file'];
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp(): void {
     parent::setUp();
     $this->installEntitySchema('file');
   }

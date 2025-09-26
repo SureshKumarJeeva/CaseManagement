@@ -2,6 +2,8 @@
 
 namespace Drupal\entity_print\EventSubscriber;
 
+use Drupal\Core\Messenger\MessengerInterface;
+use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Drupal\Component\Render\FormattableMarkup;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Routing\RouteMatchInterface;
@@ -9,7 +11,6 @@ use Drupal\Core\Url;
 use Drupal\entity_print\PrintEngineException;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 
 /**
@@ -32,28 +33,39 @@ class PrintEngineExceptionSubscriber implements EventSubscriberInterface {
   protected $entityTypeManager;
 
   /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected $messenger;
+
+  /**
    * PrintEngineExceptionSubscriber constructor.
    *
    * @param \Drupal\Core\Routing\RouteMatchInterface $routeMatch
    *   Route match service.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entityTypeManager
    *   Entity type manager.
+   * @param \Drupal\Core\Messenger\MessengerInterface $messenger
+   *   The messenger service.
    */
-  public function __construct(RouteMatchInterface $routeMatch, EntityTypeManagerInterface $entityTypeManager) {
+  public function __construct(RouteMatchInterface $routeMatch, EntityTypeManagerInterface $entityTypeManager, MessengerInterface $messenger) {
     $this->routeMatch = $routeMatch;
     $this->entityTypeManager = $entityTypeManager;
+    $this->messenger = $messenger;
   }
 
   /**
    * Handles print exceptions.
    *
-   * @param \Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent $event
+   * @param \Symfony\Component\HttpKernel\Event\ExceptionEvent|\Symfony\Component\HttpKernel\Event\ExceptionEvent $event
    *   The exception event.
    */
-  public function handleException(GetResponseForExceptionEvent $event) {
-    $exception = $event->getException();
+  public function handleException($event) {
+    assert($event instanceof ExceptionEvent);
+    $exception = $event->getThrowable();
     if ($exception instanceof PrintEngineException) {
-      \Drupal::messenger()->addError(new FormattableMarkup($exception->getPrettyMessage(), []));
+      $this->messenger->addError(new FormattableMarkup($exception->getPrettyMessage(), []));
 
       if ($entity = $this->getEntity()) {
         $event->setResponse(new RedirectResponse($entity->toUrl()->toString()));
@@ -95,7 +107,7 @@ class PrintEngineExceptionSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     return [
       KernelEvents::EXCEPTION => 'handleException',
     ];

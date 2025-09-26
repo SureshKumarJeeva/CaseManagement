@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\user\Functional;
 
+use Drupal\Core\Cache\CacheableMetadata;
 use Drupal\Core\Test\AssertMailTrait;
 use Drupal\Core\Url;
 use Drupal\Tests\rest\Functional\CookieResourceTestTrait;
@@ -42,6 +45,13 @@ class UserRegistrationRestTest extends ResourceTestBase {
    */
   protected static $modules = ['user', 'rest'];
 
+  /**
+   * Entity type ID for this storage.
+   *
+   * @var string
+   */
+  protected static string $entityTypeId;
+
   const USER_EMAIL_DOMAIN = '@example.com';
 
   const TEST_EMAIL_DOMAIN = 'simpletest@example.com';
@@ -61,7 +71,7 @@ class UserRegistrationRestTest extends ResourceTestBase {
   /**
    * Tests that only anonymous users can register users.
    */
-  public function testRegisterUser() {
+  public function testRegisterUser(): void {
     $config = $this->config('user.settings');
 
     // Test out different setting User Registration and Email Verification.
@@ -77,14 +87,14 @@ class UserRegistrationRestTest extends ResourceTestBase {
     $this->assertEquals(0, $email_count);
 
     // Attempt to register without sending a password.
-    $response = $this->registerRequest('Rick.Deckard', FALSE);
+    $response = $this->registerRequest('PhilipK.Dick', FALSE);
     $this->assertResourceErrorResponse(422, "No password provided.", $response);
 
-    // Attempt to register with a password when e-mail verification is on.
+    // Attempt to register with a password when email verification is on.
     $config->set('register', UserInterface::REGISTER_VISITORS);
     $config->set('verify_mail', 1);
     $config->save();
-    $response = $this->registerRequest('Estraven');
+    $response = $this->registerRequest('UrsulaK.LeGuin');
     $this->assertResourceErrorResponse(422, 'A Password cannot be specified. It will be generated on login.', $response);
 
     // Allow visitors to register with email verification.
@@ -93,8 +103,8 @@ class UserRegistrationRestTest extends ResourceTestBase {
     $config->save();
     $name = 'Jason.Taverner';
     $user = $this->registerUser($name, FALSE);
-    $this->assertEmpty($user->getPassword());
-    $this->assertTrue($user->isBlocked());
+    $this->assertNotEmpty($user->getPassword());
+    $this->assertFalse($user->isBlocked());
     $this->resetAll();
 
     $this->assertMailString('body', 'You may now log in by clicking this link', 1);
@@ -103,26 +113,26 @@ class UserRegistrationRestTest extends ResourceTestBase {
     $config->set('register', UserInterface::REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL);
     $config->set('verify_mail', 0);
     $config->save();
-    $name = 'Argaven';
+    $name = 'Alex';
     $user = $this->registerUser($name);
     $this->resetAll();
     $this->assertNotEmpty($user->getPassword());
     $this->assertTrue($user->isBlocked());
     $this->assertMailString('body', 'Your application for an account is', 2);
-    $this->assertMailString('body', 'Argaven has applied for an account', 2);
+    $this->assertMailString('body', 'Alex has applied for an account', 2);
 
-    // Allow visitors to register with Admin approval and e-mail verification.
+    // Allow visitors to register with Admin approval and email verification.
     $config->set('register', UserInterface::REGISTER_VISITORS_ADMINISTRATIVE_APPROVAL);
     $config->set('verify_mail', 1);
     $config->save();
-    $name = 'Bob.Arctor';
+    $name = 'PhilipK.Dick';
     $user = $this->registerUser($name, FALSE);
     $this->resetAll();
-    $this->assertEmpty($user->getPassword());
+    $this->assertNotEmpty($user->getPassword());
     $this->assertTrue($user->isBlocked());
 
     $this->assertMailString('body', 'Your application for an account is', 2);
-    $this->assertMailString('body', 'Bob.Arctor has applied for an account', 2);
+    $this->assertMailString('body', 'PhilipK.Dick has applied for an account', 2);
 
     // Verify that an authenticated user cannot register a new user, despite
     // being granted permission to do so because only anonymous users can
@@ -248,11 +258,15 @@ class UserRegistrationRestTest extends ResourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedUnauthorizedAccessMessage($method) {}
+  protected function getExpectedUnauthorizedAccessMessage($method): string {
+    return '';
+  }
 
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedUnauthorizedAccessCacheability() {}
+  protected function getExpectedUnauthorizedAccessCacheability() {
+    return new CacheableMetadata();
+  }
 
 }

@@ -40,8 +40,8 @@ use Drupal\Core\Utility\UpdateException;
  *
  * @section sec_how How to write update code
  * Update code for a module is put into an implementation of hook_update_N(),
- * which goes into file mymodule.install (if your module's machine name is
- * mymodule). See the documentation of hook_update_N() and
+ * which goes into file my_module.install (if your module's machine name is
+ * my_module). See the documentation of hook_update_N() and
  * https://www.drupal.org/node/2535316 for details and examples.
  *
  * @section sec_test Testing update code
@@ -74,7 +74,7 @@ use Drupal\Core\Utility\UpdateException;
  *
  * See system_hook_info() for all hook groups defined by Drupal core.
  *
- * @return
+ * @return array
  *   An associative array whose keys are hook names and whose values are an
  *   associative array containing:
  *   - group: A string defining the group to which the hook belongs. The module
@@ -152,7 +152,7 @@ function hook_module_implements_alter(&$implementations, $hook) {
 function hook_system_info_alter(array &$info, \Drupal\Core\Extension\Extension $file, $type) {
   // Only fill this in if the .info.yml file does not define a 'datestamp'.
   if (empty($info['datestamp'])) {
-    $info['datestamp'] = $file->getMTime();
+    $info['datestamp'] = $file->getFileInfo()->getMTime();
   }
 }
 
@@ -161,9 +161,16 @@ function hook_system_info_alter(array &$info, \Drupal\Core\Extension\Extension $
  *
  * @param string $module
  *   The name of the module about to be installed.
+ * @param bool $is_syncing
+ *   TRUE if the module is being installed as part of a configuration import. In
+ *   these cases, your hook implementation needs to carefully consider what
+ *   changes, if any, it should make. For example, it should not make any
+ *   changes to configuration objects or configuration entities. Those changes
+ *   should be made earlier and exported so during import there's no need to
+ *   do them again.
  */
-function hook_module_preinstall($module) {
-  mymodule_cache_clear();
+function hook_module_preinstall($module, bool $is_syncing) {
+  my_module_cache_clear();
 }
 
 /**
@@ -183,17 +190,19 @@ function hook_module_preinstall($module) {
  *   TRUE if the module is being installed as part of a configuration import. In
  *   these cases, your hook implementation needs to carefully consider what
  *   changes, if any, it should make. For example, it should not make any
- *   changes to configuration objects or entities.
+ *   changes to configuration objects or configuration entities. Those changes
+ *   should be made earlier and exported so during import there's no need to
+ *   do them again.
  *
  * @see \Drupal\Core\Extension\ModuleInstaller::install()
  * @see hook_install()
  */
 function hook_modules_installed($modules, $is_syncing) {
   if (in_array('lousy_module', $modules)) {
-    \Drupal::state()->set('mymodule.lousy_module_compatibility', TRUE);
+    \Drupal::state()->set('my_module.lousy_module_compatibility', TRUE);
   }
   if (!$is_syncing) {
-    \Drupal::service('mymodule.service')->doSomething($modules);
+    \Drupal::service('my_module.service')->doSomething($modules);
   }
 }
 
@@ -224,14 +233,15 @@ function hook_modules_installed($modules, $is_syncing) {
  * available when this hook is called. Use cases could be displaying a user
  * message, or calling a module function necessary for initial setup, etc.
  *
- * Please be sure that anything added or modified in this function that can
- * be removed during uninstall should be removed with hook_uninstall().
+ * Ensure that anything added or modified in this function that can be removed
+ * during uninstall should be removed with hook_uninstall().
  *
  * @param bool $is_syncing
  *   TRUE if the module is being installed as part of a configuration import. In
  *   these cases, your hook implementation needs to carefully consider what
- *   changes, if any, it should make. For example, it should not make any
- *   changes to configuration objects or entities.
+ *   changes to configuration objects or configuration entities. Those changes
+ *   should be made earlier and exported so during import there's no need to
+ *   do them again.
  *
  * @see \Drupal\Core\Config\ConfigInstallerInterface::isSyncing
  * @see hook_schema()
@@ -241,7 +251,7 @@ function hook_modules_installed($modules, $is_syncing) {
  */
 function hook_install($is_syncing) {
   // Set general module variables.
-  \Drupal::state()->set('mymodule.foo', 'bar');
+  \Drupal::state()->set('my_module.foo', 'bar');
 }
 
 /**
@@ -249,9 +259,15 @@ function hook_install($is_syncing) {
  *
  * @param string $module
  *   The name of the module about to be uninstalled.
+ * @param bool $is_syncing
+ *   TRUE if the module is being uninstalled as part of a configuration import.
+ *   In these cases, your hook implementation needs to carefully consider what
+ *   changes to configuration objects or configuration entities. Those changes
+ *   should be made earlier and exported so during import there's no need to
+ *   do them again.
  */
-function hook_module_preuninstall($module) {
-  mymodule_cache_clear();
+function hook_module_preuninstall($module, bool $is_syncing) {
+  my_module_cache_clear();
 }
 
 /**
@@ -269,18 +285,19 @@ function hook_module_preuninstall($module) {
  * @param bool $is_syncing
  *   TRUE if the module is being uninstalled as part of a configuration import.
  *   In these cases, your hook implementation needs to carefully consider what
- *   changes, if any, it should make. For example, it should not make any
- *   changes to configuration objects or entities.
+ *   changes to configuration objects or configuration entities. Those changes
+ *   should be made earlier and exported so during import there's no need to
+ *   do them again.
  *
  * @see hook_uninstall()
  */
 function hook_modules_uninstalled($modules, $is_syncing) {
   if (in_array('lousy_module', $modules)) {
-    \Drupal::state()->delete('mymodule.lousy_module_compatibility');
+    \Drupal::state()->delete('my_module.lousy_module_compatibility');
   }
-  mymodule_cache_rebuild();
+  my_module_cache_rebuild();
   if (!$is_syncing) {
-    \Drupal::service('mymodule.service')->doSomething($modules);
+    \Drupal::service('my_module.service')->doSomething($modules);
   }
 }
 
@@ -307,8 +324,9 @@ function hook_modules_uninstalled($modules, $is_syncing) {
  * @param bool $is_syncing
  *   TRUE if the module is being uninstalled as part of a configuration import.
  *   In these cases, your hook implementation needs to carefully consider what
- *   changes, if any, it should make. For example, it should not make any
- *   changes to configuration objects or entities.
+ *   changes to configuration objects or configuration entities. Those changes
+ *   should be made earlier and exported so during import there's no need to
+ *   do them again.
  *
  * @see hook_install()
  * @see hook_schema()
@@ -317,7 +335,7 @@ function hook_modules_uninstalled($modules, $is_syncing) {
  */
 function hook_uninstall($is_syncing) {
   // Delete remaining general module variables.
-  \Drupal::state()->delete('mymodule.foo');
+  \Drupal::state()->delete('my_module.foo');
 }
 
 /**
@@ -511,30 +529,60 @@ function hook_install_tasks_alter(&$tasks, $install_state) {
 /**
  * Perform a single update between minor versions.
  *
- * Hook hook_update_N() can only be used to update between minor versions of a
- * module. To upgrade between major versions of Drupal (for example, between
- * Drupal 7 and 8), use the @link migrate Migrate API @endlink instead.
+ * Modules should use hook hook_update_N() to update between minor or major
+ * versions of the module. Sites upgrading from Drupal 6 or 7 to any higher
+ * version should use the @link migrate Migrate API @endlink instead.
  *
  * @section sec_naming Naming and documenting your function
  * For each change in a module that requires one or more actions to be performed
  * when updating a site, add a new implementation of hook_update_N() to your
- * mymodule.install file (assuming mymodule is the machine name of your module).
- * Implementations of hook_update_N() are named (module name)_update_(number).
+ * my_module.install file (assuming my_module is the machine name of your
+ * module). Implementations of hook_update_N() are named (module
+ * name)_update_(number).
+ *
+ * The number (N) must be higher than hook_update_last_removed().
+ *
  * The numbers are normally composed of three parts:
  * - 1 or 2 digits for Drupal core compatibility (Drupal 8, 9, 10, etc.). This
- *   convention must be followed.
- * - 1 digit for your module's major release version; for example, for 8.x-1.*
- *   use 1, for 8.x-2.* use 2, for Core 8.0.x use 0, and for Core 8.1.x use 1.
- *   This convention is optional but suggested for clarity.
+ *   convention must be followed. If your module is compatible with multiple
+ *   major versions (e.g., it has a core_version_requirement of '^8.8 || ^9'),
+ *   use the lowest major core branch it is compatible with (8 in this example).
+ * - 1 or 2 digits for your module's major release version. Examples:
+ *   - For 8.x-1.* or 1.y.x (semantic versioning), use 1 or 01.
+ *   - For 8.x-2.* or 2.y.x, use 2 or 02.
+ *   - For 8.x-10.* or 10.y.x, use 10.
+ *   - For core 8.0.x, use 0 or 00.
+ *   - For core 8.1.x, use 1 or 01.
+ *   - For core 8.10.x, use 10.
+ *   This convention is optional but suggested for clarity. Note: While four-
+ *   digit update hooks are standard, if you follow the above convention, you
+ *   may run into the need to start using five digits if you get to a major (or,
+ *   for core, a minor) version 10. This will work fine; what matters is that
+ *   you must ALWAYS increase the number when a new update hook is added. For
+ *   example, if you add hook_update_81001(), you cannot later
+ *   add hook_update_9101(). Instead, you would need to use hook_update_90101().
  * - 2 digits for sequential counting, starting with 01. Note that the x000
  *   number can never be used: the lowest update number that will be recognized
- *   and run for major version x is x001.
+ *   and run is 8001.
+ *
+ * @todo Remove reference to CORE_MINIMUM_SCHEMA_VERSION (e.g., x001) once
+ *   https://www.drupal.org/project/drupal/issues/3106712 is resolved.
+ *
  * Examples:
  * - node_update_8001(): The first update for the Drupal 8.0.x version of the
  *   Drupal Core node module.
- * - mymodule_update_8101(): The first update for your custom or contributed
+ * - node_update_81001(): The first update for the Drupal 8.10.x version of the
+ *   Drupal Core node module.
+ * - my_module_update_8101(): The first update for your custom or contributed
  *   module's 8.x-1.x versions.
- * - mymodule_update_8201(): The first update for the 8.x-2.x versions.
+ * - my_module_update_8201(): The first update for the 8.x-2.x versions.
+ * - my_module_update_80201(): Alternate five-digit format for the first update
+ *   for the 8.x-2.x versions. Subsequent update hooks must always be five
+ *   digits and higher than 80201.
+ * - my_module_update_8201(): The first update for the custom or contributed
+ *   module's 2.0.x versions, which are compatible with Drupal 8 and 9.
+ * - my_module_update_91001(): The first update for the custom or contributed
+ *   module's 10.0.x versions, which are compatible with Drupal 9.
  *
  * Never renumber update functions. The numeric part of the hook implementation
  * function is stored in the database to keep track of which updates have run,
@@ -616,6 +664,82 @@ function hook_install_tasks_alter(&$tasks, $install_state) {
  *
  * See the @link batch Batch operations topic @endlink for more information on
  * how to use the Batch API.
+ *
+ * @section sec_equivalent_updates Multiple upgrade paths
+ * There are situations where changes require a hook_update_N() to be applied to
+ * different major branches. This results in more than one upgrade path from the
+ * current major version to the next major version.
+ *
+ * For example, if an update is added to 11.1.0 and 10.4.0, then a site on
+ * 10.3.7 can update either to 10.4.0 and from there to 11.1.0, or directly from
+ * 10.3.7 to 11.1.1. In one case, the update will run on the 10.x code base, and
+ * in another on the 11.x code base, but the update system needs to ensure that
+ * it doesn't run twice on the same site.
+ *
+ * hook_update_N() numbers are sequential integers, and numbers lower than the
+ * modules current schema version will never be run. This means once a site has
+ * run an update, for example, 11100, it will not run a later update added as
+ * 10400. Backporting of updates therefore needs to allow 'space' for the 10.4.x
+ * codebase to include updates which don't exist in 11.x (for example to ensure
+ * a later 11.x update goes smoothly).
+ *
+ * To resolve this, when handling potential backports of updates between major
+ * branches, we use different update numbers for each branch, but record the
+ * relationship between those updates in the older branches. This is best
+ * explained by an example showing the different branches updates could be
+ * applied to:
+ * - The first update, system_update_10300 is applied to 10.3.0.
+ * - Then, 11.0.0 is released with the update removed,
+ *   system_update_last_removed() is added which returns 10300.
+ * - The next update, system_update_11100, is applied to 11.1.x only.
+ * - Then 10.4.0 and 11.1.0 are released. system_update_11100 is not backported
+ *   to 11.0.x or any 10.x branch.
+ * - Finally, a critical data loss update is necessary. The bug-fix supported
+ *   branches are 11.1.x, 11.0.x, and 10.4.x. This results in adding the updates
+ *   system_update_10400 (10.4.x), system_update_11000 (11.0.x) and
+ *   system_update_11101 (11.1.x) and making the 10.4.1, 11.0.1 and 11.1.1
+ *   releases.
+ *
+ * This is a list of the example releases and the updates they contain:
+ * - 10.3.0: system_update_10300
+ * - 10.4.1: system_update_10300 and system_update_10400 (equivalent to
+ *   system_update_11101)
+ * - 11.0.0: No updates
+ * - 11.0.1: system_update_11000 (equivalent to system_update_11101)
+ * - 11.1.0: system_update_11100
+ * - 11.1.1: system_update_11100 and system_update_11101
+ *
+ * In this situation, sites on 10.4.1 or 11.0.1 will be required to update to
+ * versions that contain system_update_11101. For example, a site on 10.4.1
+ * would not be able to update to 11.0.0, because that would result in it going
+ * 'backwards' in terms of database schema, but it would be able to update to
+ * 11.1.1. The same is true for a site on 11.0.1.
+ *
+ * The following examples show how to implement a hook_update_N() that must be
+ * skipped in a future update process.
+ *
+ * Future updates can be marked as equivalent by adding the following code to an
+ * update.
+ * @code
+ * function my_module_update_10400() {
+ *   \Drupal::service('update.update_hook_registry')->markFutureUpdateEquivalent(11101, '11.1.1');
+ *
+ *   // The rest of the update function.
+ * }
+ * @endcode
+ *
+ * At the moment we need to add defensive coding in the future update to ensure
+ * it is skipped.
+ * @code
+ * function my_module_update_11101() {
+ *   $equivalent_update = \Drupal::service('update.update_hook_registry')->getEquivalentUpdate();
+ *   if ($equivalent_update instanceof \Drupal\Core\Update\EquivalentUpdate) {
+ *     return $equivalent_update->toSkipMessage();
+ *   }
+ *
+ *   // The rest of the update function.
+ * }
+ * @endcode
  *
  * @param array $sandbox
  *   Stores information for batch updates. See above for more information.
@@ -780,9 +904,9 @@ function hook_post_update_NAME(&$sandbox) {
  */
 function hook_removed_post_updates() {
   return [
-    'mymodule_post_update_foo' => '8.x-2.0',
-    'mymodule_post_update_bar' => '8.x-3.0',
-    'mymodule_post_update_baz' => '8.x-3.0',
+    'my_module_post_update_foo' => '8.x-2.0',
+    'my_module_post_update_bar' => '8.x-3.0',
+    'my_module_post_update_baz' => '8.x-3.0',
   ];
 }
 
@@ -794,10 +918,10 @@ function hook_removed_post_updates() {
  * system to determine the appropriate order in which updates should be run, as
  * well as to search for missing dependencies.
  *
- * Implementations of this hook should be placed in a mymodule.install file in
- * the same directory as mymodule.module.
+ * Implementations of this hook should be placed in a my_module.install file in
+ * the same directory as my_module.module.
  *
- * @return
+ * @return array
  *   A multidimensional array containing information about the module update
  *   dependencies. The first two levels of keys represent the module and update
  *   number (respectively) for which information is being returned, and the
@@ -814,21 +938,21 @@ function hook_removed_post_updates() {
  * @see hook_update_N()
  */
 function hook_update_dependencies() {
-  // Indicate that the mymodule_update_8001() function provided by this module
+  // Indicate that the my_module_update_8001() function provided by this module
   // must run after the another_module_update_8003() function provided by the
   // 'another_module' module.
-  $dependencies['mymodule'][8001] = [
+  $dependencies['my_module'][8001] = [
     'another_module' => 8003,
   ];
-  // Indicate that the mymodule_update_8002() function provided by this module
+  // Indicate that the my_module_update_8002() function provided by this module
   // must run before the yet_another_module_update_8005() function provided by
   // the 'yet_another_module' module. (Note that declaring dependencies in this
   // direction should be done only in rare situations, since it can lead to the
   // following problem: If a site has already run the yet_another_module
   // module's database updates before it updates its codebase to pick up the
-  // newest mymodule code, then the dependency declared here will be ignored.)
+  // newest my_module code, then the dependency declared here will be ignored.)
   $dependencies['yet_another_module'][8005] = [
-    'mymodule' => 8002,
+    'my_module' => 8002,
   ];
   return $dependencies;
 }
@@ -836,24 +960,24 @@ function hook_update_dependencies() {
 /**
  * Return a number which is no longer available as hook_update_N().
  *
- * If you remove some update functions from your mymodule.install file, you
+ * If you remove some update functions from your my_module.install file, you
  * should notify Drupal of those missing functions. This way, Drupal can
  * ensure that no update is accidentally skipped.
  *
- * Implementations of this hook should be placed in a mymodule.install file in
- * the same directory as mymodule.module.
+ * Implementations of this hook should be placed in a my_module.install file in
+ * the same directory as my_module.module.
  *
- * @return
+ * @return int
  *   An integer, corresponding to hook_update_N() which has been removed from
- *   mymodule.install.
+ *   my_module.install.
  *
  * @ingroup update_api
  *
  * @see hook_update_N()
  */
 function hook_update_last_removed() {
-  // We've removed the 8.x-1.x version of mymodule, including database updates.
-  // The next update function is mymodule_update_8200().
+  // We've removed the 8.x-1.x version of my_module, including database updates.
+  // The next update function is my_module_update_8200().
   return 8103;
 }
 
@@ -862,9 +986,9 @@ function hook_update_last_removed() {
  *
  * Drupal\Core\Updater\Updater is a class that knows how to update various parts
  * of the Drupal file system, for example to update modules that have newer
- * releases, or to install a new theme.
+ * releases.
  *
- * @return
+ * @return array
  *   An associative array of information about the updater(s) being provided.
  *   This array is keyed by a unique identifier for each updater, and the
  *   values are subarrays that can contain the following keys:
@@ -902,8 +1026,7 @@ function hook_updater_info() {
  * Alter the Updater information array.
  *
  * An Updater is a class that knows how to update various parts of the Drupal
- * file system, for example to update modules that have newer releases, or to
- * install a new theme.
+ * file system, for example to update modules that have newer releases.
  *
  * @param array $updaters
  *   Associative array of updaters as defined through hook_updater_info().
@@ -962,7 +1085,7 @@ function hook_updater_info_alter(&$updaters) {
  *   - runtime: The runtime requirements are being checked and shown on the
  *     status report page.
  *
- * @return
+ * @return array
  *   An associative array where the keys are arbitrary but must be unique (it
  *   is suggested to use the module short name as a prefix) and the values are
  *   themselves associative arrays with the following elements:
@@ -971,11 +1094,12 @@ function hook_updater_info_alter(&$updaters) {
  *     install phase, this should only be used for version numbers, do not set
  *     it if not applicable.
  *   - description: The description of the requirement/status.
- *   - severity: The requirement's result/severity level, one of:
+ *   - severity: (optional) The requirement's result/severity level, one of:
  *     - REQUIREMENT_INFO: For info only.
  *     - REQUIREMENT_OK: The requirement is satisfied.
  *     - REQUIREMENT_WARNING: The requirement failed with a warning.
  *     - REQUIREMENT_ERROR: The requirement failed with an error.
+ *     Defaults to REQUIREMENT_OK when installing, REQUIREMENT_INFO otherwise.
  */
 function hook_requirements($phase) {
   $requirements = [];
@@ -1008,7 +1132,7 @@ function hook_requirements($phase) {
     }
     else {
       $requirements['cron'] = [
-        'description' => t('Cron has not run. It appears cron jobs have not been setup on your system. Check the help pages for <a href=":url">configuring cron jobs</a>.', [':url' => 'https://www.drupal.org/cron']),
+        'description' => t('Cron has not run. It appears cron jobs have not been setup on your system. Check the help pages for <a href=":url">configuring cron jobs</a>.', [':url' => 'https://www.drupal.org/docs/administering-a-drupal-site/cron-automated-tasks/cron-automated-tasks-overview']),
         'severity' => REQUIREMENT_ERROR,
         'value' => t('Never run'),
       ];
@@ -1020,6 +1144,29 @@ function hook_requirements($phase) {
   }
 
   return $requirements;
+}
+
+/**
+ * Alters requirements data.
+ *
+ * Implementations are able to alter the title, value, description or the
+ * severity of certain requirements defined by hook_requirements()
+ * implementations or even remove such entries.
+ *
+ * @param array $requirements
+ *   The requirements data to be altered.
+ *
+ * @see hook_requirements()
+ */
+function hook_requirements_alter(array &$requirements): void {
+  // Change the title from 'PHP' to 'PHP version'.
+  $requirements['php']['title'] = t('PHP version');
+
+  // Decrease the 'update status' requirement severity from warning to info.
+  $requirements['update status']['severity'] = REQUIREMENT_INFO;
+
+  // Remove a requirements entry.
+  unset($requirements['foo']);
 }
 
 /**

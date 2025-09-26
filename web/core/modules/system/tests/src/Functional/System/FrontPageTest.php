@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\System;
 
 use Drupal\Tests\BrowserTestBase;
@@ -12,9 +14,7 @@ use Drupal\Tests\BrowserTestBase;
 class FrontPageTest extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['node', 'system_test', 'views'];
 
@@ -30,6 +30,9 @@ class FrontPageTest extends BrowserTestBase {
    */
   protected $nodePath;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -50,7 +53,7 @@ class FrontPageTest extends BrowserTestBase {
   /**
    * Tests front page functionality.
    */
-  public function testDrupalFrontPage() {
+  public function testDrupalFrontPage(): void {
     // Create a promoted node to test the <title> tag on the front page view.
     $settings = [
       'title' => $this->randomMachineName(8),

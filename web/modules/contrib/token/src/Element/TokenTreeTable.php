@@ -81,10 +81,6 @@ class TokenTreeTable extends Table {
       }
     }
 
-    if (!empty($element['#rows'])) {
-      $element['#attached']['library'][] = 'token/jquery.treeTable';
-    }
-
     // Fill headers if one is not specified.
     if (empty($element['#header'])) {
       $column_map = [
@@ -147,7 +143,6 @@ class TokenTreeTable extends Table {
     }
     elseif (!empty($token_info['parent'])) {
       $row['data-tt-parent-id'] = static::cleanCssIdentifier($token_info['parent']);
-      unset($row['parent']);
     }
 
     return $row;

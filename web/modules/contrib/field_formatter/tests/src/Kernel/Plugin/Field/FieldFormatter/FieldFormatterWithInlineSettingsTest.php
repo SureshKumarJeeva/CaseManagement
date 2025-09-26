@@ -26,7 +26,7 @@ class FieldFormatterWithInlineSettingsTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'entity_test',
     'user',
     'field',
@@ -37,7 +37,7 @@ class FieldFormatterWithInlineSettingsTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->installSchema('system', ['sequences']);
@@ -46,6 +46,7 @@ class FieldFormatterWithInlineSettingsTest extends KernelTestBase {
 
     $admin_role = Role::create([
       'id' => 'admin',
+      'label' => 'Test role admin',
       'permissions' => ['view test entity'],
     ]);
     $admin_role->save();
@@ -123,14 +124,16 @@ class FieldFormatterWithInlineSettingsTest extends KernelTestBase {
     $build = $parent_entity_view_display->build($entity);
 
     \Drupal::service('renderer')->renderRoot($build);
-
-    $this->assertEquals($expected_output, $build['test_er_field']['#markup']);
+    // Prepare XML structure to compare:
+    $expected_output = str_replace(["\r", "\n"], '', trim($expected_output));
+    $actual_output = str_replace(["\r", "\n"], '', trim($build['test_er_field']['#markup']));
+    $this->assertXmlStringEqualsXmlString($expected_output, $actual_output, 'Expected HTML is "' . htmlentities($expected_output) . '" but was: "' . htmlentities($actual_output) . '"');
   }
 
   /**
    * Data provider for ::testRender().
    */
-  public function providerTestRender() {
+  public static function providerTestRender() {
     $output_with_label = <<<EXPECTED
 
   <div>
@@ -144,6 +147,7 @@ class FieldFormatterWithInlineSettingsTest extends KernelTestBase {
           </div>
 
 EXPECTED;
+
     $output_without_label = <<<EXPECTED
 
   <div>
@@ -155,11 +159,25 @@ EXPECTED;
 
 EXPECTED;
 
+    $output_without_label_vh = <<<EXPECTED
+
+  <div>
+    <div>test_er_field</div>
+              <div>
+  <div>
+    <div class="visually-hidden">Name</div>
+              <div>child name</div>
+          </div>
+  </div>
+          </div>
+
+EXPECTED;
+
     return [
       ['above', $output_with_label],
       ['inline', $output_with_label],
       ['hidden', $output_without_label],
-      ['visually_hidden', $output_with_label],
+      ['visually_hidden', $output_without_label_vh],
     ];
   }
 

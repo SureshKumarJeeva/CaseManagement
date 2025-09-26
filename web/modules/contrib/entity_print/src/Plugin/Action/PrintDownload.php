@@ -25,7 +25,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
  *   type = "node"
  * )
  *
- * @TODO, support multiple entity types once core is fixed.
+ * @todo support multiple entity types once core is fixed.
  * @see https://www.drupal.org/node/2011038
  */
 class PrintDownload extends ConfigurableActionBase implements ContainerFactoryPluginInterface {
@@ -94,7 +94,7 @@ class PrintDownload extends ConfigurableActionBase implements ContainerFactoryPl
   /**
    * {@inheritdoc}
    */
-  public function access($object, AccountInterface $account = NULL, $return_as_object = FALSE) {
+  public function access($object, ?AccountInterface $account = NULL, $return_as_object = FALSE) {
     /** @var \Drupal\node\NodeInterface $object */
     $route_params = [
       'export_type' => $this->configuration['export_type'],

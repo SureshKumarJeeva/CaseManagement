@@ -5,14 +5,14 @@ namespace Drupal\views\Plugin\views;
 use Drupal\Component\Plugin\DerivativeInspectionInterface;
 use Drupal\Component\Plugin\PluginInspectionInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\views\Plugin\views\display\DisplayPluginBase;
 use Drupal\views\ViewExecutable;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Provides an interface for all views plugins.
  */
-interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInspectionInterface {
+interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInspectionInterface, ContainerFactoryPluginInterface {
 
   /**
    * Returns the plugin provider.
@@ -43,6 +43,12 @@ interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInsp
 
   /**
    * Validate the options form.
+   *
+   * @param array $form
+   *   An alterable, associative array containing the structure of the form,
+   *   passed by reference.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
    */
   public function validateOptionsForm(&$form, FormStateInterface $form_state);
 
@@ -69,11 +75,6 @@ interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInsp
   public static function preRenderAddFieldsetMarkup(array $form);
 
   /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition);
-
-  /**
    * Initialize the plugin.
    *
    * @param \Drupal\views\ViewExecutable $view
@@ -83,10 +84,16 @@ interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInsp
    * @param array $options
    *   The options configured for this plugin.
    */
-  public function init(ViewExecutable $view, DisplayPluginBase $display, array &$options = NULL);
+  public function init(ViewExecutable $view, DisplayPluginBase $display, ?array &$options = NULL);
 
   /**
    * Handle any special handling on the validate form.
+   *
+   * @param array $form
+   *   An alterable, associative array containing the structure of the form,
+   *   passed by reference.
+   * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The current state of the form.
    */
   public function submitOptionsForm(&$form, FormStateInterface $form_state);
 
@@ -151,7 +158,7 @@ interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInsp
   /**
    * Validate that the plugin is correct and can be saved.
    *
-   * @return
+   * @return array|null
    *   An array of error strings to tell the user what is wrong with this
    *   plugin.
    */
@@ -163,8 +170,10 @@ interface ViewsPluginInterface extends PluginInspectionInterface, DerivativeInsp
   public function query();
 
   /**
-   * Unpack options over our existing defaults, drilling down into arrays
-   * so that defaults don't get totally blown away.
+   * Unpacks options over our existing defaults.
+   *
+   * This will drill down into arrays so that defaults don't get totally blown
+   * away.
    */
   public function unpackOptions(&$storage, $options, $definition = NULL, $all = TRUE, $check = TRUE);
 

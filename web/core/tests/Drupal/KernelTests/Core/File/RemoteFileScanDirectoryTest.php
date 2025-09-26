@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\KernelTests\Core\File;
 
 /**
@@ -11,9 +13,7 @@ namespace Drupal\KernelTests\Core\File;
 class RemoteFileScanDirectoryTest extends ScanDirectoryTest {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['file_test'];
 
@@ -31,6 +31,9 @@ class RemoteFileScanDirectoryTest extends ScanDirectoryTest {
    */
   protected $classname = 'Drupal\file_test\StreamWrapper\DummyRemoteStreamWrapper';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
     $this->config('system.file')->set('default_scheme', 'dummy-remote')->save();

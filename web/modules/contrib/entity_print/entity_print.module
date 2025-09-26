@@ -45,22 +45,15 @@ function entity_print_entity_type_alter(array &$entity_types) {
  * Implements hook_entity_extra_field_info().
  */
 function entity_print_entity_extra_field_info() {
-  $manager = \Drupal::entityTypeManager();
-  $entity_types = $manager->getDefinitions();
   $export_types = \Drupal::service('plugin.manager.entity_print.export_type')->getDefinitions();
+  $bundle_info = \Drupal::service('entity_type.bundle.info')->getAllBundleInfo();
 
   $extra_fields = [];
-  foreach ($entity_types as $entity_type) {
-    if ($bundle = $entity_type->getBundleEntityType()) {
-      $bundle_ids = array_keys($manager->getStorage($bundle)->loadMultiple());
-    }
-    else {
-      $bundle_ids = [$entity_type->id()];
-    }
 
-    foreach ($bundle_ids as $bundle_id) {
+  foreach ($bundle_info as $entity_type_id => $bundles) {
+    foreach ($bundles as $bundle_id => $bundle) {
       foreach ($export_types as $export_type => $definition) {
-        $extra_fields[$entity_type->id()][$bundle_id]['display']['entity_print_view_' . $export_type] = [
+        $extra_fields[$entity_type_id][$bundle_id]['display']['entity_print_view_' . $export_type] = [
           'label' => t('View @label', ['@label' => $definition['label']]),
           'description' => t('Provides a link to view the Print version of the entity'),
           'weight' => 0,
@@ -68,8 +61,8 @@ function entity_print_entity_extra_field_info() {
         ];
       }
     }
-
   }
+
   return $extra_fields;
 }
 
@@ -93,7 +86,7 @@ function entity_print_entity_view_alter(array &$build, EntityInterface $entity, 
         '#title' => $display->getThirdPartySetting('entity_print', $export_type . '_label', t('View @label', ['@label' => $definition['label']])),
         '#export_type' => $export_type,
         '#url' => Url::fromRoute('entity_print.view', $route_params),
-        '#weight' => $component['weight'],
+        '#weight' => $component['weight'] ?? 0,
         '#access' => $access_manager->checkNamedRoute('entity_print.view', $route_params, NULL, TRUE),
       ];
     }

@@ -10,7 +10,15 @@ namespace Drupal\Core\FileTransfer;
  * to the server using some backend (for example FTP or SSH). To keep security,
  * the password should always be asked from the user and never stored. For
  * safety, all methods operate only inside a "jail", by default the Drupal root.
+ *
+ * The following properties are managed by magic methods:
+ *
+ * @property string|false|null $chroot
+ *   Path to connection chroot.
+ * @property object|false|null $connection
+ *   The instantiated connection object.
  */
+#[\AllowDynamicProperties]
 abstract class FileTransfer {
 
   /**
@@ -40,6 +48,13 @@ abstract class FileTransfer {
    * @var int
    */
   protected $port;
+
+  /**
+   * Full path to directory where file-transfer is restricted to.
+   *
+   * @var string
+   */
+  protected $jail;
 
   /**
    * Constructs a Drupal\Core\FileTransfer\FileTransfer object.
@@ -99,6 +114,43 @@ abstract class FileTransfer {
     if ($name == 'chroot') {
       $this->setChroot();
       return $this->chroot;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __set(string $name, $value): void {
+    if ($name == 'connection') {
+      $this->connection = $value;
+    }
+    elseif ($name == 'chroot') {
+      $this->chroot = $value;
+    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __isset(string $name): bool {
+    if ($name == 'connection') {
+      return isset($this->connection);
+    }
+    if ($name == 'chroot') {
+      return isset($this->chroot);
+    }
+    return FALSE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __unset(string $name): void {
+    if ($name == 'connection') {
+      unset($this->connection);
+    }
+    elseif ($name == 'chroot') {
+      unset($this->chroot);
     }
   }
 
@@ -235,7 +287,7 @@ abstract class FileTransfer {
     // Strip out windows drive letter if its there.
     $path = preg_replace('|^([a-z]{1}):|i', '', $path);
     if ($strip_chroot) {
-      if ($this->chroot && strpos($path, $this->chroot) === 0) {
+      if ($this->chroot && str_starts_with($path, $this->chroot)) {
         $path = ($path == $this->chroot) ? '' : substr($path, strlen($this->chroot));
       }
     }
@@ -254,7 +306,7 @@ abstract class FileTransfer {
   public function sanitizePath($path) {
     // Windows path sanitization.
     $path = str_replace('\\', '/', $path);
-    if (substr($path, -1) == '/') {
+    if (str_ends_with($path, '/')) {
       $path = substr($path, 0, -1);
     }
     return $path;

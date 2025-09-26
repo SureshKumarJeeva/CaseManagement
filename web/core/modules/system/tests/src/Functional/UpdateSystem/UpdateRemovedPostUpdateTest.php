@@ -1,11 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\UpdateSystem;
 
 use Drupal\Core\Database\Database;
 use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\UpdatePathTestTrait;
+use Drupal\user\Entity\User;
 
 /**
  * Tests hook_removed_post_updates().
@@ -19,6 +22,20 @@ class UpdateRemovedPostUpdateTest extends BrowserTestBase {
    * {@inheritdoc}
    */
   protected $defaultTheme = 'stark';
+
+  /**
+   * An user that can execute updates.
+   *
+   * @var \Drupal\Core\Url
+   */
+  protected Url $updateUrl;
+
+  /**
+   * An user that can execute updates.
+   *
+   * @var \Drupal\user\Entity\User
+   */
+  protected User $updateUser;
 
   /**
    * {@inheritdoc}
@@ -56,7 +73,7 @@ class UpdateRemovedPostUpdateTest extends BrowserTestBase {
   /**
    * Tests hook_post_update_NAME().
    */
-  public function testRemovedPostUpdate() {
+  public function testRemovedPostUpdate(): void {
     // Mimic the behavior of ModuleInstaller::install().
     $key_value = \Drupal::service('keyvalue');
     $existing_updates = $key_value->get('post_update')->get('existing_updates', []);

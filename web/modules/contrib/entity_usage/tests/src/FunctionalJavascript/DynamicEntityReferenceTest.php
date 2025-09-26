@@ -3,9 +3,9 @@
 namespace Drupal\Tests\entity_usage\FunctionalJavascript;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
+use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 
 /**
  * Tests the integration with the Dynamic Entity Reference module.

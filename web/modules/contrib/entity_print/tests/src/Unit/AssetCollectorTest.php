@@ -3,7 +3,7 @@
 namespace Drupal\Tests\entity_print\Unit;
 
 use Drupal\Core\Extension\Extension;
-use Drupal\Core\Extension\InfoParserInterface;
+use Drupal\Core\Extension\ThemeExtensionList;
 use Drupal\Core\Extension\ThemeHandlerInterface;
 use Drupal\entity_print\Asset\AssetCollector;
 use Drupal\Tests\UnitTestCase;
@@ -23,7 +23,7 @@ class AssetCollectorTest extends UnitTestCase {
   public function testEventAlwaysFires() {
     $event_dispatcher = $this->prophesize(EventDispatcherInterface::class);
     $event_dispatcher->dispatch(Argument::cetera())->shouldBeCalled();
-    $asset_collector = new AssetCollector($this->getThemeHandlerMock()->reveal(), $this->getInfoParserMock()->reveal(), $event_dispatcher->reveal());
+    $asset_collector = new AssetCollector($this->getThemeHandlerMock()->reveal(), $this->getThemeExtensionMock()->reveal(), $event_dispatcher->reveal());
     $this->assertEquals([], $asset_collector->getCssLibraries([]));
   }
 
@@ -33,10 +33,11 @@ class AssetCollectorTest extends UnitTestCase {
   public function testAlterCss() {
     $event_dispatcher = $this->prophesize(EventDispatcherInterface::class);
     $event_dispatcher->dispatch(Argument::cetera())->will(function ($args) {
-      // Argument 1 is the PrintCssAlterEvent.
-      $args[1]->getBuild()[] = 'my_theme/my_css';
+      // Argument 0 is the PrintCssAlterEvent.
+      $args[0]->getBuild()[] = 'my_theme/my_css';
+      return $args[0];
     });
-    $asset_collector = new AssetCollector($this->getThemeHandlerMock()->reveal(), $this->getInfoParserMock()->reveal(), $event_dispatcher->reveal());
+    $asset_collector = new AssetCollector($this->getThemeHandlerMock()->reveal(), $this->getThemeExtensionMock()->reveal(), $event_dispatcher->reveal());
     $this->assertEquals(['my_theme/my_css'], $asset_collector->getCssLibraries([]));
   }
 
@@ -46,6 +47,7 @@ class AssetCollectorTest extends UnitTestCase {
   protected function getThemeHandlerMock() {
     $theme = $this->prophesize(Extension::class);
     $theme->getPathname()->willReturn('info_file_path');
+    $theme->getName()->willReturn('entity_print_test_theme');
     $theme_handler = $this->prophesize(ThemeHandlerInterface::class);
     $theme_handler->getDefault()->willReturn('default_theme');
     $theme_handler->getTheme('default_theme')->willReturn($theme);
@@ -53,12 +55,12 @@ class AssetCollectorTest extends UnitTestCase {
   }
 
   /**
-   * Gets an Info parser mock.
+   * Gets a theme extension list mock.
    */
-  protected function getInfoParserMock() {
-    $info_parser = $this->prophesize(InfoParserInterface::class);
-    $info_parser->parse('info_file_path')->willReturn([]);
-    return $info_parser;
+  protected function getThemeExtensionMock() {
+    $theme_extension = $this->prophesize(ThemeExtensionList::class);
+    $theme_extension->get('entity_print_test_theme')->willReturn((object) ['info' => []]);
+    return $theme_extension;
   }
 
 }

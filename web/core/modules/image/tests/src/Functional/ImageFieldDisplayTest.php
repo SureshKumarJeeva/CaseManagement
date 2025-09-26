@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\image\Functional;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -25,9 +27,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
   }
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['field_ui'];
 
@@ -39,14 +39,14 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
   /**
    * Tests image formatters on node display for public files.
    */
-  public function testImageFieldFormattersPublic() {
+  public function testImageFieldFormattersPublic(): void {
     $this->_testImageFieldFormatters('public');
   }
 
   /**
    * Tests image formatters on node display for private files.
    */
-  public function testImageFieldFormattersPrivate() {
+  public function testImageFieldFormattersPrivate(): void {
     // Remove access content permission from anonymous users.
     user_role_change_permissions(RoleInterface::ANONYMOUS_ID, ['access content' => FALSE]);
     $this->_testImageFieldFormatters('private');
@@ -59,9 +59,9 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
-    $field_name = strtolower($this->randomMachineName());
+    $field_name = $this->randomMachineName();
     $field_settings = ['alt_field_required' => 0];
-    $instance = $this->createImageField($field_name, 'article', ['uri_scheme' => $scheme], $field_settings);
+    $instance = $this->createImageField($field_name, 'node', 'article', ['uri_scheme' => $scheme], $field_settings);
 
     // Go to manage display page.
     $this->drupalGet("admin/structure/types/manage/article/display");
@@ -115,7 +115,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#alt' => $alt,
       '#attributes' => ['loading' => 'lazy'],
     ];
-    $default_output = str_replace("\n", '', $renderer->renderRoot($image));
+    $default_output = str_replace("\n", '', (string) $renderer->renderRoot($image));
     $this->assertSession()->responseContains($default_output);
 
     // Test the image linked to file formatter.
@@ -136,7 +136,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#alt' => $alt,
       '#attributes' => ['loading' => 'lazy'],
     ];
-    $default_output = '<a href="' . $file->createFileUrl() . '">' . $renderer->renderRoot($image) . '</a>';
+    $default_output = '<a href="' . $file->createFileUrl() . '">' . (string) $renderer->renderRoot($image) . '</a>';
     $this->drupalGet('node/' . $nid);
     $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', $file->getCacheTags()[0]);
     // @todo Remove in https://www.drupal.org/node/2646744.
@@ -175,17 +175,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', $file->getCacheTags()[0]);
     // Verify that no image style cache tags are found.
     $this->assertSession()->responseHeaderNotContains('X-Drupal-Cache-Tags', 'image_style:');
-    $elements = $this->xpath(
-      '//a[@href=:path]/img[@src=:url and @alt=:alt and @width=:width and @height=:height]',
-      [
-        ':path' => $node->toUrl()->toString(),
-        ':url' => $file->createFileUrl(),
-        ':width' => $image['#width'],
-        ':height' => $image['#height'],
-        ':alt' => $alt,
-      ]
-    );
-    $this->assertCount(1, $elements, 'Image linked to content formatter displaying correctly on full node view.');
+    $this->assertSession()->elementsCount('xpath', '//a[@href="' . $node->toUrl()->toString() . '"]/img[@src="' . $file->createFileUrl() . '" and @alt="' . $alt . '" and @width="' . $image['#width'] . '" and @height="' . $image['#height'] . '"]', 1);
 
     // Test the image style 'thumbnail' formatter.
     $display_options['settings']['image_link'] = '';
@@ -205,7 +195,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#alt' => $alt,
       '#attributes' => ['loading' => 'lazy'],
     ];
-    $default_output = $renderer->renderRoot($image_style);
+    $default_output = (string) $renderer->renderRoot($image_style);
     $this->drupalGet('node/' . $nid);
     $image_style = ImageStyle::load('thumbnail');
     $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', $image_style->getCacheTags()[0]);
@@ -216,6 +206,9 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       $this->drupalLogout();
       $this->drupalGet(ImageStyle::load('thumbnail')->buildUrl($image_uri));
       $this->assertSession()->statusCodeEquals(403);
+
+      // Log in again.
+      $this->drupalLogin($this->adminUser);
     }
 
     // Test the image URL formatter without an image style.
@@ -230,18 +223,30 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     $display_options['settings']['image_style'] = 'thumbnail';
     $expected_url = \Drupal::service('file_url_generator')->transformRelative(ImageStyle::load('thumbnail')->buildUrl($image_uri));
     $this->assertEquals($expected_url, $node->{$field_name}->view($display_options)[0]['#markup']);
+
+    // Test the settings summary.
+    $display_options = [
+      'type' => 'image_url',
+      'settings' => [
+        'image_style' => 'thumbnail',
+      ],
+    ];
+    $display = \Drupal::service('entity_display.repository')->getViewDisplay('node', $node->getType(), 'default');
+    $display->setComponent($field_name, $display_options)->save();
+    $this->drupalGet("admin/structure/types/manage/" . $node->getType() . "/display");
+    $this->assertSession()->responseContains('Image style: Thumbnail (100×100)');
   }
 
   /**
    * Tests for image field settings.
    */
-  public function testImageFieldSettings() {
+  public function testImageFieldSettings(): void {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     $test_image = current($this->drupalGetTestFiles('image'));
     [, $test_image_extension] = explode('.', $test_image->filename);
-    $field_name = strtolower($this->randomMachineName());
+    $field_name = $this->randomMachineName();
     $field_settings = [
       'alt_field' => 1,
       'file_extensions' => $test_image_extension,
@@ -253,9 +258,9 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     $widget_settings = [
       'preview_image_style' => 'medium',
     ];
-    $field = $this->createImageField($field_name, 'article', [], $field_settings, $widget_settings);
+    $field = $this->createImageField($field_name, 'node', 'article', [], $field_settings, $widget_settings);
 
-    // Verify that the min/max resolution set on the field are properly
+    // Verify that the min/max dimensions set on the field are properly
     // extracted, and displayed, on the image field's configuration form.
     $this->drupalGet('admin/structure/types/manage/article/fields/' . $field->id());
     $this->assertSession()->fieldValueEquals('settings[max_resolution][x]', '100');
@@ -307,7 +312,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     ];
     $this->drupalGet('node/' . $nid . '/edit');
     $this->submitForm($edit, 'Save');
-    $default_output = str_replace("\n", '', $renderer->renderRoot($image));
+    $default_output = str_replace("\n", '', (string) $renderer->renderRoot($image));
     $this->assertSession()->responseContains($default_output);
 
     // Verify that alt/title longer than allowed results in a validation error.
@@ -329,10 +334,10 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     // 1, so we need to make sure the file widget prevents these notices by
     // providing all settings, even if they are not used.
     // @see FileWidget::formMultipleElements().
-    $this->drupalGet('admin/structure/types/manage/article/fields/node.article.' . $field_name . '/storage');
+    $this->drupalGet('admin/structure/types/manage/article/fields/node.article.' . $field_name);
     $this->submitForm([
-      'cardinality' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
-    ], 'Save field settings');
+      'field_storage[subform][cardinality]' => FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED,
+    ], 'Save');
     $edit = [
       'files[' . $field_name . '_1][]' => \Drupal::service('file_system')->realpath($test_image->uri),
     ];
@@ -359,9 +364,9 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
-    $field_name = strtolower($this->randomMachineName());
+    $field_name = $this->randomMachineName();
     $field_settings = ['alt_field_required' => 0];
-    $instance = $this->createImageField($field_name, 'article', [], $field_settings);
+    $instance = $this->createImageField($field_name, 'node', 'article', [], $field_settings);
 
     // Go to manage display page.
     $this->drupalGet("admin/structure/types/manage/article/display");
@@ -415,7 +420,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#alt' => $alt,
       '#attributes' => ['loading' => 'lazy'],
     ];
-    $default_output = str_replace("\n", '', $renderer->renderRoot($image));
+    $default_output = str_replace("\n", '', (string) $renderer->renderRoot($image));
     $this->assertSession()->responseContains($default_output);
 
     // Test overrides of image loading attribute.
@@ -440,7 +445,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#alt' => $alt,
       '#attributes' => ['loading' => 'eager'],
     ];
-    $default_output = $renderer->renderRoot($image);
+    $default_output = (string) $renderer->renderRoot($image);
     $this->drupalGet('node/' . $nid);
     $this->assertSession()->responseContains($default_output);
 
@@ -461,7 +466,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#alt' => $alt,
       '#attributes' => ['loading' => 'eager'],
     ];
-    $default_output = $renderer->renderRoot($image_style);
+    $default_output = (string) $renderer->renderRoot($image_style);
     $this->drupalGet('node/' . $nid);
     $this->assertSession()->responseContains($default_output);
   }
@@ -469,14 +474,14 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
   /**
    * Tests use of a default image with an image field.
    */
-  public function testImageFieldDefaultImage() {
+  public function testImageFieldDefaultImage(): void {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
 
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     // Create a new image field.
-    $field_name = strtolower($this->randomMachineName());
-    $this->createImageField($field_name, 'article');
+    $field_name = $this->randomMachineName();
+    $this->createImageField($field_name, 'node', 'article');
 
     // Create a new node, with no images and verify that no images are
     // displayed.
@@ -494,12 +499,12 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     $title = $this->randomString(1024);
     $edit = [
       // Get the path of the 'image-test.png' file.
-      'files[settings_default_image_uuid]' => \Drupal::service('file_system')->realpath($images[0]->uri),
-      'settings[default_image][alt]' => $alt,
-      'settings[default_image][title]' => $title,
+      'files[field_storage_subform_settings_default_image_uuid]' => \Drupal::service('file_system')->realpath($images[0]->uri),
+      'field_storage[subform][settings][default_image][alt]' => $alt,
+      'field_storage[subform][settings][default_image][title]' => $title,
     ];
-    $this->drupalGet("admin/structure/types/manage/article/fields/node.article.{$field_name}/storage");
-    $this->submitForm($edit, 'Save field settings');
+    $this->drupalGet("admin/structure/types/manage/article/fields/node.article.{$field_name}");
+    $this->submitForm($edit, 'Save');
     // Clear field definition cache so the new default image is detected.
     \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
     $field_storage = FieldStorageConfig::loadByName('node', $field_name);
@@ -515,7 +520,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#height' => 20,
       '#attributes' => ['loading' => 'lazy'],
     ];
-    $default_output = str_replace("\n", '', $renderer->renderRoot($image));
+    $default_output = str_replace("\n", '', (string) $renderer->renderRoot($image));
     $this->drupalGet('node/' . $node->id());
     $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', $file->getCacheTags()[0]);
     // Verify that no image style cache tags are found.
@@ -541,7 +546,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#alt' => $alt,
       '#attributes' => ['loading' => 'lazy'],
     ];
-    $image_output = str_replace("\n", '', $renderer->renderRoot($image));
+    $image_output = str_replace("\n", '', (string) $renderer->renderRoot($image));
     $this->drupalGet('node/' . $nid);
     $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', $file->getCacheTags()[0]);
     // Verify that no image style cache tags are found.
@@ -553,9 +558,9 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
 
     // Remove default image from the field and make sure it is no longer used.
     // Can't use fillField cause Mink can't fill hidden fields.
-    $this->drupalGet("admin/structure/types/manage/article/fields/node.article.$field_name/storage");
-    $this->getSession()->getPage()->find('css', 'input[name="settings[default_image][uuid][fids]"]')->setValue(0);
-    $this->getSession()->getPage()->pressButton('Save field settings');
+    $this->drupalGet("admin/structure/types/manage/article/fields/node.article.$field_name");
+    $this->getSession()->getPage()->find('css', 'input[name="field_storage[subform][settings][default_image][uuid][fids]"]')->setValue(0);
+    $this->getSession()->getPage()->pressButton('Save');
 
     // Clear field definition cache so the new default image is detected.
     \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
@@ -564,17 +569,17 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
     $this->assertEmpty($default_image['uuid'], 'Default image removed from field.');
     // Create an image field that uses the private:// scheme and test that the
     // default image works as expected.
-    $private_field_name = strtolower($this->randomMachineName());
-    $this->createImageField($private_field_name, 'article', ['uri_scheme' => 'private']);
+    $private_field_name = $this->randomMachineName();
+    $this->createImageField($private_field_name, 'node', 'article', ['uri_scheme' => 'private']);
     // Add a default image to the new field.
     $edit = [
       // Get the path of the 'image-test.gif' file.
-      'files[settings_default_image_uuid]' => \Drupal::service('file_system')->realpath($images[2]->uri),
-      'settings[default_image][alt]' => $alt,
-      'settings[default_image][title]' => $title,
+      'files[field_storage_subform_settings_default_image_uuid]' => \Drupal::service('file_system')->realpath($images[2]->uri),
+      'field_storage[subform][settings][default_image][alt]' => $alt,
+      'field_storage[subform][settings][default_image][title]' => $title,
     ];
-    $this->drupalGet('admin/structure/types/manage/article/fields/node.article.' . $private_field_name . '/storage');
-    $this->submitForm($edit, 'Save field settings');
+    $this->drupalGet('admin/structure/types/manage/article/fields/node.article.' . $private_field_name);
+    $this->submitForm($edit, 'Save');
     // Clear field definition cache so the new default image is detected.
     \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
 
@@ -596,7 +601,7 @@ class ImageFieldDisplayTest extends ImageFieldTestBase {
       '#height' => 20,
       '#attributes' => ['loading' => 'lazy'],
     ];
-    $default_output = str_replace("\n", '', $renderer->renderRoot($image));
+    $default_output = str_replace("\n", '', (string) $renderer->renderRoot($image));
     $this->drupalGet('node/' . $node->id());
     $this->assertSession()->responseHeaderContains('X-Drupal-Cache-Tags', $file->getCacheTags()[0]);
     // Verify that no image style cache tags are found.

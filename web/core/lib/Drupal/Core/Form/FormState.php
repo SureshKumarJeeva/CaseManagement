@@ -33,12 +33,14 @@ class FormState implements FormStateInterface {
    *
    * @var array
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $complete_form;
 
   /**
-   * An associative array of information stored by Form API that is necessary to
-   * build and rebuild the form from cache when the original context may no
-   * longer be available:
+   * An associative array of information stored by Form API.
+   *
+   * This associative array is necessary to build and rebuild the form from
+   * cache when the original context may no longer be available:
    *   - callback: The actual callback to be used to retrieve the form array.
    *     Can be any callable. If none is provided $form_id is used as the name
    *     of a function to call instead.
@@ -64,22 +66,27 @@ class FormState implements FormStateInterface {
    *
    * @var array
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $build_info = [
     'args' => [],
     'files' => [],
   ];
 
   /**
-   * Similar to self::$build_info, but pertaining to
-   * \Drupal\Core\Form\FormBuilderInterface::rebuildForm().
+   * Similar to self::$build_info.
+   *
+   * But pertaining to \Drupal\Core\Form\FormBuilderInterface::rebuildForm().
    *
    * This property is uncacheable.
    *
    * @var array
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $rebuild_info = [];
 
   /**
+   * Determines whether the form is rebuilt.
+   *
    * Normally, after the entire form processing is completed and submit handlers
    * have run, a form is considered to be done and
    * \Drupal\Core\Form\FormSubmitterInterface::redirectForm() will redirect the
@@ -103,6 +110,8 @@ class FormState implements FormStateInterface {
   protected $rebuild = FALSE;
 
   /**
+   * Determines if only safe element value callbacks are called.
+   *
    * If set to TRUE the form will skip calling form element value callbacks,
    * except for a select list of callbacks provided by Drupal core that are
    * known to be safe.
@@ -116,6 +125,8 @@ class FormState implements FormStateInterface {
   protected $invalidToken = FALSE;
 
   /**
+   * The response object.
+   *
    * Used when a form needs to return some kind of a
    * \Symfony\Component\HttpFoundation\Response object, e.g., a
    * \Symfony\Component\HttpFoundation\BinaryFileResponse when triggering a
@@ -129,6 +140,13 @@ class FormState implements FormStateInterface {
   protected $response;
 
   /**
+   * Used to ignore destination when redirecting.
+   *
+   * @var bool
+   */
+  protected bool $ignoreDestination = FALSE;
+
+  /**
    * Used to redirect the form on submission.
    *
    * @see self::getRedirect()
@@ -140,13 +158,15 @@ class FormState implements FormStateInterface {
   protected $redirect;
 
   /**
-   * If set to TRUE the form will NOT perform a redirect, even if
-   * self::$redirect is set.
+   * If set to TRUE the form will NOT perform a redirect.
+   *
+   * Redirect will not be performed, even if self::$redirect is set.
    *
    * This property is uncacheable.
    *
    * @var bool
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $no_redirect;
 
   /**
@@ -177,6 +197,8 @@ class FormState implements FormStateInterface {
   protected $requestMethod = 'GET';
 
   /**
+   * Determines if the unprocessed form structure is cached.
+   *
    * If set to TRUE the original, unprocessed form structure will be cached,
    * which allows the entire form to be rebuilt from cache. A typical form
    * workflow involves two page requests; first, a form is built and rendered
@@ -187,7 +209,7 @@ class FormState implements FormStateInterface {
    * the $form and $form_state variables from the initial page request to the
    * one that processes the submission. 'cache' can be set to TRUE to do this.
    * A prominent example is an Ajax-enabled form, in which
-   * \Drupal\Core\Render\Element\RenderElement::processAjaxForm()
+   * \Drupal\Core\Render\Element\RenderElementBase::processAjaxForm()
    * enables form caching for all forms that include an element with the #ajax
    * property. (The Ajax handler has no way to build the form itself, so must
    * rely on the cached version.) Note that the persistence of $form and
@@ -203,6 +225,7 @@ class FormState implements FormStateInterface {
    *
    * @var bool
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $no_cache;
 
   /**
@@ -211,7 +234,7 @@ class FormState implements FormStateInterface {
    * The validation functions and submit functions use this array for nearly all
    * their decision making. (Note that #tree determines whether the values are a
    * flat array or an array whose structure parallels the $form array. See
-   * \Drupal\Core\Render\Element\FormElement for more information.)
+   * \Drupal\Core\Render\Element\FormElementBase for more information.)
    *
    * This property is uncacheable.
    *
@@ -240,7 +263,7 @@ class FormState implements FormStateInterface {
   /**
    * The array of values as they were submitted by the user.
    *
-   * These are raw and unvalidated, so should not be used without a thorough
+   * These are raw and non validated, so should not be used without a thorough
    * understanding of security implications. In almost all cases, code should
    * use the data in the 'values' array exclusively. The most common use of this
    * key is for multi-step forms that need to clear some of the user input when
@@ -261,9 +284,12 @@ class FormState implements FormStateInterface {
    *
    * @var bool
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $always_process;
 
   /**
+   * Indicates if a validation will be forced.
+   *
    * Ordinarily, a form is only validated once, but there are times when a form
    * is resubmitted internally and should be validated again. Setting this to
    * TRUE will force that to happen. This is most likely to occur during Ajax
@@ -273,9 +299,12 @@ class FormState implements FormStateInterface {
    *
    * @var bool
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $must_validate;
 
   /**
+   * Indicates if the form was submitted programmatically.
+   *
    * If TRUE, the form was submitted programmatically, usually invoked via
    * \Drupal\Core\Form\FormBuilderInterface::submitForm(). Defaults to FALSE.
    *
@@ -284,6 +313,8 @@ class FormState implements FormStateInterface {
   protected $programmed = FALSE;
 
   /**
+   * Indicates if programmatic form submissions bypasses #access check.
+   *
    * If TRUE, programmatic form submissions are processed without taking #access
    * into account. Set this to FALSE when submitting a form programmatically
    * with values that may have been input by the user executing the current
@@ -292,9 +323,12 @@ class FormState implements FormStateInterface {
    *
    * @var bool
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $programmed_bypass_access_check = TRUE;
 
   /**
+   * Indicates correct form submission.
+   *
    * TRUE signifies correct form submission. This is always TRUE for programmed
    * forms coming from \Drupal\Core\Form\FormBuilderInterface::submitForm() (see
    * 'programmed' key), or if the form_id coming from the
@@ -302,6 +336,7 @@ class FormState implements FormStateInterface {
    *
    * @var bool
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $process_input;
 
   /**
@@ -323,23 +358,28 @@ class FormState implements FormStateInterface {
   protected $executed = FALSE;
 
   /**
-   * The form element that triggered submission, which may or may not be a
-   * button (in the case of Ajax forms). This key is often used to distinguish
-   * between various buttons in a submit handler, and is also used in Ajax
-   * handlers.
+   * The form element that triggered submission.
+   *
+   * This may or may not be a button (in the case of Ajax forms). This key is
+   * often used to distinguish between various buttons in a submit handler, and
+   * is also used in Ajax handlers.
    *
    * This property is uncacheable.
    *
    * @var array|null
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $triggering_element;
 
   /**
+   * Indicates a file element is present.
+   *
    * If TRUE, there is a file element and Form API will set the appropriate
    * 'enctype' HTML attribute on the form.
    *
    * @var bool
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $has_file_element;
 
   /**
@@ -352,6 +392,8 @@ class FormState implements FormStateInterface {
   protected $groups = [];
 
   /**
+   * The storage.
+   *
    * This is not a special key, and no specific support is provided for it in
    * the Form API. By tradition it was the location where application-specific
    * data was stored for communication between the submit, validation, and form
@@ -405,6 +447,7 @@ class FormState implements FormStateInterface {
    *
    * @var bool
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $validation_complete = FALSE;
 
   /**
@@ -430,6 +473,7 @@ class FormState implements FormStateInterface {
    *
    * @var array|null
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $limit_validation_errors;
 
   /**
@@ -439,6 +483,7 @@ class FormState implements FormStateInterface {
    *
    * @var array
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $validate_handlers = [];
 
   /**
@@ -448,6 +493,7 @@ class FormState implements FormStateInterface {
    *
    * @var array
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $submit_handlers = [];
 
   /**
@@ -616,7 +662,7 @@ class FormState implements FormStateInterface {
    * @return bool
    *
    * @see \Symfony\Component\HttpFoundation\Request::isMethodSafe()
-   * @see http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.1
+   * @see https://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html#sec9.1.1
    */
   protected function isRequestMethodSafe() {
     return in_array($this->requestMethod, ['GET', 'HEAD']);
@@ -1034,6 +1080,21 @@ class FormState implements FormStateInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function setIgnoreDestination(bool $status = TRUE) {
+    $this->ignoreDestination = $status;
+    return $this;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getIgnoreDestination(): bool {
+    return $this->ignoreDestination;
+  }
+
+  /**
    * Sets the global status of errors.
    *
    * @param bool $errors
@@ -1146,7 +1207,7 @@ class FormState implements FormStateInterface {
    * {@inheritdoc}
    */
   public function prepareCallback($callback) {
-    if (is_string($callback) && substr($callback, 0, 2) == '::') {
+    if (is_string($callback) && str_starts_with($callback, '::')) {
       $callback = [$this->getFormObject(), substr($callback, 2)];
     }
     return $callback;
@@ -1210,7 +1271,7 @@ class FormState implements FormStateInterface {
       // @code
       //   array('foo', 'bar', 'baz')
       // @endcode
-      // then the corresponding self::getValues() part will look like this:
+      // Then the corresponding self::getValues() part will look like this:
       // @code
       // array(
       //   'foo' => array(

@@ -1,21 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\user\Functional;
 
 use Drupal\Tests\BrowserTestBase;
 
 /**
- * Tests the user search page and verifies that sensitive information is hidden
- * from unauthorized users.
+ * Verifies that sensitive information is hidden from unauthorized users.
  *
  * @group user
  */
 class UserSearchTest extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['search'];
 
@@ -24,7 +23,7 @@ class UserSearchTest extends BrowserTestBase {
    */
   protected $defaultTheme = 'stark';
 
-  public function testUserSearch() {
+  public function testUserSearch(): void {
     // Verify that a user without 'administer users' permission cannot search
     // for users by email address. Additionally, ensure that the username has a
     // plus sign to ensure searching works with that.

@@ -34,9 +34,8 @@
  *     $context['sandbox'] will be there the next time this function is called
  *     for the current operation. For example, an operation may wish to store a
  *     pointer in a file or an offset for a large query. The 'sandbox' array key
- *     is not initially set when this callback is first called, which makes it
- *     useful for determining whether it is the first call of the callback or
- *     not:
+ *     is empty when this callback is first called, which makes it useful for
+ *     determining whether it is the first call of the callback or not:
  *     @code
  *       if (empty($context['sandbox'])) {
  *         // Perform set-up steps here.
@@ -51,7 +50,7 @@
  *     all operations have finished, this is passed to callback_batch_finished()
  *     where results may be referenced to display information to the end-user,
  *     such as how many total items were processed.
- *   It is discouraged to typehint this parameter as an array, to allow an
+ *   It is discouraged to type hint this parameter as an array, to allow an
  *   object implement \ArrayAccess to be passed.
  */
 function callback_batch_operation($multiple_params, &$context) {
@@ -187,15 +186,15 @@ function hook_ajax_render_alter(array &$data) {
  * hook_form_FORM_ID_alter(). So, for each module, the more general hooks are
  * called first followed by the more specific.
  *
- * @param $form
+ * @param array $form
  *   Nested array of form elements that comprise the form.
- * @param $form_state
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The current state of the form. The arguments that
  *   \Drupal::formBuilder()->getForm() was originally called with are available
  *   in the array $form_state->getBuildInfo()['args'].
- * @param $form_id
- *   String representing the name of the form itself. Typically this is the
- *   name of the function that generated the form.
+ * @param string $form_id
+ *   A string that is the unique ID of the form, set by
+ *   Drupal\Core\Form\FormInterface::getFormId().
  *
  * @see hook_form_BASE_FORM_ID_alter()
  * @see hook_form_FORM_ID_alter()
@@ -204,7 +203,7 @@ function hook_ajax_render_alter(array &$data) {
  */
 function hook_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
   if (isset($form['type']) && $form['type']['#value'] . '_node_settings' == $form_id) {
-    $upload_enabled_types = \Drupal::config('mymodule.settings')->get('upload_enabled_types');
+    $upload_enabled_types = \Drupal::config('my_module.settings')->get('upload_enabled_types');
     $form['workflow']['upload_' . $form['type']['#value']] = [
       '#type' => 'radios',
       '#title' => t('Attachments'),
@@ -212,7 +211,7 @@ function hook_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_stat
       '#options' => [t('Disabled'), t('Enabled')],
     ];
     // Add a custom submit handler to save the array of types back to the config file.
-    $form['actions']['submit']['#submit'][] = 'mymodule_upload_enabled_types_submit';
+    $form['actions']['submit']['#submit'][] = 'my_module_upload_enabled_types_submit';
   }
 }
 
@@ -226,17 +225,23 @@ function hook_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_stat
  * rather than implementing hook_form_alter() and checking the form ID, or
  * using long switch statements to alter multiple forms.
  *
- * Form alter hooks are called in the following order: hook_form_alter(),
- * hook_form_BASE_FORM_ID_alter(), hook_form_FORM_ID_alter(). See
- * hook_form_alter() for more details.
+ * The call order is as follows: all existing form alter functions are called
+ * for module A, then all for module B, etc., followed by all for any base
+ * theme(s), and finally for the theme itself. The module order is determined
+ * by system weight, then by module name.
  *
- * @param $form
+ * Within each module, form alter hooks are called in the following order:
+ * first, hook_form_alter(); second, hook_form_BASE_FORM_ID_alter(); third,
+ * hook_form_FORM_ID_alter(). So, for each module, the more general hooks are
+ * called first followed by the more specific.
+ *
+ * @param array $form
  *   Nested array of form elements that comprise the form.
- * @param $form_state
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The current state of the form. The arguments that
  *   \Drupal::formBuilder()->getForm() was originally called with are available
  *   in the array $form_state->getBuildInfo()['args'].
- * @param $form_id
+ * @param string $form_id
  *   String representing the name of the form itself. Typically this is the
  *   name of the function that generated the form.
  *
@@ -278,15 +283,21 @@ function hook_form_FORM_ID_alter(&$form, \Drupal\Core\Form\FormStateInterface $f
  * one exists) check the $form_state. The base form ID is stored under
  * $form_state->getBuildInfo()['base_form_id'].
  *
- * Form alter hooks are called in the following order: hook_form_alter(),
- * hook_form_BASE_FORM_ID_alter(), hook_form_FORM_ID_alter(). See
- * hook_form_alter() for more details.
+ * The call order is as follows: all existing form alter functions are called
+ * for module A, then all for module B, etc., followed by all for any base
+ * theme(s), and finally for the theme itself. The module order is determined
+ * by system weight, then by module name.
  *
- * @param $form
+ * Within each module, form alter hooks are called in the following order:
+ * first, hook_form_alter(); second, hook_form_BASE_FORM_ID_alter(); third,
+ * hook_form_FORM_ID_alter(). So, for each module, the more general hooks are
+ * called first followed by the more specific.
+ *
+ * @param array $form
  *   Nested array of form elements that comprise the form.
- * @param $form_state
+ * @param \Drupal\Core\Form\FormStateInterface $form_state
  *   The current state of the form.
- * @param $form_id
+ * @param string $form_id
  *   String representing the name of the form itself. Typically this is the
  *   name of the function that generated the form.
  *

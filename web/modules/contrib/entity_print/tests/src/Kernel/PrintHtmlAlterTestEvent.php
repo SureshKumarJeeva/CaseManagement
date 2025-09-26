@@ -24,4 +24,11 @@ class PrintHtmlAlterTestEvent extends PrintHtmlAlterEvent {
     throw new PrintEngineException('getHtml should never be called');
   }
 
+  /**
+   * Method to change to saved PHP SAPI string.
+   */
+  public function setPhpSapi(string $sapi) {
+    $this->phpSapi = $sapi;
+  }
+
 }

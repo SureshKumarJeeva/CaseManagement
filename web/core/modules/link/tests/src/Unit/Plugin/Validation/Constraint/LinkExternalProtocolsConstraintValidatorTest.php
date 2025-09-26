@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\link\Unit\Plugin\Validation\Constraint;
 
 use Drupal\Component\Utility\UrlHelper;
@@ -18,8 +20,13 @@ class LinkExternalProtocolsConstraintValidatorTest extends UnitTestCase {
   /**
    * @covers ::validate
    * @dataProvider providerValidate
+   * @runInSeparateProcess
    */
-  public function testValidate($value, $valid) {
+  public function testValidate($url, $valid): void {
+    $link = $this->createMock('Drupal\link\LinkItemInterface');
+    $link->expects($this->any())
+      ->method('getUrl')
+      ->willReturn(Url::fromUri($url));
     $context = $this->createMock(ExecutionContextInterface::class);
 
     if ($valid) {
@@ -38,32 +45,23 @@ class LinkExternalProtocolsConstraintValidatorTest extends UnitTestCase {
 
     $validator = new LinkExternalProtocolsConstraintValidator();
     $validator->initialize($context);
-    $validator->validate($value, $constraint);
+    $validator->validate($link, $constraint);
   }
 
   /**
    * Data provider for ::testValidate.
    */
-  public function providerValidate() {
+  public static function providerValidate() {
     $data = [];
 
     // Test allowed protocols.
-    $data[] = ['http://www.drupal.org', TRUE];
-    $data[] = ['https://www.drupal.org', TRUE];
+    $data[] = ['http://www.example.com', TRUE];
+    $data[] = ['https://www.example.com', TRUE];
     // cSpell:disable-next-line
     $data[] = ['magnet:?xt=urn:sha1:YNCKHTQCWBTRNJIV4WNAE52SJUQCZO5C', TRUE];
 
     // Invalid protocols.
     $data[] = ['ftp://ftp.funet.fi/pub/standards/RFC/rfc959.txt', FALSE];
-
-    foreach ($data as &$single_data) {
-      $url = Url::fromUri($single_data[0]);
-      $link = $this->createMock('Drupal\link\LinkItemInterface');
-      $link->expects($this->any())
-        ->method('getUrl')
-        ->willReturn($url);
-      $single_data[0] = $link;
-    }
 
     return $data;
   }
@@ -73,7 +71,7 @@ class LinkExternalProtocolsConstraintValidatorTest extends UnitTestCase {
    *
    * @see \Drupal\Core\Url::fromUri
    */
-  public function testValidateWithMalformedUri() {
+  public function testValidateWithMalformedUri(): void {
     $link = $this->createMock('Drupal\link\LinkItemInterface');
     $link->expects($this->any())
       ->method('getUrl')
@@ -93,7 +91,7 @@ class LinkExternalProtocolsConstraintValidatorTest extends UnitTestCase {
   /**
    * @covers ::validate
    */
-  public function testValidateIgnoresInternalUrls() {
+  public function testValidateIgnoresInternalUrls(): void {
     $link = $this->createMock('Drupal\link\LinkItemInterface');
     $link->expects($this->any())
       ->method('getUrl')

@@ -1,10 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\media\Functional;
 
+use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\media\Entity\Media;
 use Drupal\user\Entity\Role;
 use Drupal\user\RoleInterface;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\file\Entity\File;
+use Drupal\Tests\TestFileCreationTrait;
 
 /**
  * Tests the Media overview page.
@@ -13,23 +19,32 @@ use Drupal\user\RoleInterface;
  */
 class MediaOverviewPageTest extends MediaFunctionalTestBase {
 
+  use TestFileCreationTrait;
+
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'stark';
+
+  /**
+   * {@inheritdoc}
+   */
+  protected static $modules = ['language'];
 
   /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
     parent::setUp();
+    // Make the site multilingual to have a working language field handler.
+    ConfigurableLanguage::create(['id' => 'es', 'title' => 'Spanish title', 'label' => 'Spanish label'])->save();
     $this->drupalLogin($this->nonAdminUser);
   }
 
   /**
    * Tests that the Media overview page (/admin/content/media).
    */
-  public function testMediaOverviewPage() {
+  public function testMediaOverviewPage(): void {
     $assert_session = $this->assertSession();
 
     // Check the view exists, is access-restricted, and some defaults are there.
@@ -86,6 +101,9 @@ class MediaOverviewPageTest extends MediaFunctionalTestBase {
     ]);
     $media3->save();
 
+    // Make sure the role save below properly invalidates cache tags.
+    $this->refreshVariables();
+
     // Verify the view is now correctly populated. The non-admin user can only
     // view published media.
     $this->grantPermissions($role, [
@@ -133,12 +151,13 @@ class MediaOverviewPageTest extends MediaFunctionalTestBase {
     $this->assertSame($expected, $changed_element1->getText());
 
     // Operations.
-    $edit_link1 = $assert_session->elementExists('css', 'td.views-field-operations li.edit a', $row1);
-    $this->assertSame('Edit', $edit_link1->getText());
+    $assert_session->elementExists('css', 'td.views-field-operations li a:contains("Edit")', $row1);
     $assert_session->linkByHrefExists('/media/' . $media1->id() . '/edit');
-    $delete_link1 = $assert_session->elementExists('css', 'td.views-field-operations li.delete a', $row1);
-    $this->assertSame('Delete', $delete_link1->getText());
+    $assert_session->elementExists('css', 'td.views-field-operations li a:contains("Delete")', $row1);
     $assert_session->linkByHrefExists('/media/' . $media1->id() . '/delete');
+
+    // Make sure the role save below properly invalidates cache tags.
+    $this->refreshVariables();
 
     // Make the user the owner of the unpublished media item and assert the
     // media item is only visible with the 'view own unpublished media'
@@ -169,6 +188,52 @@ class MediaOverviewPageTest extends MediaFunctionalTestBase {
     $assert_session->linkByHrefExists('/media/' . $media1->id());
     $assert_session->linkByHrefExists('/media/' . $media2->id());
     $assert_session->linkByHrefExists('/media/' . $media3->id());
+  }
+
+  /**
+   * Tests the display of the alt attribute.
+   */
+  public function testImageAltTextDisplay(): void {
+    $this->drupalLogin($this->adminUser);
+    $media_type = $this->createMediaType('image');
+    $media_type_id = $media_type->id();
+    $media_type->setFieldMap(['name' => 'name']);
+    $media_type->save();
+
+    /** @var \Drupal\field\FieldConfigInterface $field */
+    $field = FieldConfig::load("media.$media_type_id.field_media_image");
+    $settings = $field->getSettings();
+    $settings['alt_field'] = TRUE;
+    $settings['alt_field_required'] = FALSE;
+    $field->set('settings', $settings);
+    $field->save();
+
+    $file = File::create([
+      'uri' => $this->getTestFiles('image')[0]->uri,
+    ]);
+    $file->save();
+
+    // Set the alt text to an empty string.
+    $media = Media::create([
+      'name' => 'Custom name',
+      'bundle' => $media_type_id,
+      'field_media_image' => [
+        [
+          'target_id' => $file->id(),
+          'alt' => '',
+          'title' => 'default title',
+        ],
+      ],
+    ]);
+    $media->save();
+
+    $this->drupalGet('/admin/content/media');
+
+    // Confirm that the alt text attribute is present.
+    $assert_session = $this->assertSession();
+    $element = $assert_session->elementAttributeExists('css', 'td.views-field-thumbnail__target-id img', 'alt');
+    $this->assertSame('', (string) $element->getAttribute('alt'));
+
   }
 
 }

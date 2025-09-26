@@ -2,14 +2,14 @@
 
 namespace Drupal\Tests\field_group_migrate\Unit\Migrate\d7;
 
-use Drupal\Tests\migrate\Kernel\MigrateSqlSourceTestBase;
+use Drupal\Tests\migrate_drupal\Unit\source\DrupalSqlBaseTest;
 
 /**
  * Tests D7 field group source plugin.
  *
  * @group field_group
  */
-class FieldGroupTest extends MigrateSqlSourceTestBase {
+class FieldGroupTest extends DrupalSqlBaseTest {
 
   const PLUGIN_CLASS = 'Drupal\field_group_migrate\Plugin\migrate\source\d7\FieldGroup';
 
@@ -92,7 +92,7 @@ class FieldGroupTest extends MigrateSqlSourceTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     $this->databaseContents['field_group'] = $this->expectedResults;
     parent::setUp();
   }

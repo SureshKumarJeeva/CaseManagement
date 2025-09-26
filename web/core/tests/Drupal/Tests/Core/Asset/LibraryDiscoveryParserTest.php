@@ -1,12 +1,10 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\Core\Asset\LibraryDiscoveryParserTest.
- */
+declare(strict_types=1);
 
 namespace Drupal\Tests\Core\Asset;
 
+use Drupal\Component\FileCache\FileCacheFactory;
 use Drupal\Core\Asset\Exception\IncompleteLibraryDefinitionException;
 use Drupal\Core\Asset\Exception\InvalidLibraryFileException;
 use Drupal\Core\Asset\Exception\LibraryDefinitionMissingLicenseException;
@@ -15,6 +13,7 @@ use Drupal\Core\Asset\LibraryDiscoveryParser;
 use Drupal\Core\Extension\ExtensionPathResolver;
 use Drupal\Core\StreamWrapper\StreamWrapperManagerInterface;
 use Drupal\Core\Theme\ActiveTheme;
+use Drupal\Core\Theme\ComponentPluginManager;
 use Drupal\Core\Theme\ThemeManagerInterface;
 use Drupal\Tests\UnitTestCase;
 
@@ -88,6 +87,13 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
   protected $extensionPathResolver;
 
   /**
+   * The mocked extension path resolver.
+   *
+   * @var \Drupal\Core\Theme\ComponentPluginManager|\PHPUnit\Framework\MockObject\MockObject
+   */
+  protected $componentPluginManager;
+
+  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
@@ -107,19 +113,28 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
     $this->streamWrapperManager = $this->createMock(StreamWrapperManagerInterface::class);
     $this->librariesDirectoryFileFinder = $this->createMock(LibrariesDirectoryFileFinder::class);
     $this->extensionPathResolver = $this->createMock(ExtensionPathResolver::class);
-    $this->libraryDiscoveryParser = new TestLibraryDiscoveryParser($this->root, $this->moduleHandler, $this->themeManager, $this->streamWrapperManager, $this->librariesDirectoryFileFinder, $this->extensionPathResolver);
+    $this->componentPluginManager = $this->createMock(ComponentPluginManager::class);
+    $this->libraryDiscoveryParser = new TestLibraryDiscoveryParser($this->root, $this->moduleHandler, $this->themeManager, $this->streamWrapperManager, $this->librariesDirectoryFileFinder, $this->extensionPathResolver, $this->componentPluginManager);
   }
 
   /**
    * Tests that basic functionality works for getLibraryByName.
    *
    * @covers ::buildByExtension
+   *
+   * @runInSeparateProcess
    */
-  public function testBuildByExtensionSimple() {
+  public function testBuildByExtensionSimple(): void {
+    FileCacheFactory::setPrefix('testing');
+    // Use the default file cache configuration.
+    FileCacheFactory::setConfiguration([
+      'library_parser' => [],
+    ]);
+    $this->libraryDiscoveryParser = new TestLibraryDiscoveryParser($this->root, $this->moduleHandler, $this->themeManager, $this->streamWrapperManager, $this->librariesDirectoryFileFinder, $this->extensionPathResolver, $this->componentPluginManager);
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('example_module')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -138,6 +153,10 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
 
     // Ensures that VERSION is replaced by the current core version.
     $this->assertEquals(\Drupal::VERSION, $library['version']);
+
+    // Ensure that the expected FileCache entry exists.
+    $cache = FileCacheFactory::get('library_parser')->get($path . '/example_module.libraries.yml');
+    $this->assertArrayHasKey('example', $cache);
   }
 
   /**
@@ -145,11 +164,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testBuildByExtensionWithTheme() {
+  public function testBuildByExtensionWithTheme(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('example_theme')
-      ->will($this->returnValue(FALSE));
+      ->willReturn(FALSE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -172,11 +191,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testBuildByExtensionWithMissingLibraryFile() {
+  public function testBuildByExtensionWithMissingLibraryFile(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('example_module')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files_not_existing';
     $path = substr($path, strlen($this->root) + 1);
@@ -193,11 +212,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testInvalidLibrariesFile() {
+  public function testInvalidLibrariesFile(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('invalid_file')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -215,11 +234,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testBuildByExtensionWithOnlyDependencies() {
+  public function testBuildByExtensionWithOnlyDependencies(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('example_module_only_dependencies')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -237,11 +256,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testBuildByExtensionWithMissingInformation() {
+  public function testBuildByExtensionWithMissingInformation(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('example_module_missing_information')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -260,11 +279,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testVersion() {
+  public function testVersion(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('versions')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -293,11 +312,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testExternalLibraries() {
+  public function testExternalLibraries(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('external')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -319,11 +338,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testDefaultCssWeights() {
+  public function testDefaultCssWeights(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('css_weights')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -360,11 +379,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testJsWithPositiveWeight() {
+  public function testJsWithPositiveWeight(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('js_positive_weight')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -382,11 +401,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testLibraryWithCssJsSetting() {
+  public function testLibraryWithCssJsSetting(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('css_js_settings')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -415,11 +434,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testLibraryWithDependencies() {
+  public function testLibraryWithDependencies(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('dependencies')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -441,14 +460,14 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testLibraryWithDataTypes() {
+  public function testLibraryWithDataTypes(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('data_types')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
     $this->streamWrapperManager->expects($this->atLeastOnce())
       ->method('isValidUri')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -479,11 +498,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testLibraryWithJavaScript() {
+  public function testLibraryWithJavaScript(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('js')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -505,11 +524,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testLibraryThirdPartyWithMissingLicense() {
+  public function testLibraryThirdPartyWithMissingLicense(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('licenses_missing_information')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -528,11 +547,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::buildByExtension
    */
-  public function testLibraryWithLicenses() {
+  public function testLibraryWithLicenses(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('licenses')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -549,7 +568,7 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
     $this->assertCount(1, $library['js']);
     $this->assertTrue(isset($library['license']));
     $default_license = [
-      'name' => 'GNU-GPL-2.0-or-later',
+      'name' => 'GPL-2.0-or-later',
       'url' => 'https://www.drupal.org/licensing/faq',
       'gpl-compatible' => TRUE,
     ];
@@ -615,7 +634,7 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @covers ::applyLibrariesOverride
    */
-  public function testLibraryOverride() {
+  public function testLibraryOverride(): void {
     $mock_theme_path = 'mocked_themes/kittens';
     $this->themeManager = $this->createMock(ThemeManagerInterface::class);
     $this->activeTheme = $this->getMockBuilder(ActiveTheme::class)
@@ -645,13 +664,14 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
       ->method('getPath')
       ->with('module', 'example_module')
       ->willReturn($path);
+    $this->componentPluginManager = $this->createMock(ComponentPluginManager::class);
 
-    $this->libraryDiscoveryParser = new TestLibraryDiscoveryParser($this->root, $this->moduleHandler, $this->themeManager, $this->streamWrapperManager, $this->librariesDirectoryFileFinder, $this->extensionPathResolver);
+    $this->libraryDiscoveryParser = new TestLibraryDiscoveryParser($this->root, $this->moduleHandler, $this->themeManager, $this->streamWrapperManager, $this->librariesDirectoryFileFinder, $this->extensionPathResolver, $this->componentPluginManager);
 
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('example_module')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $libraries = $this->libraryDiscoveryParser->buildByExtension('example_module');
     $library = $libraries['example'];
@@ -669,7 +689,7 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @group legacy
    */
-  public function testLibraryOverrideDeprecated() {
+  public function testLibraryOverrideDeprecated(): void {
     $this->expectDeprecation('Theme "deprecated" is overriding a deprecated library. The "deprecated/deprecated" asset library is deprecated in drupal:X.0.0 and is removed from drupal:Y.0.0. Use another library instead. See https://www.example.com');
     $mock_theme_path = 'mocked_themes/kittens';
     $this->themeManager = $this->createMock(ThemeManagerInterface::class);
@@ -699,12 +719,13 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
       ->method('getPath')
       ->with('module', 'deprecated')
       ->willReturn($path);
-    $this->libraryDiscoveryParser = new TestLibraryDiscoveryParser($this->root, $this->moduleHandler, $this->themeManager, $this->streamWrapperManager, $this->librariesDirectoryFileFinder, $this->extensionPathResolver);
+    $this->componentPluginManager = $this->createMock(ComponentPluginManager::class);
+    $this->libraryDiscoveryParser = new TestLibraryDiscoveryParser($this->root, $this->moduleHandler, $this->themeManager, $this->streamWrapperManager, $this->librariesDirectoryFileFinder, $this->extensionPathResolver, $this->componentPluginManager);
 
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('deprecated')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $this->libraryDiscoveryParser->buildByExtension('deprecated');
   }
@@ -725,11 +746,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
    *
    * @dataProvider providerTestCssAssert
    */
-  public function testCssAssert($extension, $exception_message) {
+  public function testCssAssert($extension, $exception_message): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with($extension)
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -746,7 +767,7 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
   /**
    * Data provider for testing bad CSS declarations.
    */
-  public function providerTestCssAssert() {
+  public static function providerTestCssAssert() {
     return [
       'css_bad_category' => ['css_bad_category', 'See https://www.drupal.org/node/2274843.'],
       'Improper CSS nesting' => ['css_bad_nesting', 'CSS must be nested under a category. See https://www.drupal.org/node/2274843.'],
@@ -757,11 +778,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
   /**
    * @covers ::buildByExtension
    */
-  public function testNonCoreLibrariesFound() {
+  public function testNonCoreLibrariesFound(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('example_contrib_module')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -773,7 +794,7 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
     $this->librariesDirectoryFileFinder->expects($this->once())
       ->method('find')
       ->with('third_party_library/css/example.css')
-      ->will($this->returnValue('sites/example.com/libraries/third_party_library/css/example.css'));
+      ->willReturn('sites/example.com/libraries/third_party_library/css/example.css');
 
     $libraries = $this->libraryDiscoveryParser->buildByExtension('example_contrib_module');
     $library = $libraries['third_party_library'];
@@ -788,11 +809,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
   /**
    * @covers ::buildByExtension
    */
-  public function testNonCoreLibrariesNotFound() {
+  public function testNonCoreLibrariesNotFound(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('example_contrib_module')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);
@@ -807,7 +828,7 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
     $this->librariesDirectoryFileFinder->expects($this->once())
       ->method('find')
       ->with('third_party_library/css/example.css')
-      ->will($this->returnValue(FALSE));
+      ->willReturn(FALSE);
 
     $libraries = $this->libraryDiscoveryParser->buildByExtension('example_contrib_module');
     $library = $libraries['third_party_library'];
@@ -823,11 +844,11 @@ class LibraryDiscoveryParserTest extends UnitTestCase {
   /**
    * @covers ::parseLibraryInfo
    */
-  public function testEmptyLibraryFile() {
+  public function testEmptyLibraryFile(): void {
     $this->moduleHandler->expects($this->atLeastOnce())
       ->method('moduleExists')
       ->with('empty')
-      ->will($this->returnValue(TRUE));
+      ->willReturn(TRUE);
 
     $path = __DIR__ . '/library_test_files';
     $path = substr($path, strlen($this->root) + 1);

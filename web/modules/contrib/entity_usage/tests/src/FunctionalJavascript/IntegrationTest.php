@@ -4,10 +4,10 @@ namespace Drupal\Tests\entity_usage\FunctionalJavascript;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
 use Drupal\Core\Url;
+use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\link\LinkItemInterface;
-use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 
 /**
  * Basic functional tests for the usage tracking.
@@ -32,7 +32,7 @@ class IntegrationTest extends EntityUsageJavascriptTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     $account = $this->drupalCreateUser([
@@ -128,6 +128,10 @@ class IntegrationTest extends EntityUsageJavascriptTestBase {
     $assert_session->linkExists('recorded usages');
     $assert_session->linkByHrefExists($usage_url);
 
+    // Ensure that delete forms are uncacheable once the message is activated.
+    $this->drupalGet("/node/{$node2->id()}/delete");
+    $assert_session->pageTextNotContains('There are recorded usages of this entity');
+
     // Create a new entity reference field.
     $storage = FieldStorageConfig::create([
       'field_name' => 'field_eu_test_related_nodes2',
@@ -194,6 +198,11 @@ class IntegrationTest extends EntityUsageJavascriptTestBase {
       ],
     ];
     $this->assertEquals($expected, $usage);
+
+    // Ensure that node 2 now has the warning.
+    $this->drupalGet("/node/{$node2->id()}/delete");
+    $assert_session->pageTextContains('There are recorded usages of this entity');
+
     // If we delete the field storage the usage should update accordingly.
     $storage->delete();
     $usage = $usage_service->listTargets($node3);
@@ -434,6 +443,40 @@ class IntegrationTest extends EntityUsageJavascriptTestBase {
     $node2->delete();
     $usage = $usage_service->listSources($node1);
     $this->assertEquals([], $usage);
+
+    // Create Node 3 referencing Node 1 with an absolute URL in the link field.
+    // Whitelist the local hostname so we can test absolute URLs.
+    $current_request = \Drupal::request();
+    $config = \Drupal::configFactory()->getEditable('entity_usage.settings');
+    $config->set('site_domains', [$current_request->getHttpHost() . $current_request->getBasePath()]);
+    $config->save();
+    drupal_flush_all_caches();
+    $this->drupalGet('/node/add/eu_test_ct');
+    $page->fillField('title[0][value]', 'Node 3');
+    $page->fillField('field_link1[0][uri]', $node1->toUrl()->setAbsolute()->toString());
+    $assert_session->waitOnAutocomplete();
+    $page->fillField('field_link1[0][title]', "Linked text");
+    $page->pressButton('Save');
+    $session->wait(500);
+    $this->saveHtmlOutput();
+    $assert_session->pageTextContains('eu_test_ct Node 3 has been created.');
+    $node3 = $this->getLastEntityOfType('node', TRUE);
+    // Check that the usage of Node 1 points to Node 2.
+    $usage = $usage_service->listSources($node1);
+    $expected = [
+      'node' => [
+        $node3->id() => [
+          0 => [
+            'source_langcode' => 'en',
+            'source_vid' => $node3->getRevisionId(),
+            'method' => 'link',
+            'field_name' => 'field_link1',
+            'count' => 1,
+          ],
+        ],
+      ],
+    ];
+    $this->assertEquals($expected, $usage);
   }
 
 }

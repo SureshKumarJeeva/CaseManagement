@@ -32,11 +32,9 @@ class UrlTest extends BrowserTestBase {
   protected $node2;
 
   /**
-   * Modules to install.
-   *
-   * @var string[]
+   * {@inheritdoc}
    */
-  public static $modules = ['node', 'token', 'block'];
+  protected static $modules = ['node', 'token', 'block'];
 
   /**
    * {@inheritdoc}
@@ -46,7 +44,7 @@ class UrlTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $node_type = NodeType::create(['type' => 'article', 'name' => 'Article']);
@@ -128,6 +126,10 @@ class UrlTest extends BrowserTestBase {
     // Can't do this test in the for loop above, it's too different.
     $block->getPlugin()->setConfigurationValue('label', 'prefix_[current-page:query:unicorns]_suffix');
     $block->save();
+
+    // Workaround due to VariationCache detecting an invalid cache redirect,
+    // refreshing static caches does not seem to be sufficient.
+    \Drupal::cache('render')->deleteAll();
 
     // Test the parameter token.
     $this->drupalGet($node1_url->setOption('query', ['unicorns' => 'fluffy']));

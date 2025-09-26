@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\datetime\Functional;
 
 use Drupal\Component\Utility\Unicode;
@@ -17,9 +19,7 @@ use Drupal\Tests\BrowserTestBase;
 abstract class DateTestBase extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['node', 'entity_test', 'datetime', 'field_ui'];
 
@@ -88,7 +88,7 @@ abstract class DateTestBase extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $web_user = $this->drupalCreateUser([
@@ -99,6 +99,8 @@ abstract class DateTestBase extends BrowserTestBase {
       'administer content types',
       'bypass node access',
       'administer node fields',
+      'administer node form display',
+      'administer node display',
     ]);
     $this->drupalLogin($web_user);
 
@@ -112,8 +114,8 @@ abstract class DateTestBase extends BrowserTestBase {
    * Creates a date test field.
    */
   protected function createField() {
-    $field_name = mb_strtolower($this->randomMachineName());
-    $field_label = Unicode::ucfirst(mb_strtolower($this->randomMachineName()));
+    $field_name = $this->randomMachineName();
+    $field_label = Unicode::ucfirst($this->randomMachineName());
     $type = $this->getTestFieldType();
     $widget_type = $formatter_type = $type . '_default';
 
@@ -140,7 +142,7 @@ abstract class DateTestBase extends BrowserTestBase {
     $this->displayOptions = [
       'type' => $formatter_type,
       'label' => 'hidden',
-      'settings' => ['format_type' => 'medium'] + $this->defaultSettings,
+      'settings' => ['format_type' => 'medium'],
     ];
     EntityViewDisplay::create([
       'targetEntityType' => $this->field->getTargetEntityTypeId(),

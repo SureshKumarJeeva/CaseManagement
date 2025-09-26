@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\user\Functional;
 
 use Drupal\Tests\BrowserTestBase;
@@ -11,6 +13,9 @@ use Drupal\Tests\BrowserTestBase;
  */
 class UserRolesAssignmentTest extends BrowserTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
     $admin_user = $this->drupalCreateUser([
@@ -26,10 +31,9 @@ class UserRolesAssignmentTest extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * Tests that a user can be assigned a role and that the role can be removed
-   * again.
+   * Test that user can be assigned role and that the role can be removed again.
    */
-  public function testAssignAndRemoveRole() {
+  public function testAssignAndRemoveRole(): void {
     $rid = $this->drupalCreateRole(['administer users']);
     $account = $this->drupalCreateUser();
 
@@ -49,10 +53,9 @@ class UserRolesAssignmentTest extends BrowserTestBase {
   }
 
   /**
-   * Tests that when creating a user the role can be assigned. And that it can
-   * be removed again.
+   * Tests assigning a role at user creation and removing the role.
    */
-  public function testCreateUserWithRole() {
+  public function testCreateUserWithRole(): void {
     $rid = $this->drupalCreateRole(['administer users']);
     // Create a new user and add the role at the same time.
     $edit = [

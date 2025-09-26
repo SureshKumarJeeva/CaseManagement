@@ -1,0 +1,74 @@
+/**
+ * Entity meta settings.
+ */
+.entity-meta {
+  border-right: 1px solid #ddd;
+  border-left: 1px solid #ddd;
+  border-radius: 3px;
+}
+.entity-meta__header {
+  padding: 1em 1.5em;
+  border-top: 1px solid #ddd;
+  border-bottom: 1px solid #ddd;
+  border-radius: 3px 3px 0 0;
+  background-color: #f2f2f0;
+}
+.entity-meta__title {
+  margin: 0.25em 0;
+  text-shadow: 0 1px 0 #fff;
+  font-size: 1.231em;
+  font-weight: bold;
+}
+.entity-meta .entity-meta__header .form-item {
+  margin: 0.25em 0;
+}
+.entity-meta__last-saved {
+  font-style: italic; /* As-designed, but really: why is this italic? */
+}
+.entity-meta .seven-details {
+  margin: 0;
+  border-top: 0;
+  border-right: 0;
+  border-left: 0;
+  border-radius: 0;
+  background-color: #f2f2f0;
+}
+.entity-meta .seven-details:last-child {
+  border-radius: 0 0 3px 3px;
+}
+.entity-meta .seven-details[open] {
+  position: relative;
+  z-index: 5;
+  margin-left: 5px;
+  padding-top: 1px;
+  border-top-width: 0;
+  background: #fcfcfa;
+  box-shadow: -6px 0 0 0 #0074bd;
+}
+.entity-meta .seven-details[open] + .seven-details[open] {
+  padding-top: 0;
+  border-top-width: 1px;
+  background-image: none;
+}
+.entity-meta .seven-details > .seven-details__wrapper {
+  padding-top: 0;
+}
+.entity-meta .seven-details > summary {
+  padding: 0.85em 1.25em;
+  text-shadow: 0 1px 0 white;
+}
+.seven-details__summary > .summary {
+  text-transform: none;
+  color: #595959;
+  font-size: 0.95em;
+  font-weight: normal;
+}
+.seven-details__summary:focus > .summary {
+  text-decoration: none;
+}
+.seven-details__summary:hover,
+.seven-details__summary:focus,
+.seven-details[open] > .seven-details__summary {
+  color: #004f80;
+  background: #fcfcfa;
+}

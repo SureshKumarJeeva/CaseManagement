@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\comment\Functional\Rest;
 
 use Drupal\comment\Entity\CommentType;
@@ -72,6 +74,7 @@ abstract class CommentTypeResourceTestBase extends ConfigEntityResourceTestBase 
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
 }

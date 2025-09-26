@@ -16,7 +16,6 @@ use Drupal\media\Entity\MediaType;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Entity\EntityDisplayRepositoryInterface;
 use Drupal\ckeditor5\Plugin\CKEditor5PluginDefinition;
-use Drupal\ckeditor5\HTMLRestrictions;
 
 /**
  * CKEditor 5 Media plugin.
@@ -44,7 +43,7 @@ class Media extends CKEditor5PluginDefault implements ContainerFactoryPluginInte
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
    * @param string $plugin_id
-   *   The plugin_id for the plugin instance.
+   *   The plugin ID for the plugin instance.
    * @param \Drupal\ckeditor5\Plugin\CKEditor5PluginDefinition $plugin_definition
    *   The plugin implementation definition.
    * @param \Drupal\Core\Entity\EntityDisplayRepositoryInterface $entity_display_repository
@@ -56,7 +55,7 @@ class Media extends CKEditor5PluginDefault implements ContainerFactoryPluginInte
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
@@ -194,14 +193,12 @@ class Media extends CKEditor5PluginDefault implements ContainerFactoryPluginInte
    * {@inheritdoc}
    */
   public function getElementsSubset(): array {
-    $all_elements = $this->getPluginDefinition()->getElements();
-    $subset = HTMLRestrictions::fromString(implode($all_elements));
+    $subset = $this->getPluginDefinition()->getElements();
     $view_mode_override_enabled = $this->getConfiguration()['allow_view_mode_override'];
     if (!$view_mode_override_enabled) {
-      $subset = $subset->diff(HTMLRestrictions::fromString('<drupal-media data-view-mode>'));
+      $subset = array_diff($subset, ['<drupal-media data-view-mode>']);
     }
-    // @todo Simplify in https://www.drupal.org/project/drupal/issues/3278636, that will allow removing all uses of HTMLRestrictions in this class.
-    return array_merge(['<drupal-media>'], $subset->toCKEditor5ElementsArray());
+    return $subset;
   }
 
   /**

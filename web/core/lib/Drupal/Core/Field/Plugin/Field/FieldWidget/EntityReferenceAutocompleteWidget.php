@@ -2,24 +2,23 @@
 
 namespace Drupal\Core\Field\Plugin\Field\FieldWidget;
 
+use Drupal\Core\Field\Attribute\FieldWidget;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\user\EntityOwnerInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 
 /**
  * Plugin implementation of the 'entity_reference_autocomplete' widget.
- *
- * @FieldWidget(
- *   id = "entity_reference_autocomplete",
- *   label = @Translation("Autocomplete"),
- *   description = @Translation("An autocomplete text field."),
- *   field_types = {
- *     "entity_reference"
- *   }
- * )
  */
+#[FieldWidget(
+  id: 'entity_reference_autocomplete',
+  label: new TranslatableMarkup('Autocomplete'),
+  description: new TranslatableMarkup('An autocomplete text field.'),
+  field_types: ['entity_reference'],
+)]
 class EntityReferenceAutocompleteWidget extends WidgetBase {
 
   /**
@@ -40,10 +39,10 @@ class EntityReferenceAutocompleteWidget extends WidgetBase {
   public function settingsForm(array $form, FormStateInterface $form_state) {
     $element['match_operator'] = [
       '#type' => 'radios',
-      '#title' => t('Autocomplete matching'),
+      '#title' => $this->t('Autocomplete matching'),
       '#default_value' => $this->getSetting('match_operator'),
       '#options' => $this->getMatchOperatorOptions(),
-      '#description' => t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of entities.'),
+      '#description' => $this->t('Select the method used to collect autocomplete suggestions. Note that <em>Contains</em> can cause performance issues on sites with thousands of entities.'),
     ];
     $element['match_limit'] = [
       '#type' => 'number',
@@ -54,16 +53,16 @@ class EntityReferenceAutocompleteWidget extends WidgetBase {
     ];
     $element['size'] = [
       '#type' => 'number',
-      '#title' => t('Size of textfield'),
+      '#title' => $this->t('Size of textfield'),
       '#default_value' => $this->getSetting('size'),
       '#min' => 1,
       '#required' => TRUE,
     ];
     $element['placeholder'] = [
       '#type' => 'textfield',
-      '#title' => t('Placeholder'),
+      '#title' => $this->t('Placeholder'),
       '#default_value' => $this->getSetting('placeholder'),
-      '#description' => t('Text that will be shown inside the field until a value is entered. This hint is usually a sample value or a brief description of the expected format.'),
+      '#description' => $this->t('Text that will be shown inside the field until a value is entered. This hint is usually a sample value or a brief description of the expected format.'),
     ];
     return $element;
   }
@@ -75,16 +74,16 @@ class EntityReferenceAutocompleteWidget extends WidgetBase {
     $summary = [];
 
     $operators = $this->getMatchOperatorOptions();
-    $summary[] = t('Autocomplete matching: @match_operator', ['@match_operator' => $operators[$this->getSetting('match_operator')]]);
+    $summary[] = $this->t('Autocomplete matching: @match_operator', ['@match_operator' => $operators[$this->getSetting('match_operator')]]);
     $size = $this->getSetting('match_limit') ?: $this->t('unlimited');
     $summary[] = $this->t('Autocomplete suggestion list size: @size', ['@size' => $size]);
-    $summary[] = t('Textfield size: @size', ['@size' => $this->getSetting('size')]);
+    $summary[] = $this->t('Textfield size: @size', ['@size' => $this->getSetting('size')]);
     $placeholder = $this->getSetting('placeholder');
     if (!empty($placeholder)) {
-      $summary[] = t('Placeholder: @placeholder', ['@placeholder' => $placeholder]);
+      $summary[] = $this->t('Placeholder: @placeholder', ['@placeholder' => $placeholder]);
     }
     else {
-      $summary[] = t('No placeholder');
+      $summary[] = $this->t('No placeholder');
     }
 
     return $summary;
@@ -97,11 +96,20 @@ class EntityReferenceAutocompleteWidget extends WidgetBase {
     $entity = $items->getEntity();
     $referenced_entities = $items->referencedEntities();
 
+    $selection_settings = [];
     // Append the match operation to the selection settings.
-    $selection_settings = $this->getFieldSetting('handler_settings') + [
+    if ($this->getFieldSetting('handler_settings') !== NULL) {
+      $selection_settings = $this->getFieldSetting('handler_settings');
+    }
+    $selection_settings += [
       'match_operator' => $this->getSetting('match_operator'),
       'match_limit' => $this->getSetting('match_limit'),
     ];
+
+    // Append the entity if it is already created.
+    if (!$entity->isNew()) {
+      $selection_settings['entity'] = $entity;
+    }
 
     $element += [
       '#type' => 'entity_autocomplete',
@@ -207,8 +215,8 @@ class EntityReferenceAutocompleteWidget extends WidgetBase {
    */
   protected function getMatchOperatorOptions() {
     return [
-      'STARTS_WITH' => t('Starts with'),
-      'CONTAINS' => t('Contains'),
+      'STARTS_WITH' => $this->t('Starts with'),
+      'CONTAINS' => $this->t('Contains'),
     ];
   }
 

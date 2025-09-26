@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\FunctionalTests\Installer;
 
 /**
- * Verifies that the installer defaults to the existing site email address and
- * timezone, if they were provided by the install profile.
+ * Verifies that the installer uses the profile's site configuration.
  *
  * @group Installer
  */
@@ -60,7 +61,7 @@ class InstallerSiteConfigProfileTest extends InstallerTestBase {
   /**
    * Verify the correct site config was set.
    */
-  public function testInstaller() {
+  public function testInstaller(): void {
     $this->assertEquals(self::EXPECTED_SITE_MAIL, $this->config('system.site')->get('mail'));
     $this->assertEquals(self::EXPECTED_TIMEZONE, $this->config('system.date')->get('timezone.default'));
   }

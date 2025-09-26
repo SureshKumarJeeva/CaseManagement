@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\workflows\Functional\Rest;
 
 use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
@@ -102,6 +104,7 @@ abstract class WorkflowResourceTestBase extends ConfigEntityResourceTestBase {
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
 }

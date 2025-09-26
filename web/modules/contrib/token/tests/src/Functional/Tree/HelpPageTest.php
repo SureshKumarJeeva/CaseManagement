@@ -19,16 +19,19 @@ class HelpPageTest extends TokenTestBase {
   protected $account;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
-  public static $modules = ['help'];
+  protected static $modules = ['help'];
 
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
-    $this->account = $this->drupalCreateUser(['access administration pages']);
+    // On Drupal 10.2 there is new permission to access help pages.
+    $permissions = ['access help pages'];
+    if (version_compare(\Drupal::VERSION, '10.2', '<')) {
+      $permissions = ['access administration pages'];
+    }
+    $this->account = $this->drupalCreateUser($permissions);
     $this->drupalLogin($this->account);
   }
 
@@ -37,7 +40,7 @@ class HelpPageTest extends TokenTestBase {
    */
   public function testHelpPageTree() {
     $this->drupalGet('admin/help/token');
-    $this->assertText('The list of the currently available tokens on this site are shown below.');
+    $this->assertSession()->pageTextContains('The list of the currently available tokens on this site are shown below.');
 
     $this->assertTokenGroup('Current date');
     $this->assertTokenGroup('Site information');

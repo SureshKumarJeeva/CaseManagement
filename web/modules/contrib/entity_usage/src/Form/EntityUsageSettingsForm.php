@@ -4,6 +4,7 @@ namespace Drupal\entity_usage\Form;
 
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Config\TypedConfigManagerInterface;
 use Drupal\Core\Entity\ContentEntityTypeInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\ConfigFormBase;
@@ -49,8 +50,15 @@ class EntityUsageSettingsForm extends ConfigFormBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(ConfigFactoryInterface $config_factory, EntityTypeManagerInterface $entity_type_manager, RouteBuilderInterface $router_builder, CacheBackendInterface $cache_render, EntityUsageTrackManager $usage_track_manager) {
-    parent::__construct($config_factory);
+  public function __construct(
+    ConfigFactoryInterface $config_factory,
+    TypedConfigManagerInterface $typed_config_manager,
+    EntityTypeManagerInterface $entity_type_manager,
+    RouteBuilderInterface $router_builder,
+    CacheBackendInterface $cache_render,
+    EntityUsageTrackManager $usage_track_manager,
+  ) {
+    parent::__construct($config_factory, $typed_config_manager);
     $this->entityTypeManager = $entity_type_manager;
     $this->routerBuilder = $router_builder;
     $this->cacheRender = $cache_render;
@@ -63,6 +71,7 @@ class EntityUsageSettingsForm extends ConfigFormBase {
   public static function create(ContainerInterface $container) {
     return new static(
       $container->get('config.factory'),
+      $container->get('config.typed'),
       $container->get('entity_type.manager'),
       $container->get('router.builder'),
       $container->get('cache.render'),
@@ -224,12 +233,12 @@ class EntityUsageSettingsForm extends ConfigFormBase {
       $form['edit_warning_message_entity_types']['entity_types'][$entity_type_id]['#states'] = [
         'enabled' => [
           ':input[name="track_enabled_target_entity_types[entity_types][' . $entity_type_id . ']"]' => ['checked' => TRUE],
-        ]
+        ],
       ];
       $form['delete_warning_message_entity_types']['entity_types'][$entity_type_id]['#states'] = [
         'enabled' => [
           ':input[name="track_enabled_target_entity_types[entity_types][' . $entity_type_id . ']"]' => ['checked' => TRUE],
-        ]
+        ],
       ];
     }
 

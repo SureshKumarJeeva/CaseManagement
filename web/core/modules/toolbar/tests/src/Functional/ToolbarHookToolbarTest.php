@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\toolbar\Functional;
 
 use Drupal\Tests\BrowserTestBase;
@@ -19,9 +21,7 @@ class ToolbarHookToolbarTest extends BrowserTestBase {
   protected $adminUser;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['toolbar', 'toolbar_test', 'test_page_test'];
 
@@ -30,6 +30,9 @@ class ToolbarHookToolbarTest extends BrowserTestBase {
    */
   protected $defaultTheme = 'stark';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -41,7 +44,7 @@ class ToolbarHookToolbarTest extends BrowserTestBase {
   /**
    * Tests for a tab and tray provided by a module implementing hook_toolbar().
    */
-  public function testHookToolbar() {
+  public function testHookToolbar(): void {
     $this->drupalGet('test-page');
     $this->assertSession()->statusCodeEquals(200);
 

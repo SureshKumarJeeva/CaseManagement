@@ -7,16 +7,16 @@ use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\TranslatableInterface;
 
 /**
- * Class EntityUpdateManager.
+ * The entity update manager.
  *
  * @package Drupal\entity_usage
  */
-class EntityUpdateManager {
+class EntityUpdateManager implements EntityUpdateManagerInterface {
 
   /**
    * The usage track service.
    *
-   * @var \Drupal\entity_usage\EntityUsage
+   * @var \Drupal\entity_usage\EntityUsageInterface
    */
   protected $usageService;
 
@@ -35,16 +35,16 @@ class EntityUpdateManager {
   protected $config;
 
   /**
-   * EntityUpdateManager constructor.
+   * Constructs a new \Drupal\entity_usage\EntityUpdateManager object.
    *
-   * @param \Drupal\entity_usage\EntityUsage $usage_service
+   * @param \Drupal\entity_usage\EntityUsageInterface $usage_service
    *   The usage tracking service.
    * @param \Drupal\entity_usage\EntityUsageTrackManager $track_manager
    *   The PluginManager track service.
    * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
    *   The config factory.
    */
-  public function __construct(EntityUsage $usage_service, EntityUsageTrackManager $track_manager, ConfigFactoryInterface $config_factory) {
+  public function __construct(EntityUsageInterface $usage_service, EntityUsageTrackManager $track_manager, ConfigFactoryInterface $config_factory) {
     $this->usageService = $usage_service;
     $this->trackManager = $track_manager;
     $this->config = $config_factory->get('entity_usage.settings');
@@ -52,10 +52,7 @@ class EntityUpdateManager {
   }
 
   /**
-   * Track updates on creation of potential source entities.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity we are dealing with.
+   * {@inheritdoc}
    */
   public function trackUpdateOnCreation(EntityInterface $entity) {
     if (!$this->allowSourceEntityTracking($entity)) {
@@ -85,10 +82,7 @@ class EntityUpdateManager {
   }
 
   /**
-   * Track updates on edit / update of potential source entities.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity we are dealing with.
+   * {@inheritdoc}
    */
   public function trackUpdateOnEdition(EntityInterface $entity) {
     if (!$this->allowSourceEntityTracking($entity)) {
@@ -119,18 +113,7 @@ class EntityUpdateManager {
   }
 
   /**
-   * Track updates on deletion of entities.
-   *
-   * @param \Drupal\Core\Entity\EntityInterface $entity
-   *   The entity we are dealing with.
-   * @param string $type
-   *   What type of deletion is being performed:
-   *   - default: The main entity (default language, default revision) is being
-   *   deleted (delete also other languages and revisions).
-   *   - translation: Only one translation is being deleted.
-   *   - revision: Onlyone revision is being deleted.
-   *
-   * @throws \InvalidArgumentException
+   * {@inheritdoc}
    */
   public function trackUpdateOnDeletion(EntityInterface $entity, $type = 'default') {
     // When an entity is being deleted the logic is much simpler and we don't
@@ -157,7 +140,7 @@ class EntityUpdateManager {
   }
 
   /**
-   * Check if an entity is allowed to be tracked as source.
+   * Checks if an entity is allowed to be tracked as source.
    *
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity object.
@@ -180,10 +163,10 @@ class EntityUpdateManager {
   }
 
   /**
-   * Get the enabled tracking plugins, all plugins are enabled by default.
+   * Gets the enabled tracking plugins, all plugins are enabled by default.
    *
-   * @return \Drupal\entity_usage\EntityUsageTrackInterface[]
-   *   The enabled plugin instances.
+   * @return array<string, \Drupal\entity_usage\EntityUsageTrackInterface>
+   *   The enabled plugin instances keyed by plugin ID.
    */
   protected function getEnabledPlugins() {
     $all_plugin_ids = array_keys($this->trackManager->getDefinitions());
@@ -192,7 +175,6 @@ class EntityUpdateManager {
 
     $plugins = [];
     foreach (array_intersect($all_plugin_ids, $enabled_plugin_ids) as $plugin_id) {
-      /** @var EntityUsageTrackInterface $instance */
       $plugins[$plugin_id] = $this->trackManager->createInstance($plugin_id);
     }
 

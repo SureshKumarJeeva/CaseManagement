@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\language\Functional\Rest;
 
 use Drupal\language\Entity\ContentLanguageSettings;
@@ -77,6 +79,7 @@ abstract class ContentLanguageSettingsResourceTestBase extends ConfigEntityResou
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**

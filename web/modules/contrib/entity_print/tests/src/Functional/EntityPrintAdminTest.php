@@ -17,7 +17,7 @@ class EntityPrintAdminTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['node', 'entity_print_test', 'field', 'field_ui'];
+  protected static $modules = ['node', 'entity_print_test', 'field', 'field_ui'];
 
   /**
    * {@inheritdoc}
@@ -65,7 +65,7 @@ class EntityPrintAdminTest extends BrowserTestBase {
     // page content type isn't created until setUp() here and therefore our PDF
     // view mode isn't added the first time. Note, this might causes issues if
     // we ever add to hook_install() actions that cannot run twice.
-    module_load_install('entity_print');
+    \Drupal::moduleHandler()->loadInclude('entity_print', 'install');
     entity_print_install();
 
     // Ensure the link doesn't appear by default.
@@ -75,7 +75,8 @@ class EntityPrintAdminTest extends BrowserTestBase {
 
     $full_view_mode = 'Full view mode';
     $pdf_view_mode = 'PDF view mode';
-    $this->drupalPostForm('admin/structure/types/manage/page/display', [
+    $this->drupalGet('admin/structure/types/manage/page/display');
+    $this->submitForm([
       'fields[entity_print_view_pdf][empty_cell]' => $full_view_mode,
       'fields[entity_print_view_pdf][region]' => 'content',
     ], 'Save');
@@ -89,12 +90,14 @@ class EntityPrintAdminTest extends BrowserTestBase {
     $this->drupalGet('/print/pdf/node/1/debug');
     $assert->pageTextContains($full_view_mode);
     $assert->pageTextNotContains($pdf_view_mode);
+    $this->drupalGet('admin/structure/types/manage/page/display');
 
     // Configure the PDF view mode.
-    $this->drupalPostForm('admin/structure/types/manage/page/display', [
+    $this->submitForm([
       'display_modes_custom[pdf]' => 1,
     ], 'Save');
-    $this->drupalPostForm('admin/structure/types/manage/page/display/pdf', [
+    $this->drupalGet('admin/structure/types/manage/page/display/pdf');
+    $this->submitForm([
       'fields[entity_print_view_pdf][empty_cell]' => $pdf_view_mode,
       'fields[entity_print_view_pdf][region]' => 'content',
     ], 'Save');

@@ -22,11 +22,11 @@ class AssetCollector implements AssetCollectorInterface {
   protected $themeHandler;
 
   /**
-   * The info parser for yml files.
+   * Theme extension list.
    *
-   * @var \Drupal\Core\Extension\InfoParserInterface
+   * @var \Drupal\Core\Extension\ThemeExtensionList
    */
-  protected $infoParser;
+  protected $themeExtension;
 
   /**
    * The event dispatcher.
@@ -40,14 +40,18 @@ class AssetCollector implements AssetCollectorInterface {
    *
    * @param \Drupal\Core\Extension\ThemeHandlerInterface $theme_handler
    *   The theme handler.
-   * @param \Drupal\Core\Extension\InfoParserInterface $info_parser
-   *   The info parser.
+   * @param \Drupal\Core\Extension\ThemeExtensionList|\Drupal\Core\Extension\InfoParserInterface $theme_extension_list
+   *   Theme extension list.
    * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
    *   The event dispatcher.
    */
-  public function __construct(ThemeHandlerInterface $theme_handler, InfoParserInterface $info_parser, EventDispatcherInterface $event_dispatcher) {
+  public function __construct(ThemeHandlerInterface $theme_handler, $theme_extension_list, EventDispatcherInterface $event_dispatcher) {
     $this->themeHandler = $theme_handler;
-    $this->infoParser = $info_parser;
+    if ($theme_extension_list instanceof InfoParserInterface) {
+      $theme_extension_list = \Drupal::service('extension.list.theme');
+      @trigger_error('Passing an instance of InfoParser to the constructor of ' . __CLASS__ . ' is deprecated in entity_print:8.x-2.4 and is removed from entity_print:3.0.0. Pass an instance of ThemeExtensionList instead. See https://www.drupal.org/node/3238430', E_USER_DEPRECATED);
+    }
+    $this->themeExtension = $theme_extension_list;
     $this->dispatcher = $event_dispatcher;
   }
 
@@ -57,7 +61,7 @@ class AssetCollector implements AssetCollectorInterface {
   public function getCssLibraries(array $entities) {
     $libraries = [];
     $theme = $this->themeHandler->getTheme($this->themeHandler->getDefault());
-    $theme_info = $this->infoParser->parse($theme->getPathname());
+    $theme_info = $this->themeExtension->get($theme->getName())->info;
 
     if (isset($theme_info['entity_print'])) {
       // See if we have the special "all" key which is added to every PDF.
@@ -71,7 +75,7 @@ class AssetCollector implements AssetCollectorInterface {
       }
     }
 
-    $this->dispatcher->dispatch(PrintEvents::CSS_ALTER, new PrintCssAlterEvent($libraries, $entities));
+    $this->dispatcher->dispatch(new PrintCssAlterEvent($libraries, $entities), PrintEvents::CSS_ALTER);
 
     return $libraries;
   }

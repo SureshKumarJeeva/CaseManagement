@@ -170,7 +170,7 @@ interface EntityDefinitionUpdateManagerInterface {
    *   or a Batch API callback. If the entity schema update requires a data
    *   migration, this parameter is mandatory. Defaults to NULL.
    */
-  public function updateFieldableEntityType(EntityTypeInterface $entity_type, array $field_storage_definitions, array &$sandbox = NULL);
+  public function updateFieldableEntityType(EntityTypeInterface $entity_type, array $field_storage_definitions, ?array &$sandbox = NULL);
 
   /**
    * Returns a field storage definition ready to be manipulated.
@@ -184,8 +184,9 @@ interface EntityDefinitionUpdateManagerInterface {
    * @param string $entity_type_id
    *   The entity type identifier.
    *
-   * @return \Drupal\Core\Field\FieldStorageDefinitionInterface
-   *   The field storage definition.
+   * @return \Drupal\Core\Field\FieldStorageDefinitionInterface|null
+   *   The field storage definition or NULL if there is none for the given field
+   *   name and entity type.
    *
    * @todo Make this return a mutable storage definition interface when we have
    *   one. See https://www.drupal.org/node/2346329.

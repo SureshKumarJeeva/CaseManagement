@@ -1,0 +1,12 @@
+name: 'Simple Multistep'
+type: module
+description: 'Provide simple multi step form'
+core_version_requirement: ^9 || ^10 || ^11
+package: 'Other'
+dependencies:
+  - field_group:field_group
+
+# Information added by Drupal.org packaging script on 2025-06-18
+version: '2.1.0'
+project: 'simple_multistep'
+datestamp: 1750237805

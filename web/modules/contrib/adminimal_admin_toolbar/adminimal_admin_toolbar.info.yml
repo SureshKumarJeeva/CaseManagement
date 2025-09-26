@@ -1,6 +1,6 @@
 name: Adminimal Admin Toolbar
 core: 8.x
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^8 || ^9 || ^10
 description: Adminimal styling brought to admin toolbar.
 package: Administration
 configure: adminimal_admin_toolbar.settings

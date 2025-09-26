@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\migrate\Kernel;
 
 /**
@@ -89,7 +91,7 @@ class TrackChangesTest extends MigrateTestBase {
   /**
    * Tests track changes property of SqlBase.
    */
-  public function testTrackChanges() {
+  public function testTrackChanges(): void {
     // Assert all of the terms have been imported.
     $this->assertTermExists('name', 'Item 1');
     $this->assertTermExists('name', 'Item 2');
@@ -143,7 +145,7 @@ class TrackChangesTest extends MigrateTestBase {
       ->execute();
 
     // Execute migration again.
-    $this->executeMigration('track_changes_test');
+    $this->executeMigration($this->migration);
 
     // Check that the all the hashes except for 'Item 2'and 'Item 4' have
     // changed.

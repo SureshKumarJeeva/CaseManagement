@@ -255,7 +255,6 @@ class ForumController extends ControllerBase {
     $vid = $this->config('forum.settings')->get('vocabulary');
     $taxonomy_term = $this->termStorage->create([
       'vid' => $vid,
-      'forum_controller' => 0,
     ]);
     return $this->entityFormBuilder()->getForm($taxonomy_term, 'forum');
   }
@@ -286,7 +285,7 @@ class ForumController extends ControllerBase {
    * @return array
    *   Render array containing the links.
    */
-  protected function buildActionLinks($vid, TermInterface $forum_term = NULL) {
+  protected function buildActionLinks($vid, ?TermInterface $forum_term = NULL) {
     $user = $this->currentUser();
 
     $links = [];
@@ -308,7 +307,7 @@ class ForumController extends ControllerBase {
         ];
         if ($forum_term && $forum_term->bundle() == $vid) {
           // We are viewing a forum term (specific forum), append the tid to
-          // the url.
+          // the URL.
           $links[$type]['#link']['localized_options']['query']['forum_id'] = $forum_term->id();
         }
       }

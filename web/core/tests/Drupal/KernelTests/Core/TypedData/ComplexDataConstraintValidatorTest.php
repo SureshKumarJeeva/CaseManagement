@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\KernelTests\Core\TypedData;
 
 use Drupal\Core\TypedData\DataDefinition;
@@ -7,8 +9,7 @@ use Drupal\Core\TypedData\MapDataDefinition;
 use Drupal\KernelTests\KernelTestBase;
 
 /**
- * Tests ComplexData validation constraint with both valid and invalid values
- * for a key.
+ * Tests ComplexData validation with both valid and invalid values.
  *
  * @group Validation
  */
@@ -21,6 +22,9 @@ class ComplexDataConstraintValidatorTest extends KernelTestBase {
    */
   protected $typedData;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
     $this->typedData = $this->container->get('typed_data_manager');
@@ -31,7 +35,7 @@ class ComplexDataConstraintValidatorTest extends KernelTestBase {
    *
    * For testing a map including a constraint on one of its keys is defined.
    */
-  public function testValidation() {
+  public function testValidation(): void {
     // Create a definition that specifies some ComplexData constraint.
     $definition = MapDataDefinition::create()
       ->setPropertyDefinition('key', DataDefinition::create('integer'))

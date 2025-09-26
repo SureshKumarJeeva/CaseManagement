@@ -1,0 +1,59 @@
+@font-face {
+  font-family: "Source Sans 3";
+  src:
+    local("Source Sans 3 Italic"),
+    local("SourceSans3-Italic"),
+    url("../../fonts/SourceSans3-It.otf.woff") format("woff");
+  font-weight: 400;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  src:
+    local("Source Sans 3 SemiBold Italic"),
+    local("SourceSans3-SemiBoldItalic"),
+    url("../../fonts/SourceSans3-SemiboldIt.otf.woff") format("woff");
+  font-weight: 600;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  src:
+    local("Source Sans 3 Bold Italic"),
+    local("SourceSans3-BoldItalic"),
+    url("../../fonts/SourceSans3-BoldIt.otf.woff") format("woff");
+  font-weight: 700;
+  font-style: italic;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  src:
+    local("Source Sans 3 Regular"),
+    local("SourceSans3-Regular"),
+    url("../../fonts/SourceSans3-Regular.otf.woff") format("woff");
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  src:
+    local("Source Sans 3 SemiBold"),
+    local("SourceSans3-SemiBold"),
+    url("../../fonts/SourceSans3-Semibold.otf.woff") format("woff");
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "Source Sans 3";
+  src:
+    local("Source Sans 3 Bold"),
+    local("SourceSans3-Bold"),
+    url("../../fonts/SourceSans3-Bold.otf.woff") format("woff");
+  font-weight: 700;
+  font-style: normal;
+}

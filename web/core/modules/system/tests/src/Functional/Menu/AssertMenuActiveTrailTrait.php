@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\Menu;
 
 use Drupal\Core\Url;
@@ -26,8 +28,7 @@ trait AssertMenuActiveTrailTrait {
    *   (optional) The class of the active element. Defaults to 'is-active'.
    */
   protected function assertMenuActiveTrail($tree, $last_active, $active_trail_class = 'menu-item--active-trail', $active_class = 'is-active') {
-    end($tree);
-    $active_link_path = key($tree);
+    $active_link_path = array_key_last($tree);
     $active_link_title = array_pop($tree);
     $xpath = '';
     if ($tree) {
@@ -43,8 +44,7 @@ trait AssertMenuActiveTrailTrait {
         $xpath .= $this->assertSession()->buildXPathQuery($part_xpath, $part_args);
         $i++;
       }
-      $elements = $this->xpath($xpath);
-      $this->assertNotEmpty($elements, 'Active trail to current page should be visible in menu tree.');
+      $this->assertSession()->elementExists('xpath', $xpath);
 
       // Append prefix for active link asserted below.
       $xpath .= '/following-sibling::ul/descendant::';
@@ -60,8 +60,7 @@ trait AssertMenuActiveTrailTrait {
       ':href' => Url::fromUri('base:' . $active_link_path)->toString(),
       ':title' => $active_link_title,
     ];
-    $elements = $this->xpath($xpath, $args);
-    $this->assertNotEmpty($elements, sprintf('Active link %s should be visible in menu tree, including active trail links %s.', $active_link_title, implode(' » ', $tree)));
+    $this->assertSession()->elementExists('xpath', $this->assertSession()->buildXPathQuery($xpath, $args));
   }
 
 }

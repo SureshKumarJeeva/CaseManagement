@@ -2,7 +2,7 @@
 
 namespace Drupal\entity_print\Event;
 
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 /**
  * This event allows the CSS libraries to be altered.

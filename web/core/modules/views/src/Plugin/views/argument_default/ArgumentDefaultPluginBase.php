@@ -17,8 +17,8 @@ use Drupal\views\Plugin\views\PluginBase;
  *
  * Argument default plugins extend
  * \Drupal\views\Plugin\views\argument_default\ArgumentDefaultPluginBase. They
- * must be annotated with \Drupal\views\Annotation\ViewsArgumentDefault
- * annotation, and they must be in namespace directory
+ * must be attributed with \Drupal\views\Attribute\ViewsArgumentDefault
+ * attribute, and they must be in namespace directory
  * Plugin\views\argument_default.
  *
  * @ingroup views_plugins
@@ -36,6 +36,12 @@ abstract class ArgumentDefaultPluginBase extends PluginBase {
    * @var \Drupal\views\Plugin\views\argument\ArgumentPluginBase
    */
   protected $argument;
+
+  /**
+   * The option name.
+   */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
+  public string $option_name;
 
   /**
    * Return the default argument.
@@ -84,6 +90,8 @@ abstract class ArgumentDefaultPluginBase extends PluginBase {
   }
 
   /**
+   * Disables the given option if the user does not have access.
+   *
    * If we don't have access to the form but are showing it anyway, ensure that
    * the form is safe and cannot be changed from user input.
    *

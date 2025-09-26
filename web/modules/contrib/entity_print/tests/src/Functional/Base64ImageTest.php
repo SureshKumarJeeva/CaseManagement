@@ -21,7 +21,7 @@ class Base64ImageTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['user', 'node', 'image', 'entity_print_test'];
+  protected static $modules = ['user', 'node', 'image', 'entity_print_test'];
 
   /**
    * {@inheritdoc}
@@ -93,7 +93,7 @@ class Base64ImageTest extends BrowserTestBase {
     $renderer = \Drupal::service('renderer');
 
     $html = (string) $renderer->executeInRenderContext(new RenderContext(), function () use (&$build, $renderer) {
-      return $renderer->render($build, TRUE);
+      return $renderer->renderRoot($build);
     });
 
     // Ensure the image is rendered as a base64 encoded image.

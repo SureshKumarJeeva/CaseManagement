@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\Core\Menu;
 
 use Drupal\Core\Menu\LocalActionDefault;
@@ -57,6 +59,9 @@ class LocalActionDefaultTest extends UnitTestCase {
    */
   protected $routeProvider;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -76,12 +81,12 @@ class LocalActionDefaultTest extends UnitTestCase {
    *
    * @see \Drupal\Core\Menu\LocalTaskDefault::getTitle()
    */
-  public function testGetTitle() {
+  public function testGetTitle(): void {
     $this->pluginDefinition['title'] = (new TranslatableMarkup('Example', [], [], $this->stringTranslation));
     $this->stringTranslation->expects($this->once())
       ->method('translateString')
       ->with($this->pluginDefinition['title'])
-      ->will($this->returnValue('Example translated'));
+      ->willReturn('Example translated');
 
     $this->setupLocalActionDefault();
     $this->assertEquals('Example translated', $this->localActionDefault->getTitle());
@@ -92,12 +97,12 @@ class LocalActionDefaultTest extends UnitTestCase {
    *
    * @see \Drupal\Core\Menu\LocalTaskDefault::getTitle()
    */
-  public function testGetTitleWithContext() {
+  public function testGetTitleWithContext(): void {
     $this->pluginDefinition['title'] = (new TranslatableMarkup('Example', [], ['context' => 'context'], $this->stringTranslation));
     $this->stringTranslation->expects($this->once())
       ->method('translateString')
       ->with($this->pluginDefinition['title'])
-      ->will($this->returnValue('Example translated with context'));
+      ->willReturn('Example translated with context');
 
     $this->setupLocalActionDefault();
     $this->assertEquals('Example translated with context', $this->localActionDefault->getTitle());
@@ -106,12 +111,12 @@ class LocalActionDefaultTest extends UnitTestCase {
   /**
    * Tests the getTitle method with title arguments.
    */
-  public function testGetTitleWithTitleArguments() {
+  public function testGetTitleWithTitleArguments(): void {
     $this->pluginDefinition['title'] = (new TranslatableMarkup('Example @test', ['@test' => 'value'], [], $this->stringTranslation));
     $this->stringTranslation->expects($this->once())
       ->method('translateString')
       ->with($this->pluginDefinition['title'])
-      ->will($this->returnValue('Example value'));
+      ->willReturn('Example value');
 
     $this->setupLocalActionDefault();
     $request = new Request();

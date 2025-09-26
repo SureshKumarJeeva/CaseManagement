@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\field\Unit\Plugin\migrate\process;
 
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
@@ -11,6 +13,7 @@ use Drupal\migrate\Row;
 use Drupal\migrate_drupal\Plugin\MigrateFieldInterface;
 use Drupal\migrate_drupal\Plugin\MigrateFieldPluginManagerInterface;
 use Drupal\Tests\migrate\Unit\MigrateTestCase;
+use Prophecy\Prophecy\ObjectProphecy;
 
 /**
  * Tests the ProcessField migrate process plugin.
@@ -19,6 +22,31 @@ use Drupal\Tests\migrate\Unit\MigrateTestCase;
  * @group field
  */
 class ProcessFieldTest extends MigrateTestCase {
+
+  /**
+   * @var \Drupal\migrate_drupal\Plugin\MigrateFieldPluginManagerInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected MigrateFieldPluginManagerInterface|ObjectProphecy $fieldManager;
+
+  /**
+   * @var \Drupal\migrate_drupal\Plugin\MigrateFieldInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected MigrateFieldInterface|ObjectProphecy $fieldPlugin;
+
+  /**
+   * @var \Drupal\migrate\MigrateExecutable|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected MigrateExecutable|ObjectProphecy $migrateExecutable;
+
+  /**
+   * @var \Drupal\migrate\Plugin\MigrationInterface|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected MigrationInterface|ObjectProphecy $migration;
+
+  /**
+   * @var \Drupal\migrate\Row|\Prophecy\Prophecy\ObjectProphecy
+   */
+  protected Row|ObjectProphecy $row;
 
   /**
    * {@inheritdoc}
@@ -53,11 +81,11 @@ class ProcessFieldTest extends MigrateTestCase {
    * @covers ::transform
    * @dataProvider providerTestTransform
    */
-  public function testTransform($method, $value, $expected_value, $migrate_exception = '', $plugin_not_found = FALSE) {
+  public function testTransform($method, $value, $expected_value, $migrate_exception = '', $plugin_not_found = FALSE): void {
     if ($method) {
       $this->fieldPlugin->$method($this->row->reveal())->willReturn($expected_value);
     }
-    $this->plugin = new ProcessField(['method' => $method], $value, [], $this->fieldManager->reveal(), $this->migration->reveal());
+    $plugin = new ProcessField(['method' => $method], $value, [], $this->fieldManager->reveal(), $this->migration->reveal());
 
     if ($migrate_exception) {
       $this->expectException(MigrateException::class);
@@ -69,7 +97,7 @@ class ProcessFieldTest extends MigrateTestCase {
       $this->fieldManager->getPluginIdFromFieldType()->willThrow($exception);
     }
 
-    $transformed_value = $this->plugin->transform($value, $this->migrateExecutable->reveal(), $this->row->reveal(), 'foo');
+    $transformed_value = $plugin->transform($value, $this->migrateExecutable->reveal(), $this->row->reveal(), 'foo');
     $this->assertSame($transformed_value, $expected_value);
   }
 
@@ -83,7 +111,7 @@ class ProcessFieldTest extends MigrateTestCase {
    *   - The MigrateException message to expect.
    *   - Whether the field plugin is not found.
    */
-  public function providerTestTransform() {
+  public static function providerTestTransform() {
     return [
       // Tests the getFieldType() method.
       [

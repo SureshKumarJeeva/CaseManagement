@@ -1,0 +1,6 @@
+{
+    "name": "drupal/seven",
+    "description": "The Seven theme from Drupal 8/9 moved to contrib.",
+    "type": "drupal-theme",
+    "require": {}
+}

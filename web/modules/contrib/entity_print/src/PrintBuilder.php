@@ -34,6 +34,13 @@ class PrintBuilder implements PrintBuilderInterface {
   protected $dispatcher;
 
   /**
+   * The file system.
+   *
+   * @var \Drupal\Core\File\FileSystemInterface
+   */
+  protected $fileSystem;
+
+  /**
    * Constructs a new EntityPrintPrintBuilder.
    *
    * @param \Drupal\entity_print\Renderer\RendererFactoryInterface $renderer_factory
@@ -42,11 +49,18 @@ class PrintBuilder implements PrintBuilderInterface {
    *   The event dispatcher.
    * @param \Drupal\Core\StringTranslation\TranslationInterface $string_translation
    *   The string translation service.
+   * @param \Drupal\Core\File\FileSystemInterface|null $file_system
+   *   The file system service.
    */
-  public function __construct(RendererFactoryInterface $renderer_factory, EventDispatcherInterface $event_dispatcher, TranslationInterface $string_translation) {
+  public function __construct(RendererFactoryInterface $renderer_factory, EventDispatcherInterface $event_dispatcher, TranslationInterface $string_translation, ?FileSystemInterface $file_system = NULL) {
     $this->rendererFactory = $renderer_factory;
     $this->dispatcher = $event_dispatcher;
     $this->stringTranslation = $string_translation;
+    $this->fileSystem = $file_system;
+    if ($this->fileSystem === NULL) {
+      $this->fileSystem = \Drupal::service('file_system');
+      @trigger_error('Calling ' . __METHOD__ . '() is deprecated in entity_print:8.x-2.16 and is removed from entity_print:3.0.0. See https://www.drupal.org/project/entity_print/issues/3523318', E_USER_DEPRECATED);
+    }
   }
 
   /**
@@ -56,7 +70,7 @@ class PrintBuilder implements PrintBuilderInterface {
     $renderer = $this->prepareRenderer($entities, $print_engine, $use_default_css);
 
     // Allow other modules to alter the generated Print object.
-    $this->dispatcher->dispatch(PrintEvents::PRE_SEND, new PreSendPrintEvent($print_engine, $entities));
+    $this->dispatcher->dispatch(new PreSendPrintEvent($print_engine, $entities), PrintEvents::PRE_SEND);
 
     // Calculate the filename.
     $filename = $renderer->getFilename($entities) . '.' . $print_engine->getExportType()->getFileExtension();
@@ -87,7 +101,7 @@ class PrintBuilder implements PrintBuilderInterface {
     $renderer = $this->prepareRenderer($entities, $print_engine, $use_default_css);
 
     // Allow other modules to alter the generated Print object.
-    $this->dispatcher->dispatch(PrintEvents::PRE_SEND, new PreSendPrintEvent($print_engine, $entities));
+    $this->dispatcher->dispatch(new PreSendPrintEvent($print_engine, $entities), PrintEvents::PRE_SEND);
 
     // If we didn't have a URI passed in the generate one.
     if (!$filename) {
@@ -97,7 +111,7 @@ class PrintBuilder implements PrintBuilderInterface {
     $uri = "$scheme://$filename";
 
     // Save the file.
-    return \Drupal::service('file_system')->saveData($print_engine->getBlob(), $uri, FileSystemInterface::EXISTS_REPLACE);
+    return $this->fileSystem->saveData($print_engine->getBlob(), $uri, FileSystemInterface::EXISTS_REPLACE);
   }
 
   /**

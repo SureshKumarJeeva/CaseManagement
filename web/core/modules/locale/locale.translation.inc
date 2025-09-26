@@ -101,7 +101,7 @@ function locale_translation_clear_cache_projects() {
  *
  * @see locale_translation_source_build()
  */
-function locale_translation_load_sources(array $projects = NULL, array $langcodes = NULL) {
+function locale_translation_load_sources(?array $projects = NULL, ?array $langcodes = NULL) {
   $sources = [];
   $projects = $projects ? $projects : array_keys(locale_translation_get_projects());
   $langcodes = $langcodes ? $langcodes : array_keys(locale_translatable_language_list());
@@ -331,7 +331,8 @@ function locale_cron_fill_queue() {
   $config = \Drupal::config('locale.settings');
 
   // Determine which project+language should be updated.
-  $last = REQUEST_TIME - $config->get('translation.update_interval_days') * 3600 * 24;
+  $request_time = \Drupal::time()->getRequestTime();
+  $last = $request_time - $config->get('translation.update_interval_days') * 3600 * 24;
   $projects = \Drupal::service('locale.project')->getAll();
   $projects = array_filter($projects, function ($project) {
     return $project['status'] == 1;
@@ -348,7 +349,7 @@ function locale_cron_fill_queue() {
     // Update the last_checked timestamp of the project+language that will
     // be checked for updates.
     $connection->update('locale_file')
-      ->fields(['last_checked' => REQUEST_TIME])
+      ->fields(['last_checked' => $request_time])
       ->condition('project', $file->project)
       ->condition('langcode', $file->langcode)
       ->execute();

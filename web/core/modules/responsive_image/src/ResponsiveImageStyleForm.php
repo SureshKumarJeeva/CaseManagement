@@ -131,7 +131,7 @@ class ResponsiveImageStyleForm extends EntityForm {
           $description = $this->t('See the <a href=":responsive_image_help">Responsive Image help page</a> for information on the sizes attribute.', [':responsive_image_help' => Url::fromRoute('help.page', ['name' => 'responsive_image'])->toString()]);
         }
         else {
-          $description = $this->t('Enable the Help module for more information on the sizes attribute.');
+          $description = $this->t('Install the Help module for more information on the sizes attribute.');
         }
         $form['keyed_styles'][$breakpoint_id][$multiplier]['image_mapping_type'] = [
           '#title' => $this->t('Type'),
@@ -199,12 +199,12 @@ class ResponsiveImageStyleForm extends EntityForm {
       '#default_value' => $responsive_image_style->getFallbackImageStyle(),
       '#options' => $image_styles,
       '#required' => TRUE,
-      '#description' => $this->t('Select the smallest image style you expect to appear in this space. The fallback image style should only appear on the site if an error occurs.'),
+      '#description' => $this->t('Select the image style you wish to use as the style when a browser does not support responsive images.'),
     ];
 
     $form['#tree'] = TRUE;
 
-    return parent::form($form, $form_state, $responsive_image_style);
+    return parent::form($form, $form_state);
   }
 
   /**
@@ -225,6 +225,7 @@ class ResponsiveImageStyleForm extends EntityForm {
       if ($form_state->getValue('breakpoint_group') != $form_state->getCompleteForm()['breakpoint_group']['#default_value']) {
         // Remove the image style mappings since the breakpoint ID has changed.
         $form_state->unsetValue('keyed_styles');
+        return;
       }
 
       // Check that at least 1 image style has been selected when using sizes.

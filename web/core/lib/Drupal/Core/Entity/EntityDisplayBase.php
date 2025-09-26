@@ -2,10 +2,12 @@
 
 namespace Drupal\Core\Entity;
 
+use Drupal\Core\Config\Action\Attribute\ActionMethod;
 use Drupal\Core\Config\Entity\ConfigEntityBase;
 use Drupal\Core\Config\Entity\ConfigEntityInterface;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Entity\Display\EntityDisplayInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 
 /**
  * Provides a common base class for entity view and form displays.
@@ -13,8 +15,7 @@ use Drupal\Core\Entity\Display\EntityDisplayInterface;
 abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDisplayInterface {
 
   /**
-   * The 'mode' for runtime EntityDisplay objects used to render entities with
-   * arbitrary display options rather than a configured view mode or form mode.
+   * The mode used to render entities with arbitrary display options.
    *
    * @todo Prevent creation of a mode with this ID
    *   https://www.drupal.org/node/2410727
@@ -57,8 +58,10 @@ abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDispl
   protected $mode = self::CUSTOM_MODE;
 
   /**
-   * Whether this display is enabled or not. If the entity (form) display
-   * is disabled, we'll fall back to the 'default' display.
+   * Whether this display is enabled or not.
+   *
+   * If the entity (form) display is disabled, we'll fall back to the 'default'
+   * display.
    *
    * @var bool
    */
@@ -79,8 +82,10 @@ abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDispl
   protected $hidden = [];
 
   /**
-   * The original view or form mode that was requested (case of view/form modes
-   * being configured to fall back to the 'default' display).
+   * The original view or form mode that was requested.
+   *
+   * Case of view/form modes being configured to fall back to the 'default'
+   * display.
    *
    * @var string
    */
@@ -113,6 +118,13 @@ abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDispl
    * @var \Drupal\Core\Render\RendererInterface
    */
   protected $renderer;
+
+  /**
+   * A boolean indicating whether or not this display has been initialized.
+   *
+   * @var bool
+   */
+  protected $initialized = FALSE;
 
   /**
    * {@inheritdoc}
@@ -153,7 +165,8 @@ abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDispl
    */
   protected function init() {
     // Only populate defaults for "official" view modes and form modes.
-    if ($this->mode !== static::CUSTOM_MODE) {
+    if (!$this->initialized && $this->mode !== static::CUSTOM_MODE) {
+      $this->initialized = TRUE;
       $default_region = $this->getDefaultRegion();
       // Fill in defaults for extra fields.
       $context = $this->displayContext == 'view' ? 'display' : $this->displayContext;
@@ -334,6 +347,7 @@ abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDispl
   /**
    * {@inheritdoc}
    */
+  #[ActionMethod(adminLabel: new TranslatableMarkup('Add component to display'))]
   public function setComponent($name, array $options = []) {
     // If no weight specified, make sure the field sinks at the bottom.
     if (!isset($options['weight'])) {
@@ -359,6 +373,7 @@ abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDispl
   /**
    * {@inheritdoc}
    */
+  #[ActionMethod(adminLabel: new TranslatableMarkup('Hide component'), name: 'hideComponent')]
   public function removeComponent($name) {
     $this->hidden[$name] = TRUE;
     unset($this->content[$name]);
@@ -543,6 +558,8 @@ abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDispl
     // __wakeup(). Because of the way __sleep() works, the data has to be
     // present in the object to be included in the serialized values.
     $keys[] = '_serializedKeys';
+    // Keep track of the initialization status.
+    $keys[] = 'initialized';
     $this->_serializedKeys = $keys;
     return $keys;
   }
@@ -569,6 +586,22 @@ abstract class EntityDisplayBase extends ConfigEntityBase implements EntityDispl
    */
   protected function getLogger() {
     return \Drupal::logger('system');
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function set($property_name, $value): static {
+    // If changing the entity ID, also update the target entity type, bundle,
+    // and view mode.
+    if ($this->isNew() && $property_name === $this->getEntityType()->getKey('id')) {
+      if (substr_count($value, '.') !== 2) {
+        throw new \InvalidArgumentException("'$value' is not a valid entity display ID.");
+      }
+      [$this->targetEntityType, $this->bundle, $this->mode] = explode('.', $value);
+    }
+    parent::set($property_name, $value);
+    return $this;
   }
 
 }

@@ -2,10 +2,8 @@
 
 namespace Drupal\entity_print_views\Plugin\views\field;
 
-use Drupal\Core\Access\AccessManagerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\entity_print\Plugin\ExportTypeManagerInterface;
 use Drupal\views\Plugin\views\field\LinkBase;
 use Drupal\views\ResultRow;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -29,22 +27,10 @@ class PrintLink extends LinkBase {
   /**
    * {@inheritdoc}
    */
-  public function __construct(array $configuration, $plugin_id, $plugin_definition, AccessManagerInterface $access_manager, ExportTypeManagerInterface $exportTypeManager) {
-    parent::__construct($configuration, $plugin_id, $plugin_definition, $access_manager);
-    $this->exportTypeManager = $exportTypeManager;
-  }
-
-  /**
-   * {@inheritdoc}
-   */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
-    return new static(
-      $configuration,
-      $plugin_id,
-      $plugin_definition,
-      $container->get('access_manager'),
-      $container->get('plugin.manager.entity_print.export_type')
-    );
+    $instance = parent::create($container, $configuration, $plugin_id, $plugin_definition);
+    $instance->exportTypeManager = $container->get('plugin.manager.entity_print.export_type');
+    return $instance;
   }
 
   /**

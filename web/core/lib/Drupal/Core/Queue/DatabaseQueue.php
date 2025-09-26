@@ -76,7 +76,7 @@ class DatabaseQueue implements ReliableQueueInterface, QueueGarbageCollectionInt
    * @param $data
    *   Arbitrary data to be associated with the new task in the queue.
    *
-   * @return
+   * @return int|string
    *   A unique ID if the item was successfully created and was (best effort)
    *   added to the queue, otherwise FALSE. We don't guarantee the item was
    *   committed to disk etc, but as far as we know, the item is now in the
@@ -87,8 +87,9 @@ class DatabaseQueue implements ReliableQueueInterface, QueueGarbageCollectionInt
       ->fields([
         'name' => $this->name,
         'data' => serialize($data),
-        // We cannot rely on REQUEST_TIME because many items might be created
-        // by a single request which takes longer than 1 second.
+        // We cannot rely on \Drupal::time()->getRequestTime() because many
+        // items might be created by a single request which takes longer than
+        // 1 second.
         'created' => \Drupal::time()->getCurrentTime(),
       ]);
     // Return the new serial ID, or FALSE on failure.
@@ -133,11 +134,11 @@ class DatabaseQueue implements ReliableQueueInterface, QueueGarbageCollectionInt
       }
 
       // Try to update the item. Only one thread can succeed in UPDATEing the
-      // same row. We cannot rely on REQUEST_TIME because items might be
-      // claimed by a single consumer which runs longer than 1 second. If we
-      // continue to use REQUEST_TIME instead of the current time(), we steal
-      // time from the lease, and will tend to reset items before the lease
-      // should really expire.
+      // same row. We cannot rely on \Drupal::time()->getRequestTime() because
+      // items might be claimed by a single consumer which runs longer than 1
+      // second. If we continue to use ::getRequestTime() instead of
+      // ::getCurrentTime(), we steal time from the lease, and will tend to
+      // reset items before the lease should really expire.
       $update = $this->connection->update(static::TABLE_NAME)
         ->fields([
           'expire' => \Drupal::time()->getCurrentTime() + $lease_time,
@@ -333,12 +334,14 @@ class DatabaseQueue implements ReliableQueueInterface, QueueGarbageCollectionInt
           'not null' => TRUE,
           'default' => 0,
           'description' => 'Timestamp when the claim lease expires on the item.',
+          'size' => 'big',
         ],
         'created' => [
           'type' => 'int',
           'not null' => TRUE,
           'default' => 0,
           'description' => 'Timestamp when the item was created.',
+          'size' => 'big',
         ],
       ],
       'primary key' => ['item_id'],

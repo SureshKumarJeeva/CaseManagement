@@ -10,14 +10,12 @@ use Drupal\views\Views;
  *
  * @group token
  */
-class ViewsTest extends KernelTestBase {
+class ViewsTest extends TokenKernelTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
-  public static $modules = ['views', 'block'];
+  protected static $modules = ['views', 'block'];
 
   /**
    * Views used by this test.
@@ -29,7 +27,7 @@ class ViewsTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     $this->installEntitySchema('user');
     ViewTestData::createTestViews(get_class($this), ['token_module_test']);

@@ -1,0 +1,53 @@
+/**
+ * @file
+ * Responsive navigation tabs.
+ *
+ * This also supports collapsible navigable is the 'is-collapsible' class is
+ * added to the main element, and a target element is included.
+ */
+(function ($, Drupal, once) {
+  function init(tab) {
+    const $tab = $(tab);
+    const $target = $tab.find('[data-drupal-nav-tabs-target]');
+    const isCollapsible = $tab.hasClass('is-collapsible');
+
+    function openMenu(e) {
+      $target.toggleClass('is-open');
+    }
+
+    function handleResize(e) {
+      $tab.addClass('is-horizontal');
+      const $tabs = $tab.find('.tabs');
+      const isHorizontal =
+        Math.floor($tabs.outerHeight()) <=
+          Math.floor(1.5 * $tabs.find('.tabs__tab').outerHeight()) ||
+        Math.floor($tabs.outerWidth()) <= 1100;
+      $tab.toggleClass('is-horizontal', isHorizontal);
+      if (isCollapsible) {
+        $tab.toggleClass('is-collapse-enabled', !isHorizontal);
+      }
+      if (isHorizontal) {
+        $target.removeClass('is-open');
+      }
+    }
+
+    $tab.addClass('position-container is-horizontal-enabled');
+
+    $tab.on('click.tabs', '[data-drupal-nav-tabs-trigger]', openMenu);
+    $(window)
+      .on('resize.tabs', Drupal.debounce(handleResize, 150))
+      .trigger('resize.tabs');
+  }
+
+  /**
+   * Initialize the tabs JS.
+   */
+  Drupal.behaviors.navTabs = {
+    attach(context, settings) {
+      const notSmartPhone = window.matchMedia('(min-width: 300px)');
+      if (notSmartPhone.matches) {
+        once('nav-tabs', '[data-drupal-nav-tabs]', context).forEach(init);
+      }
+    },
+  };
+})(jQuery, Drupal, once);

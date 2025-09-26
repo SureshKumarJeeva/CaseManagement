@@ -17,9 +17,9 @@ class NodeTypeListBuilder extends ConfigEntityListBuilder {
    * {@inheritdoc}
    */
   public function buildHeader() {
-    $header['title'] = t('Name');
+    $header['title'] = $this->t('Name');
     $header['description'] = [
-      'data' => t('Description'),
+      'data' => $this->t('Description'),
       'class' => [RESPONSIVE_PRIORITY_MEDIUM],
     ];
     return $header + parent::buildHeader();
@@ -56,8 +56,8 @@ class NodeTypeListBuilder extends ConfigEntityListBuilder {
   public function render() {
     $build = parent::render();
     $build['table']['#empty'] = $this->t('No content types available. <a href=":link">Add content type</a>.', [
-        ':link' => Url::fromRoute('node.type_add')->toString(),
-      ]);
+      ':link' => Url::fromRoute('node.type_add')->toString(),
+    ]);
     return $build;
   }
 

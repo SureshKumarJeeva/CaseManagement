@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\user\Kernel;
 
 use Drupal\Tests\SchemaCheckTestTrait;
@@ -7,8 +9,7 @@ use Drupal\KernelTests\KernelTestBase;
 use Drupal\user\Entity\Role;
 
 /**
- * Ensures the user action for adding and removing roles have valid config
- * schema.
+ * Tests that the config schema is valid when roles are added or removed.
  *
  * @group user
  */
@@ -17,17 +18,15 @@ class UserActionConfigSchemaTest extends KernelTestBase {
   use SchemaCheckTestTrait;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['system', 'user'];
 
   /**
    * Tests whether the user action config schema are valid.
    */
-  public function testValidUserActionConfigSchema() {
-    $rid = strtolower($this->randomMachineName(8));
+  public function testValidUserActionConfigSchema(): void {
+    $rid = $this->randomMachineName(8);
     Role::create(['id' => $rid, 'label' => $rid])->save();
 
     // Test user_add_role_action configuration.

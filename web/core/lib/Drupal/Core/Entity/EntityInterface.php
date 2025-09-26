@@ -120,7 +120,9 @@ interface EntityInterface extends AccessibleInterface, CacheableDependencyInterf
    * entity/entityType/id.
    *
    * @param string $rel
-   *   The link relationship type, for example: canonical or edit-form.
+   *   The link relationship type, for example: canonical or edit-form. If none
+   *   is provided, canonical is assumed, or edit-form if no canonical link
+   *   exists.
    * @param array $options
    *   See \Drupal\Core\Routing\UrlGeneratorInterface::generateFromRoute() for
    *   the available options.
@@ -131,14 +133,14 @@ interface EntityInterface extends AccessibleInterface, CacheableDependencyInterf
    * @throws \Drupal\Core\Entity\EntityMalformedException
    * @throws \Drupal\Core\Entity\Exception\UndefinedLinkTemplateException
    */
-  public function toUrl($rel = 'canonical', array $options = []);
+  public function toUrl($rel = NULL, array $options = []);
 
   /**
    * Generates the HTML for a link to this entity.
    *
-   * @param string|null $text
-   *   (optional) The link text for the anchor tag as a translated string.
-   *   If NULL, it will use the entity's label. Defaults to NULL.
+   * @param string|null|array|\Drupal\Component\Render\MarkupInterface $text
+   *   (optional) The link text for the anchor tag as a translated string or
+   *   render array. If NULL, it will use the entity's label. Defaults to NULL.
    * @param string $rel
    *   (optional) The link relationship type. Defaults to 'canonical'.
    * @param array $options
@@ -192,7 +194,7 @@ interface EntityInterface extends AccessibleInterface, CacheableDependencyInterf
    * @return static[]
    *   An array of entity objects indexed by their IDs.
    */
-  public static function loadMultiple(array $ids = NULL);
+  public static function loadMultiple(?array $ids = NULL);
 
   /**
    * Constructs a new entity object, without permanently saving it.

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\history\Functional;
 
 use Drupal\Component\Serialization\Json;
@@ -17,9 +19,7 @@ class HistoryTest extends BrowserTestBase {
   use AssertPageCacheContextsAndTagsTrait;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['node', 'history'];
 
@@ -42,6 +42,9 @@ class HistoryTest extends BrowserTestBase {
    */
   protected $testNode;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -101,7 +104,7 @@ class HistoryTest extends BrowserTestBase {
   /**
    * Verifies that the history endpoints work.
    */
-  public function testHistory() {
+  public function testHistory(): void {
     $nid = $this->testNode->id();
 
     // Verify that previews of new entities do not create the history.

@@ -129,7 +129,8 @@ class PrintLinks extends BlockBase implements ContainerFactoryPluginInterface {
     $configuration = $this->getConfiguration();
     $route_params = [
       'entity_type' => $entity->getEntityTypeId(),
-      'entity_id' => $entity->id(),
+      // Provide fallback to prevent layout builder errors.
+      'entity_id' => $entity->id() ?? 0,
     ];
 
     $build = ['#type' => 'container'];

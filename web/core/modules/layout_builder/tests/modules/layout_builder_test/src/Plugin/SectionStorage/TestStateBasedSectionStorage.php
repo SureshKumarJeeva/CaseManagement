@@ -4,6 +4,7 @@ namespace Drupal\layout_builder_test\Plugin\SectionStorage;
 
 use Drupal\Core\Cache\RefinableCacheableDependencyInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\layout_builder\Attribute\SectionStorage;
 use Drupal\layout_builder\Plugin\SectionStorage\SectionStorageBase;
 use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
@@ -11,11 +12,8 @@ use Symfony\Component\Routing\RouteCollection;
 
 /**
  * Provides a test section storage that is controlled by state.
- *
- * @SectionStorage(
- *   id = "layout_builder_test_state",
- * )
  */
+#[SectionStorage(id: "layout_builder_test_state")]
 class TestStateBasedSectionStorage extends SectionStorageBase {
 
   /**
@@ -43,56 +41,77 @@ class TestStateBasedSectionStorage extends SectionStorageBase {
   /**
    * {@inheritdoc}
    */
-  public function access($operation, AccountInterface $account = NULL, $return_as_object = FALSE) {}
+  public function access($operation, ?AccountInterface $account = NULL, $return_as_object = FALSE) {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  protected function getSectionList() {}
+  protected function getSectionList() {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function getStorageId() {}
+  public function getStorageId() {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function getSectionListFromId($id) {}
+  public function getSectionListFromId($id) {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function buildRoutes(RouteCollection $collection) {}
+  public function buildRoutes(RouteCollection $collection) {
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function getRedirectUrl() {}
+  public function getRedirectUrl() {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function getLayoutBuilderUrl($rel = 'view') {}
+  public function getLayoutBuilderUrl($rel = 'view') {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function extractIdFromRoute($value, $definition, $name, array $defaults) {}
+  public function extractIdFromRoute($value, $definition, $name, array $defaults) {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function deriveContextsFromRoute($value, $definition, $name, array $defaults) {}
+  public function deriveContextsFromRoute($value, $definition, $name, array $defaults) {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function label() {}
+  public function label() {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
   /**
    * {@inheritdoc}
    */
-  public function save() {}
+  public function save() {
+    throw new \RuntimeException(__METHOD__ . " not implemented for " . __CLASS__);
+  }
 
 }

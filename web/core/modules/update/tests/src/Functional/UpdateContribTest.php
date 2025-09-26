@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\update\Functional;
 
 use Drupal\Core\Utility\ProjectInfo;
 use Drupal\update\UpdateManagerInterface;
 
 /**
- * Tests how the Update Manager module handles contributed modules and themes in
- * a series of functional tests using mock XML data.
+ * Tests how the Update Manager handles contributed modules and themes.
  *
  * @group update
+ * @group #slow
  */
 class UpdateContribTest extends UpdateTestBase {
+  use UpdateTestTrait;
 
   /**
    * {@inheritdoc}
@@ -24,13 +27,9 @@ class UpdateContribTest extends UpdateTestBase {
   protected $updateProject = 'aaa_update_test';
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
-    'update_test',
-    'update',
     'aaa_update_test',
     'bbb_update_test',
     'ccc_update_test',
@@ -41,6 +40,9 @@ class UpdateContribTest extends UpdateTestBase {
    */
   protected $defaultTheme = 'stark';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
     $admin_user = $this->drupalCreateUser(['administer site configuration']);
@@ -50,19 +52,16 @@ class UpdateContribTest extends UpdateTestBase {
   /**
    * Tests when there is no available release data for a contrib module.
    */
-  public function testNoReleasesAvailable() {
-    $system_info = [
-      '#all' => [
-        'version' => '8.0.0',
-      ],
+  public function testNoReleasesAvailable(): void {
+    $this->mockInstalledExtensionsInfo([
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
-    $this->refreshUpdateStatus(['drupal' => '0.0', 'aaa_update_test' => 'no-releases']);
+    ]);
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
+    $this->refreshUpdateStatus(['drupal' => '8.0.0', 'aaa_update_test' => 'no-releases']);
     // Cannot use $this->standardTests() because we need to check for the
     // 'No available releases found' string.
     $this->assertSession()->responseContains('<h3>Drupal core</h3>');
@@ -82,21 +81,19 @@ class UpdateContribTest extends UpdateTestBase {
   /**
    * Tests the basic functionality of a contrib module on the status report.
    */
-  public function testUpdateContribBasic() {
-    $system_info = [
-      '#all' => [
-        'version' => '8.0.0',
-      ],
+  public function testUpdateContribBasic(): void {
+    $installed_extensions = [
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
     ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    $this->mockInstalledExtensionsInfo($installed_extensions);
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
     $this->refreshUpdateStatus(
       [
-        'drupal' => '0.0',
+        'drupal' => '8.0.0',
         'aaa_update_test' => '1_0',
       ]
     );
@@ -109,11 +106,12 @@ class UpdateContribTest extends UpdateTestBase {
 
     // Since aaa_update_test is installed the fact it is hidden and in the
     // Testing package means it should not appear.
-    $system_info['aaa_update_test']['hidden'] = TRUE;
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    $installed_extensions['aaa_update_test']['hidden'] = TRUE;
+    $this->mockInstalledExtensionsInfo($installed_extensions);
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
     $this->refreshUpdateStatus(
       [
-        'drupal' => '0.0',
+        'drupal' => '8.0.0',
         'aaa_update_test' => '1_0',
       ]
     );
@@ -121,11 +119,12 @@ class UpdateContribTest extends UpdateTestBase {
     $this->assertSession()->linkByHrefNotExists('http://example.com/project/aaa_update_test');
 
     // A hidden and installed project not in the Testing package should appear.
-    $system_info['aaa_update_test']['package'] = 'aaa_update_test';
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    $installed_extensions['aaa_update_test']['package'] = 'aaa_update_test';
+    $this->mockInstalledExtensionsInfo($installed_extensions);
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
     $this->refreshUpdateStatus(
       [
-        'drupal' => '0.0',
+        'drupal' => '8.0.0',
         'aaa_update_test' => '1_0',
       ]
     );
@@ -146,14 +145,11 @@ class UpdateContribTest extends UpdateTestBase {
    * if you sort alphabetically by module name (which is the order we see things
    * inside \Drupal\Core\Extension\ExtensionList::getList() for example).
    */
-  public function testUpdateContribOrder() {
+  public function testUpdateContribOrder(): void {
     // We want core to be version 8.0.0.
-    $system_info = [
-      '#all' => [
-        'version' => '8.0.0',
-      ],
-      // All the rest should be visible as contrib modules at version 8.x-1.0.
-
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
+    // All the rest should be visible as contrib modules at version 8.x-1.0.
+    $this->mockInstalledExtensionsInfo([
       // aaa_update_test needs to be part of the "CCC Update test" project,
       // which would throw off the report if we weren't properly sorting by
       // the project names.
@@ -177,9 +173,8 @@ class UpdateContribTest extends UpdateTestBase {
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
-    $this->refreshUpdateStatus(['drupal' => '0.0', '#all' => '1_0']);
+    ]);
+    $this->refreshUpdateStatus(['drupal' => '8.0.0', '#all' => '1_0']);
     $this->standardTests();
     // We're expecting the report to say all projects are up to date.
     $this->assertSession()->pageTextContains('Up to date');
@@ -213,34 +208,29 @@ class UpdateContribTest extends UpdateTestBase {
   /**
    * Tests that subthemes are notified about security updates for base themes.
    */
-  public function testUpdateBaseThemeSecurityUpdate() {
+  public function testUpdateBaseThemeSecurityUpdate(): void {
     // @todo https://www.drupal.org/node/2338175 base themes have to be
     //   installed.
     // Only install the subtheme, not the base theme.
     \Drupal::service('theme_installer')->install(['update_test_subtheme']);
 
     // Define the initial state for core and the subtheme.
-    $system_info = [
-      // We want core to be version 8.0.0.
-      '#all' => [
-        'version' => '8.0.0',
-      ],
-      // Show the update_test_basetheme
+    $this->mockInstalledExtensionsInfo([
+      // Show the update_test_basetheme.
       'update_test_basetheme' => [
         'project' => 'update_test_basetheme',
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-      // Show the update_test_subtheme
+      // Show the update_test_subtheme.
       'update_test_subtheme' => [
         'project' => 'update_test_subtheme',
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    ]);
     $xml_mapping = [
-      'drupal' => '0.0',
+      'drupal' => '8.0.0',
       'update_test_subtheme' => '1_0',
       'update_test_basetheme' => '1_1-sec',
     ];
@@ -253,26 +243,25 @@ class UpdateContribTest extends UpdateTestBase {
   /**
    * Tests the Update Manager module when one normal update is available.
    */
-  public function testNormalUpdateAvailable() {
+  public function testNormalUpdateAvailable(): void {
     $assert_session = $this->assertSession();
     // Ensure that the update check requires a token.
     $this->drupalGet('admin/reports/updates/check');
     $assert_session->statusCodeEquals(403);
 
-    $system_info = [
+    $this->mockInstalledExtensionsInfo([
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    ]);
 
     foreach (['1.1', '1.2', '2.0'] as $version) {
       foreach (['-beta1', '-alpha1', ''] as $extra_version) {
         $full_version = "8.x-$version$extra_version";
         $this->refreshUpdateStatus([
-          'drupal' => '0.0',
+          'drupal' => '8.0.0',
           'aaa_update_test' => str_replace('.', '_', $version) . $extra_version,
         ]);
         $this->standardTests();
@@ -344,28 +333,24 @@ class UpdateContribTest extends UpdateTestBase {
   }
 
   /**
-   * Tests that disabled themes are only shown when desired.
+   * Tests that uninstalled themes are only shown when desired.
    *
    * @todo https://www.drupal.org/node/2338175 extensions can not be hidden and
    *   base themes have to be installed.
    */
-  public function testUpdateShowDisabledThemes() {
+  public function testUpdateShowDisabledThemes(): void {
     $update_settings = $this->config('update.settings');
-    // Make sure all the update_test_* themes are disabled.
+    // Make sure all the update_test_* themes are uninstalled.
     $extension_config = $this->config('core.extension');
     foreach ($extension_config->get('theme') as $theme => $weight) {
-      if (preg_match('/^update_test_/', $theme)) {
+      if (str_starts_with($theme, 'update_test_')) {
         $extension_config->clear("theme.$theme");
       }
     }
     $extension_config->save();
 
     // Define the initial state for core and the test contrib themes.
-    $system_info = [
-      // We want core to be version 8.0.0.
-      '#all' => [
-        'version' => '8.0.0',
-      ],
+    $this->mockInstalledExtensionsInfo([
       // The update_test_basetheme should be visible and up to date.
       'update_test_basetheme' => [
         'project' => 'update_test_basetheme',
@@ -378,15 +363,14 @@ class UpdateContribTest extends UpdateTestBase {
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
+    ]);
     // When there are contributed modules in the site's file system, the
     // total number of attempts made in the test may exceed the default value
     // of update_max_fetch_attempts. Therefore this variable is set very high
     // to avoid test failures in those cases.
     $update_settings->set('fetch.max_attempts', 99999)->save();
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
     $xml_mapping = [
-      'drupal' => '0.0',
+      'drupal' => '8.0.0',
       'update_test_subtheme' => '1_0',
       'update_test_basetheme' => '1_1-sec',
     ];
@@ -417,14 +401,14 @@ class UpdateContribTest extends UpdateTestBase {
   /**
    * Tests updates with a hidden base theme.
    */
-  public function testUpdateHiddenBaseTheme() {
+  public function testUpdateHiddenBaseTheme(): void {
     \Drupal::moduleHandler()->loadInclude('update', 'inc', 'update.compare');
 
     // Install the subtheme.
     \Drupal::service('theme_installer')->install(['update_test_subtheme']);
 
     // Add a project and initial state for base theme and subtheme.
-    $system_info = [
+    $this->mockInstalledExtensionsInfo([
       // Hide the update_test_basetheme.
       'update_test_basetheme' => [
         'project' => 'update_test_basetheme',
@@ -435,10 +419,9 @@ class UpdateContribTest extends UpdateTestBase {
         'project' => 'update_test_subtheme',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    ]);
     $projects = \Drupal::service('update.manager')->getProjects();
-    $theme_data = \Drupal::service('theme_handler')->rebuildThemeData();
+    $theme_data = \Drupal::service('extension.list.theme')->reset()->getList();
     $project_info = new ProjectInfo();
     $project_info->processInfoList($projects, $theme_data, 'theme', TRUE);
 
@@ -448,11 +431,8 @@ class UpdateContribTest extends UpdateTestBase {
   /**
    * Makes sure that if we fetch from a broken URL, sane things happen.
    */
-  public function testUpdateBrokenFetchURL() {
-    $system_info = [
-      '#all' => [
-        'version' => '8.0.0',
-      ],
+  public function testUpdateBrokenFetchURL(): void {
+    $this->mockInstalledExtensionsInfo([
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => '8.x-1.0',
@@ -468,14 +448,13 @@ class UpdateContribTest extends UpdateTestBase {
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
-
+    ]);
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
     // Ensure that the update information is correct before testing.
     $this->drupalGet('admin/reports/updates');
 
     $xml_mapping = [
-      'drupal' => '0.0',
+      'drupal' => '8.0.0',
       'aaa_update_test' => '1_0',
       'bbb_update_test' => 'does-not-exist',
       'ccc_update_test' => '1_0',
@@ -515,25 +494,22 @@ class UpdateContribTest extends UpdateTestBase {
    * hook_update_status_alter() to try to mark this as missing a security
    * update, then assert if we see the appropriate warnings on the right pages.
    */
-  public function testHookUpdateStatusAlter() {
-    $update_test_config = $this->config('update_test.settings');
+  public function testHookUpdateStatusAlter(): void {
     $update_admin_user = $this->drupalCreateUser([
       'administer site configuration',
       'administer software updates',
     ]);
     $this->drupalLogin($update_admin_user);
 
-    $system_info = [
-      '#all' => [
-        'version' => '8.0.0',
-      ],
+    $this->mockInstalledExtensionsInfo([
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
-    $update_test_config->set('system_info', $system_info)->save();
+    ]);
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
+    $update_test_config = $this->config('update_test.settings');
     $update_status = [
       'aaa_update_test' => [
         'status' => UpdateManagerInterface::NOT_SECURE,
@@ -542,7 +518,7 @@ class UpdateContribTest extends UpdateTestBase {
     $update_test_config->set('update_status', $update_status)->save();
     $this->refreshUpdateStatus(
       [
-        'drupal' => '0.0',
+        'drupal' => '8.0.0',
         'aaa_update_test' => '1_0',
       ]
     );
@@ -574,41 +550,46 @@ class UpdateContribTest extends UpdateTestBase {
   /**
    * Tests that core compatibility messages are displayed.
    */
-  public function testCoreCompatibilityMessage() {
-    $system_info = [
-      '#all' => [
-        'version' => '8.0.0',
-      ],
+  public function testCoreCompatibilityMessage(): void {
+    $this->mockInstalledExtensionsInfo([
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    ]);
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
 
-    // Confirm that messages are displayed for recommended and latest updates.
-    // @todo In https://www.drupal.org/project/drupal/issues/3112962:
-    //   Change the calls to 'refreshUpdateStatus()' to use:
-    //   - '1.1' instead of '1.1-core_compatibility'.
-    //   - '1.1-alpha1' instead of '1.1-alpha1-core_compatibility'.
-    //   Delete the files:
-    //   - core/modules/update/tests/modules/update_test/drupal.1.1-alpha1-core_compatibility.xml
-    //   - core/modules/update/tests/modules/update_test/drupal.1.1-core_compatibility.xml
-    $this->refreshUpdateStatus(['drupal' => '1.1-core_compatibility', 'aaa_update_test' => '8.x-1.2']);
+    $this->refreshUpdateStatus(['drupal' => '8.1.1', 'aaa_update_test' => '8.x-1.2']);
     $this->assertCoreCompatibilityMessage('8.x-1.2', '8.0.0 to 8.1.1', 'Recommended version:');
     $this->assertCoreCompatibilityMessage('8.x-1.3-beta1', '8.0.0, 8.1.1', 'Latest version:');
 
+    // Run the same check as above but with a Drupal core XML test fixture
+    // without '8.1.' in 'supported_branches'. Confirm that messages do not
+    // include releases from the '8.1.' branch.
+    $this->refreshUpdateStatus(['drupal' => '8.1.1-core_compatibility', 'aaa_update_test' => '8.x-1.2']);
+    $this->assertCoreCompatibilityMessage('8.x-1.2', '8.0.0 to 8.0.1', 'Recommended version:');
+    $this->assertCoreCompatibilityMessage('8.x-1.3-beta1', '8.0.0', 'Latest version:');
+
     // Change the available core releases and confirm that the messages change.
-    $this->refreshUpdateStatus(['drupal' => '1.1-alpha1-core_compatibility', 'aaa_update_test' => '8.x-1.2']);
+    $this->refreshUpdateStatus(['drupal' => '8.1.1-alpha1', 'aaa_update_test' => '8.x-1.2']);
     $this->assertCoreCompatibilityMessage('8.x-1.2', '8.0.0 to 8.1.0', 'Recommended version:');
     $this->assertCoreCompatibilityMessage('8.x-1.3-beta1', '8.0.0', 'Latest version:');
 
     // Confirm that messages are displayed for security and 'Also available'
     // updates.
-    $this->refreshUpdateStatus(['drupal' => '1.1-core_compatibility', 'aaa_update_test' => 'core_compatibility.8.x-1.2_8.x-2.2']);
+    $this->refreshUpdateStatus(['drupal' => '8.1.1', 'aaa_update_test' => 'core_compatibility.8.x-1.2_8.x-2.2']);
     $this->assertCoreCompatibilityMessage('8.x-1.2', '8.1.0 to 8.1.1', 'Security update:', FALSE);
     $this->assertCoreCompatibilityMessage('8.x-2.2', '8.1.1', 'Also available:', FALSE);
+  }
+
+  /**
+   * Tests update status of security releases.
+   */
+  public function testSecurityUpdateAvailability(): void {
+    foreach (static::securityUpdateAvailabilityProvider() as $case) {
+      $this->doTestSecurityUpdateAvailability($case['module_version'], $case['expected_security_releases'], $case['expected_update_message_type'], $case['fixture']);
+    }
   }
 
   /**
@@ -622,22 +603,17 @@ class UpdateContribTest extends UpdateTestBase {
    *   The type of update message expected.
    * @param string $fixture
    *   The fixture file to use.
-   *
-   * @dataProvider securityUpdateAvailabilityProvider
    */
-  public function testSecurityUpdateAvailability($module_version, array $expected_security_releases, $expected_update_message_type, $fixture) {
-    $system_info = [
-      '#all' => [
-        'version' => '8.0.0',
-      ],
+  protected function doTestSecurityUpdateAvailability($module_version, array $expected_security_releases, $expected_update_message_type, $fixture): void {
+    $this->mockInstalledExtensionsInfo([
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => $module_version,
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
-    $this->refreshUpdateStatus(['drupal' => '0.0', 'aaa_update_test' => $fixture]);
+    ]);
+    $this->mockDefaultExtensionsInfo(['version' => '8.0.0']);
+    $this->refreshUpdateStatus(['drupal' => '8.0.0', 'aaa_update_test' => $fixture]);
     $this->assertSecurityUpdates('aaa_update_test', $expected_security_releases, $expected_update_message_type, 'table.update:nth-of-type(2)');
   }
 
@@ -671,12 +647,12 @@ class UpdateContribTest extends UpdateTestBase {
    *   - 8.x-1.1
    *   - 8.x-1.0
    */
-  public function securityUpdateAvailabilityProvider() {
+  public static function securityUpdateAvailabilityProvider() {
     return [
       // Security releases available for module major release 1.
       // No releases for next major.
       '8.x-1.0, 8.x-1.2' => [
-        'module_patch_version' => '8.x-1.0',
+        'module_version' => '8.x-1.0',
         'expected_security_releases' => ['8.x-1.2'],
         'expected_update_message_type' => static::SECURITY_UPDATE_REQUIRED,
         'fixture' => 'sec.8.x-1.2',
@@ -685,7 +661,7 @@ class UpdateContribTest extends UpdateTestBase {
       // 8.x-1.1 security release marked as insecure.
       // No releases for next major.
       '8.x-1.0, 8.x-1.1 8.x-1.2' => [
-        'module_patch_version' => '8.x-1.0',
+        'module_version' => '8.x-1.0',
         'expected_security_releases' => ['8.x-1.2'],
         'expected_update_message_type' => static::SECURITY_UPDATE_REQUIRED,
         'fixture' => 'sec.8.x-1.1_8.x-1.2',
@@ -693,13 +669,13 @@ class UpdateContribTest extends UpdateTestBase {
       // Security release available for module major release 2.
       // No releases for next major.
       '8.x-2.0, 8.x-2.2' => [
-        'module_patch_version' => '8.x-2.0',
+        'module_version' => '8.x-2.0',
         'expected_security_releases' => ['8.x-2.2'],
         'expected_update_message_type' => static::SECURITY_UPDATE_REQUIRED,
         'fixture' => 'sec.8.x-2.2_1.x_secure',
       ],
       '8.x-2.2, 8.x-1.2 8.x-2.2' => [
-        'module_patch_version' => '8.x-2.2',
+        'module_version' => '8.x-2.2',
         'expected_security_releases' => [],
         'expected_update_message_type' => static::UPDATE_NONE,
         'fixture' => 'sec.8.x-1.2_8.x-2.2',
@@ -707,7 +683,7 @@ class UpdateContribTest extends UpdateTestBase {
       // Security release available for module major release 1.
       // Security release also available for next major.
       '8.x-1.0, 8.x-1.2 8.x-2.2' => [
-        'module_patch_version' => '8.x-1.0',
+        'module_version' => '8.x-1.0',
         'expected_security_releases' => ['8.x-1.2'],
         'expected_update_message_type' => static::SECURITY_UPDATE_REQUIRED,
         'fixture' => 'sec.8.x-1.2_8.x-2.2',
@@ -716,7 +692,7 @@ class UpdateContribTest extends UpdateTestBase {
       // releases are not marked as insecure.
       // Security release available for next major.
       '8.x-1.0, 8.x-2.2, not insecure' => [
-        'module_patch_version' => '8.x-1.0',
+        'module_version' => '8.x-1.0',
         'expected_security_releases' => [],
         'expected_update_message_type' => static::UPDATE_AVAILABLE,
         'fixture' => 'sec.8.x-2.2_1.x_secure',
@@ -724,13 +700,13 @@ class UpdateContribTest extends UpdateTestBase {
       // On latest security release for module major release 1.
       // Security release also available for next major.
       '8.x-1.2, 8.x-1.2 8.x-2.2' => [
-        'module_patch_version' => '8.x-1.2',
-        'expected_security_release' => [],
+        'module_version' => '8.x-1.2',
+        'expected_security_releases' => [],
         'expected_update_message_type' => static::UPDATE_NONE,
         'fixture' => 'sec.8.x-1.2_8.x-2.2',
       ],
       '8.x-2.0, 8.x-1.2 8.x-2.2' => [
-        'module_patch_version' => '8.x-2.0',
+        'module_version' => '8.x-2.0',
         'expected_security_releases' => ['8.x-2.2'],
         'expected_update_message_type' => static::SECURITY_UPDATE_REQUIRED,
         'fixture' => 'sec.8.x-1.2_8.x-2.2',
@@ -755,17 +731,16 @@ class UpdateContribTest extends UpdateTestBase {
    * They both have an '8.x-1.0' release that is unpublished and an '8.x-2.0'
    * release that is published and is the expected update.
    */
-  public function testRevokedRelease() {
-    $system_info = [
+  public function testRevokedRelease(): void {
+    $this->mockInstalledExtensionsInfo([
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => '8.x-1.0',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    ]);
     $this->refreshUpdateStatus([
-      'drupal' => '0.0',
+      'drupal' => '8.0.0',
       $this->updateProject => '1_0-supported',
     ]);
     // @todo Change the version label to 'Recommended version:' in
@@ -773,7 +748,7 @@ class UpdateContribTest extends UpdateTestBase {
     $this->confirmRevokedStatus('8.x-1.0', '8.x-2.0', 'Also available:');
 
     $this->refreshUpdateStatus([
-      'drupal' => '0.0',
+      'drupal' => '8.0.0',
       $this->updateProject => '1_0-unsupported',
     ]);
     $this->confirmRevokedStatus('8.x-1.0', '8.x-2.0', 'Recommended version:');
@@ -794,17 +769,16 @@ class UpdateContribTest extends UpdateTestBase {
    * 'unsupported' and an '8.x-2.0' release that has the 'Release type' value of
    * 'supported' and is the expected update.
    */
-  public function testUnsupportedRelease() {
-    $system_info = [
+  public function testUnsupportedRelease(): void {
+    $this->mockInstalledExtensionsInfo([
       'aaa_update_test' => [
         'project' => 'aaa_update_test',
         'version' => '8.x-1.1',
         'hidden' => FALSE,
       ],
-    ];
-    $this->config('update_test.settings')->set('system_info', $system_info)->save();
+    ]);
     $this->refreshUpdateStatus([
-      'drupal' => '0.0',
+      'drupal' => '8.0.0',
       $this->updateProject => '1_0-supported',
     ]);
     // @todo Change the version label to 'Recommended version:' in
@@ -812,7 +786,7 @@ class UpdateContribTest extends UpdateTestBase {
     $this->confirmUnsupportedStatus('8.x-1.1', '8.x-2.0', 'Also available:');
 
     $this->refreshUpdateStatus([
-      'drupal' => '0.0',
+      'drupal' => '8.0.0',
       $this->updateProject => '1_0-unsupported',
     ]);
     $this->confirmUnsupportedStatus('8.x-1.1', '8.x-2.0', 'Recommended version:');
@@ -821,7 +795,7 @@ class UpdateContribTest extends UpdateTestBase {
   /**
    * Tests messages for invalid, empty and missing version strings.
    */
-  public function testNonStandardVersionStrings() {
+  public function testNonStandardVersionStrings(): void {
     $version_infos = [
       'invalid' => [
         'version' => 'llama',
@@ -836,18 +810,18 @@ class UpdateContribTest extends UpdateTestBase {
       ],
     ];
     foreach ($version_infos as $version_info) {
-      $system_info = [
+      $installed_extensions = [
         'aaa_update_test' => [
           'project' => 'aaa_update_test',
           'hidden' => FALSE,
         ],
       ];
       if (isset($version_info['version'])) {
-        $system_info['aaa_update_test']['version'] = $version_info['version'];
+        $installed_extensions['aaa_update_test']['version'] = $version_info['version'];
       }
-      $this->config('update_test.settings')->set('system_info', $system_info)->save();
+      $this->mockInstalledExtensionsInfo($installed_extensions);
       $this->refreshUpdateStatus([
-        'drupal' => '0.0',
+        'drupal' => '8.0.0',
         $this->updateProject => '1_0-supported',
       ]);
       $this->standardTests();
@@ -876,25 +850,18 @@ class UpdateContribTest extends UpdateTestBase {
     $this->assertStringContainsString("Requires Drupal core: $expected_range", $compatibility_details->getText());
     $details_summary_element = $compatibility_details->find('css', 'summary');
     if ($is_compatible) {
-      $download_version = str_replace('.', '-', $version);
       // If an update is compatible with the installed version of Drupal core,
-      // it should have a download link and the details element should be closed
-      // by default.
+      // the details element should be closed by default.
       $this->assertFalse($compatibility_details->hasAttribute('open'));
       $this->assertSame('Compatible', $details_summary_element->getText());
-      $this->assertEquals(
-        "http://example.com/{$this->updateProject}-$download_version.tar.gz",
-        $update_element->findLink('Download')->getAttribute('href')
-      );
     }
     else {
       // If an update is not compatible with the installed version of Drupal
-      // core, it should not have a download link and the details element should
-      // be open by default.
+      // core, the details element should be open by default.
       $this->assertTrue($compatibility_details->hasAttribute('open'));
       $this->assertSame('Not compatible', $details_summary_element->getText());
-      $this->assertFalse($update_element->hasLink('Download'));
     }
+    $this->assertFalse($update_element->hasLink('Download'));
   }
 
 }

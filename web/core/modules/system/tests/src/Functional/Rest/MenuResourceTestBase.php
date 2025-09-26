@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\Rest;
 
 use Drupal\system\Entity\Menu;
@@ -64,6 +66,7 @@ abstract class MenuResourceTestBase extends ConfigEntityResourceTestBase {
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**

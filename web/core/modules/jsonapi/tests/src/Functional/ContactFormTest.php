@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\contact\Entity\ContactForm;
@@ -112,12 +114,13 @@ class ContactFormTest extends ConfigEntityResourceTestBase {
    */
   protected function getPostDocument() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedUnauthorizedAccessMessage($method) {
+  protected function getExpectedUnauthorizedAccessMessage($method): string {
     return "The 'access site-wide contact form' permission is required.";
   }
 

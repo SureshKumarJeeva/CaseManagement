@@ -2,23 +2,23 @@
 
 namespace Drupal\Tests\token\Kernel;
 
+use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\Language\Language;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\language\Entity\ConfigurableLanguage;
-use Drupal\Core\DependencyInjection\ContainerBuilder;
 
 /**
  * Tests language tokens.
  *
  * @group token
  */
-class LanguageTest extends KernelTestBase {
+class LanguageTest extends TokenKernelTestBase {
 
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'language',
     'token',
   ];
@@ -85,7 +85,7 @@ class LanguageTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->token = $this->container->get('token');
@@ -165,7 +165,7 @@ class LanguageTest extends KernelTestBase {
    *
    * @see testLanguageTokenReplacement()
    */
-  public function languageTokenReplacementDataProvider() {
+  public static function languageTokenReplacementDataProvider() {
     return [
       [
         // Test the replacement of the name of the site default language.
@@ -240,7 +240,7 @@ class LanguageTest extends KernelTestBase {
    *
    * @see testCurrentPageLanguageTokenReplacement()
    */
-  public function currentPageLanguageTokenReplacementDataProvider() {
+  public static function currentPageLanguageTokenReplacementDataProvider() {
     return [
       [
         // Test the replacement of the language name token, taken from the

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\layout_builder\FunctionalJavascript;
 
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
@@ -25,6 +27,7 @@ class LayoutBuilderNestedFormUiTest extends WebDriverTestBase {
    */
   protected static $modules = [
     'block',
+    'field_ui',
     'node',
     'layout_builder',
     'layout_builder_form_block_test',
@@ -64,8 +67,7 @@ class LayoutBuilderNestedFormUiTest extends WebDriverTestBase {
   /**
    * Tests blocks containing forms can be successfully saved editing defaults.
    */
-  public function testAddingFormBlocksToDefaults() {
-    $this->markTestSkipped();
+  public function testAddingFormBlocksToDefaults(): void {
     $this->drupalLogin($this->drupalCreateUser([
       'configure any layout',
       'administer node display',
@@ -99,8 +101,7 @@ class LayoutBuilderNestedFormUiTest extends WebDriverTestBase {
   /**
    * Tests blocks containing forms can be successfully saved editing overrides.
    */
-  public function testAddingFormBlocksToOverrides() {
-    $this->markTestSkipped();
+  public function testAddingFormBlocksToOverrides(): void {
     $this->drupalLogin($this->drupalCreateUser([
       'configure any layout',
       'administer node display',

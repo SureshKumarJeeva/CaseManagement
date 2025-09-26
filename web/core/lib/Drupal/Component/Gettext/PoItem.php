@@ -5,7 +5,7 @@ namespace Drupal\Component\Gettext;
 /**
  * PoItem handles one translation.
  *
- * @todo: This class contains some really old legacy code.
+ * @todo This class contains some really old legacy code.
  * @see https://www.drupal.org/node/1637662
  */
 class PoItem {
@@ -103,18 +103,17 @@ class PoItem {
   }
 
   /**
-   * Gets the source string or the array of strings if the translation has
-   * plurals.
+   * Gets the source string(s) if the translation has plurals.
    *
-   * @return string or array $translation
+   * @return string|array
+   *   The source string or array of strings if it has plurals.
    */
   public function getSource() {
     return $this->source;
   }
 
   /**
-   * Set the source string or the array of strings if the translation has
-   * plurals.
+   * Sets the source string(s) if the translation has plurals.
    *
    * @param string|array $source
    *   The source string or the array of strings if the translation has plurals.
@@ -124,18 +123,17 @@ class PoItem {
   }
 
   /**
-   * Gets the translation string or the array of strings if the translation has
-   * plurals.
+   * Gets the translation string(s) if the translation has plurals.
    *
-   * @return string or array $translation
+   * @return string|array
+   *   The translation string or array of strings if it has plurals.
    */
   public function getTranslation() {
     return $this->translation;
   }
 
   /**
-   * Set the translation string or the array of strings if the translation has
-   * plurals.
+   * Sets the translation string(s) if the translation has plurals.
    *
    * @param string|array $translation
    *   The translation string or the array of strings if the translation has
@@ -202,8 +200,7 @@ class PoItem {
     if (isset($values['comment'])) {
       $this->setComment($values['comment']);
     }
-    if (isset($this->source) &&
-        strpos($this->source, self::DELIMITER) !== FALSE) {
+    if (isset($this->source) && str_contains($this->source, self::DELIMITER)) {
       $this->setSource(explode(self::DELIMITER, $this->source));
       $this->setTranslation(explode(self::DELIMITER, $this->translation ?? ''));
       $this->setPlural(count($this->source) > 1);

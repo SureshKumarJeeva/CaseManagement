@@ -2,8 +2,8 @@
 
 namespace Drupal\entity_print\Event;
 
+use Symfony\Contracts\EventDispatcher\Event;
 use Drupal\entity_print\Plugin\PrintEngineInterface;
-use Symfony\Component\EventDispatcher\Event;
 
 /**
  * Event base class.

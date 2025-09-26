@@ -1,15 +1,16 @@
 <?php
 
-namespace Drupal\Tests\tracker\Kernel\Migrate\d7;
+declare(strict_types=1);
 
-use Drupal\Tests\migrate_drupal\Kernel\d7\MigrateDrupal7TestBase;
+namespace Drupal\Tests\tracker\Kernel\Migrate\d7;
 
 /**
  * Tests migration of Tracker settings to configuration.
  *
  * @group tracker
+ * @group legacy
  */
-class MigrateTrackerSettingsTest extends MigrateDrupal7TestBase {
+class MigrateTrackerSettingsTest extends MigrateDrupalTestBase {
 
   protected static $modules = ['tracker'];
 
@@ -25,7 +26,7 @@ class MigrateTrackerSettingsTest extends MigrateDrupal7TestBase {
   /**
    * Tests migration of tracker's variables to configuration.
    */
-  public function testMigration() {
+  public function testMigration(): void {
     $this->assertSame(999, \Drupal::config('tracker.settings')->get('cron_index_limit'));
   }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\rest\Functional\Rest;
 
 use Drupal\Tests\rest\Functional\EntityResource\ConfigEntityResourceTestBase;
@@ -89,6 +91,7 @@ abstract class RestResourceConfigResourceTestBase extends ConfigEntityResourceTe
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**

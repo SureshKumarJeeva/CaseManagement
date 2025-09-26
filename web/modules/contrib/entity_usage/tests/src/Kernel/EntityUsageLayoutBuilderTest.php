@@ -2,10 +2,10 @@
 
 namespace Drupal\Tests\entity_usage\Kernel;
 
+use Drupal\KernelTests\KernelTestBase;
 use Drupal\block_content\Entity\BlockContent;
 use Drupal\block_content\Entity\BlockContentType;
 use Drupal\entity_test\Entity\EntityTest;
-use Drupal\KernelTests\KernelTestBase;
 use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\layout_builder\Plugin\SectionStorage\OverridesSectionStorage;
 use Drupal\layout_builder\Section;
@@ -40,11 +40,10 @@ class EntityUsageLayoutBuilderTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     $this->installSchema('entity_usage', ['entity_usage']);
-    $this->installSchema('system', ['key_value_expire']);
     $this->installEntitySchema('entity_test');
     $this->installEntitySchema('block_content');
 

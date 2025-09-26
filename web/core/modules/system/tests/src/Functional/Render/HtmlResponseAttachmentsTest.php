@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\Render;
 
 use Drupal\Tests\BrowserTestBase;
@@ -12,9 +14,7 @@ use Drupal\Tests\BrowserTestBase;
 class HtmlResponseAttachmentsTest extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['render_attached_test'];
 
@@ -26,7 +26,7 @@ class HtmlResponseAttachmentsTest extends BrowserTestBase {
   /**
    * Tests rendering of ['#attached'].
    */
-  public function testAttachments() {
+  public function testAttachments(): void {
     // Test ['#attached']['http_header] = ['Status', $code].
     $this->drupalGet('/render_attached_test/teapot');
     $this->assertSession()->statusCodeEquals(418);
@@ -63,21 +63,21 @@ class HtmlResponseAttachmentsTest extends BrowserTestBase {
     // Test ['#attached']['html_head_link'] when outputted as HTTP header.
     $this->drupalGet('/render_attached_test/html_header_link');
     $expected_link_headers = [
-      '</foo?bar=&lt;baz&gt;&amp;baz=false>; rel="alternate"',
+      '</foo?bar=<baz>&baz=false>; rel="alternate"',
       '</foo/bar>; hreflang="nl"; rel="alternate"',
       '</foo/bar>; hreflang="de"; rel="alternate"',
     ];
     $this->assertEquals($expected_link_headers, $this->getSession()->getResponseHeaders()['Link']);
 
-    // Check that duplicate alternate URLs with different hreflangs are allowed.
-    $test_link = $this->xpath('//head/link[@rel="alternate"][@href="/foo/bar"]');
-    $this->assertEquals(2, count($test_link), 'Duplicate alternate URLs are allowed.');
+    // Check that duplicate alternate URLs with different hreflang attributes
+    // are allowed.
+    $this->assertSession()->elementsCount('xpath', '//head/link[@rel="alternate"][@href="/foo/bar"]', 2);
   }
 
   /**
    * Tests caching of ['#attached'].
    */
-  public function testRenderCachedBlock() {
+  public function testRenderCachedBlock(): void {
     // Make sure our test block is visible.
     $this->drupalPlaceBlock('attached_rendering_block', ['region' => 'content']);
 
@@ -144,7 +144,7 @@ class HtmlResponseAttachmentsTest extends BrowserTestBase {
    */
   protected function assertHead(): void {
     // Discover the DOM element for the meta link.
-    $test_meta = $this->xpath('//head/meta[@test-attribute="testvalue"]');
+    $test_meta = $this->xpath('//head/meta[@test-attribute="test_value"]');
     $this->assertCount(1, $test_meta, 'There\'s only one test attribute.');
     // Grab the only DOM element.
     $test_meta = reset($test_meta);
@@ -152,7 +152,7 @@ class HtmlResponseAttachmentsTest extends BrowserTestBase {
       $this->fail('Unable to find the head meta.');
     }
     else {
-      $this->assertEquals('testvalue', $test_meta->getAttribute('test-attribute'));
+      $this->assertEquals('test_value', $test_meta->getAttribute('test-attribute'));
     }
   }
 

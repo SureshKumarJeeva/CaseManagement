@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\path\Functional;
 
 /**
@@ -10,17 +12,18 @@ namespace Drupal\Tests\path\Functional;
 class PathNodeFormTest extends PathTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['node', 'path'];
 
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'stark';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -35,13 +38,13 @@ class PathNodeFormTest extends PathTestBase {
   /**
    * Tests the node form ui.
    */
-  public function testNodeForm() {
+  public function testNodeForm(): void {
     $assert_session = $this->assertSession();
 
     $this->drupalGet('node/add/page');
 
     // Make sure we have a vertical tab fieldset and 'Path' fields.
-    $assert_session->elementContains('css', '.form-type-vertical-tabs #edit-path-0 summary', 'URL alias');
+    $assert_session->elementContains('css', '.js-form-type-vertical-tabs #edit-path-0 summary', 'URL alias');
     $assert_session->fieldExists('path[0][alias]');
 
     // Disable the 'Path' field for this content type.
@@ -52,7 +55,7 @@ class PathNodeFormTest extends PathTestBase {
     $this->drupalGet('node/add/page');
 
     // See if the whole fieldset is gone now.
-    $assert_session->elementNotExists('css', '.form-type-vertical-tabs #edit-path-0');
+    $assert_session->elementNotExists('css', '.js-form-type-vertical-tabs #edit-path-0');
     $assert_session->fieldNotExists('path[0][alias]');
   }
 

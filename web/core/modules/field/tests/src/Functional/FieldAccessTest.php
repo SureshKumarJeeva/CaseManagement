@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\field\Functional;
 
 use Drupal\field\Entity\FieldConfig;
@@ -13,9 +15,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 class FieldAccessTest extends FieldTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['node', 'field_test'];
 
@@ -38,6 +38,9 @@ class FieldAccessTest extends FieldTestBase {
    */
   protected $testViewFieldValue;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -81,7 +84,7 @@ class FieldAccessTest extends FieldTestBase {
   /**
    * Tests that hook_entity_field_access() is called.
    */
-  public function testFieldAccess() {
+  public function testFieldAccess(): void {
 
     // Assert the text is visible.
     $this->drupalGet('node/' . $this->node->id());

@@ -1,0 +1,25 @@
+field_group.field_group_formatter_plugin.form_step:
+  type: field_group.field_group_formatter_plugin.base
+  label: 'Form step formatter settings'
+  mapping:
+    show_step_title:
+      type: boolean
+      label: 'Mark to show step title'
+    step_description:
+      type: text
+      label: 'Text which will be show on step description'
+    back_button_show:
+      type: boolean
+      label: 'Mark to show Back button'
+    back_button_text:
+      type: label
+      label: 'Text for back button'
+    next_button_text:
+      type: label
+      label: 'Text for next button'
+    required_fields:
+      type: boolean
+      label: 'Mark for required fields'
+    step_help:
+      type: text
+      label: 'Text which will be show on step help'

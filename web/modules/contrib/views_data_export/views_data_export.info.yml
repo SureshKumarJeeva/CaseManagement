@@ -2,7 +2,7 @@ name: 'Views Data Export'
 type: module
 description: 'Plugin to export views data into various file formats.'
 package: 'Views'
-core_version_requirement: ^8.8 || ^9
+core_version_requirement: ^8.8 || ^9 || ^10
 dependencies:
   - drupal:rest
   - drupal:views

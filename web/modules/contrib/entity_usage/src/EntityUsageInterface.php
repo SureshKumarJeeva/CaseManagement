@@ -140,8 +140,11 @@ interface EntityUsageInterface {
    * @param bool $nest_results
    *   (optional) Whether the results should be returned in a nested structure.
    *   Defaults to TRUE.
+   * @param int $limit
+   *   (optional) Limit number of results returned. Defaults to 0, which
+   *   will return all sources.
    *
-   * @return array
+   * @return ($nest_results is true ? array<string, array<string, array<array{source_langcode: string, source_vid: string, method: string, field_name: string, count: string}>>> : array<array{source_type: string, source_id: string, source_langcode: string, source_vid: string, method: string, field_name: string, count: string}>)
    *   A nested array with usage data. The first level is keyed by the type of
    *   the source entities, the second by the source id. The value of the second
    *   level contains all other information like the method used by the source
@@ -149,7 +152,7 @@ interface EntityUsageInterface {
    *   $nest_results is FALSE, the returned array will be an indexed array where
    *   values are arrays containing all DB columns for the records.
    */
-  public function listSources(EntityInterface $target_entity, $nest_results = TRUE);
+  public function listSources(EntityInterface $target_entity, $nest_results = TRUE, int $limit = 0);
 
   /**
    * Provide a list of all referenced target entities for a source entity.
@@ -157,9 +160,10 @@ interface EntityUsageInterface {
    * @param \Drupal\Core\Entity\EntityInterface $source_entity
    *   The source entity to check for references.
    * @param int $vid
-   *   The revision id to return the references for. Defaults to all revisions.
+   *   (optional) The revision id to return the references for.
+   *   Defaults to all revisions.
    *
-   * @return array
+   * @return array<string, array<int, array<array{method: string, field_name: string, count: string}>>>
    *   A nested array with usage data. The first level is keyed by the type of
    *   the target entities, the second by the target id. The value of the second
    *   level contains all other information like the method used by the source
@@ -183,7 +187,7 @@ interface EntityUsageInterface {
    *   (optional) Whether the results must be wrapped into an additional array
    *   level, by the reference method. Defaults to FALSE.
    *
-   * @return array
+   * @return array<string, array<int, int>>
    *   A nested array with usage data.The first level is keyed by the type of
    *   the source entity, the second by the referencing objects ID. The value of
    *   the second level contains the usage count, which will be summed for all
@@ -191,8 +195,10 @@ interface EntityUsageInterface {
    *   Note that if $include_method is TRUE, the first level is keyed by the
    *   reference method, and the second level will continue as explained above.
    *
-   * @deprecated in branch 2.x.
+   * @deprecated in entity_usage:2.0.0 and is removed from entity_usage:3.0.0.
    *   Use \Drupal\entity_usage\EntityUsageInterface::listSources() instead.
+   *
+   * @see https://www.drupal.org/project/entity_usage/issues/3445394
    */
   public function listUsage(EntityInterface $entity, $include_method = FALSE);
 
@@ -207,14 +213,16 @@ interface EntityUsageInterface {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   A source entity.
    *
-   * @return array
+   * @return array<string, array<int, int>>
    *   A nested array with usage data.The first level is keyed by the type of
    *   the target entity, the second by the referencing objects ID. The value of
    *   the second level contains the usage count, which will be summed for all
    *   revisions and translations tracked.
    *
-   * @deprecated in branch 2.x.
+   * @deprecated in entity_usage:2.0.0 and is removed from entity_usage:3.0.0.
    *   Use \Drupal\entity_usage\EntityUsageInterface::listTargets() instead.
+   *
+   * @see https://www.drupal.org/project/entity_usage/issues/3445394
    */
   public function listReferencedEntities(EntityInterface $entity);
 

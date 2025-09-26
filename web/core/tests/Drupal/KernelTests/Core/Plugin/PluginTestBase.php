@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\KernelTests\Core\Plugin;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Plugin\Context\EntityContextDefinition;
 use Drupal\KernelTests\KernelTestBase;
 use Drupal\plugin_test\Plugin\TestPluginManager;
@@ -16,9 +19,7 @@ use Drupal\Core\Extension\ModuleHandler;
 abstract class PluginTestBase extends KernelTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['plugin_test'];
 
@@ -29,7 +30,10 @@ abstract class PluginTestBase extends KernelTestBase {
   protected $defaultsTestPluginManager;
   protected $defaultsTestPluginExpectedDefinitions;
 
-  protected function setUp() {
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
     parent::setUp();
 
     // Real modules implementing plugin types may expose a module-specific API
@@ -42,7 +46,7 @@ abstract class PluginTestBase extends KernelTestBase {
     //   as derivatives and ReflectionFactory.
     $this->testPluginManager = new TestPluginManager();
     $this->mockBlockManager = new MockBlockManager();
-    $module_handler = new ModuleHandler($this->root, [], new MemoryBackend(), $this->container->get('event_dispatcher'));
+    $module_handler = new ModuleHandler($this->root, [], new MemoryBackend(\Drupal::service(TimeInterface::class)));
     $this->defaultsTestPluginManager = new DefaultsTestPluginManager($module_handler);
 
     // The expected plugin definitions within each manager. Several tests assert

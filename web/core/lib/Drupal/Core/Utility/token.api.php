@@ -58,7 +58,7 @@ use Drupal\user\Entity\User;
  *   For example:
  *   @code
  *     if ($created_tokens = $token_service->findWithPrefix($tokens, 'created')) {
- *       $replacements = $token_service->generate('date', $created_tokens, array('date' => $node->getCreatedTime()), $options, $bubbleable_metadata);
+ *       $replacements = $token_service->generate('date', $created_tokens, ['date' => $node->getCreatedTime()], $options, $bubbleable_metadata);
  *     }
  *   @endcode
  *
@@ -175,7 +175,7 @@ function hook_tokens_alter(array &$replacements, array $context, \Drupal\Core\Re
  * module will need to implement that hook in order to generate token
  * replacements from the tokens defined here.
  *
- * @return
+ * @return array
  *   An associative array of available tokens and token types. The outer array
  *   has two components:
  *   - types: An associative array of token types (groups). Each token type is

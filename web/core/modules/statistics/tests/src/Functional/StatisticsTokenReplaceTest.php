@@ -1,14 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\statistics\Functional;
 
-use Drupal\Component\Render\FormattableMarkup;
-
 /**
- * Generates text using placeholders for dummy content to check statistics token
- * replacement.
+ * Tests statistics token replacement.
  *
  * @group statistics
+ * @group legacy
  */
 class StatisticsTokenReplaceTest extends StatisticsTestBase {
 
@@ -20,7 +20,7 @@ class StatisticsTokenReplaceTest extends StatisticsTestBase {
   /**
    * Creates a node, then tests the statistics tokens generated from it.
    */
-  public function testStatisticsTokenReplacement() {
+  public function testStatisticsTokenReplacement(): void {
     $language_interface = \Drupal::languageManager()->getCurrentLanguage();
 
     // Create user and node.
@@ -41,7 +41,7 @@ class StatisticsTokenReplaceTest extends StatisticsTestBase {
 
     foreach ($tests as $input => $expected) {
       $output = \Drupal::token()->replace($input, ['node' => $node], ['langcode' => $language_interface->getId()]);
-      $this->assertEquals($expected, $output, new FormattableMarkup('Statistics token %token replaced.', ['%token' => $input]));
+      $this->assertEquals($expected, $output, "Statistics token $input replaced.");
     }
 
     // Hit the node.
@@ -69,7 +69,7 @@ class StatisticsTokenReplaceTest extends StatisticsTestBase {
 
     foreach ($tests as $input => $expected) {
       $output = \Drupal::token()->replace($input, ['node' => $node], ['langcode' => $language_interface->getId()]);
-      $this->assertEquals($expected, $output, new FormattableMarkup('Statistics token %token replaced.', ['%token' => $input]));
+      $this->assertEquals($expected, $output, "Statistics token $input replaced.");
     }
   }
 

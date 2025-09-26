@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\comment\Functional;
 
 use Drupal\Component\Serialization\Json;
@@ -55,7 +57,7 @@ class CommentNewIndicatorTest extends CommentTestBase {
   /**
    * Tests new comment marker.
    */
-  public function testCommentNewCommentsIndicator() {
+  public function testCommentNewCommentsIndicator(): void {
     // Test if the right links are displayed when no comment is present for the
     // node.
     $this->drupalLogin($this->adminUser);
@@ -66,7 +68,7 @@ class CommentNewIndicatorTest extends CommentTestBase {
     // used by the drupal.node-new-comments-link library to determine whether
     // a "x new comments" link might be necessary or not. We do this in
     // JavaScript to prevent breaking the render cache.
-    $this->assertCount(0, $this->xpath('//*[@data-history-node-last-comment-timestamp]'), 'data-history-node-last-comment-timestamp attribute is not set.');
+    $this->assertSession()->elementNotExists('xpath', '//*[@data-history-node-last-comment-timestamp]');
 
     // Create a new comment. This helper function may be run with different
     // comment settings so use $comment->save() to avoid complex setup.
@@ -94,8 +96,8 @@ class CommentNewIndicatorTest extends CommentTestBase {
     // value, the drupal.node-new-comments-link library would determine that the
     // node received a comment after the user last viewed it, and hence it would
     // perform an HTTP request to render the "new comments" node link.
-    $this->assertCount(1, $this->xpath('//*[@data-history-node-last-comment-timestamp="' . $comment->getChangedTime() . '"]'), 'data-history-node-last-comment-timestamp attribute is set to the correct value.');
-    $this->assertCount(1, $this->xpath('//*[@data-history-node-field-name="comment"]'), 'data-history-node-field-name attribute is set to the correct value.');
+    $this->assertSession()->elementsCount('xpath', '//*[@data-history-node-last-comment-timestamp="' . $comment->getChangedTime() . '"]', 1);
+    $this->assertSession()->elementsCount('xpath', '//*[@data-history-node-field-name="comment"]', 1);
     // The data will be pre-seeded on this particular page in drupalSettings, to
     // avoid the need for the client to make a separate request to the server.
     $settings = $this->getDrupalSettings();

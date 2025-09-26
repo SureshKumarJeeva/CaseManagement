@@ -2,28 +2,26 @@
 
 namespace Drupal\Tests\token\Kernel;
 
+use Drupal\Core\Url;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
-use Drupal\Core\Url;
 
 /**
  * Test the node and content type tokens.
  *
  * @group token
  */
-class NodeTest extends KernelTestBase {
-
-  /**
-   * Modules to enable.
-   *
-   * @var array
-   */
-  public static $modules = ['node', 'field', 'text'];
+class NodeTest extends TokenKernelTestBase {
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected static $modules = ['node', 'field', 'text'];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
     parent::setUp();
 
     $this->installEntitySchema('user');
@@ -43,12 +41,15 @@ class NodeTest extends KernelTestBase {
     $node_type->save();
   }
 
-  function testNodeTokens() {
+  /**
+   *
+   */
+  public function testNodeTokens() {
     $page = Node::create([
       'type' => 'page',
       'title' => 'Source Title',
       'revision_log' => $this->randomMachineName(),
-      'path' => ['alias' => '/content/source-node']
+      'path' => ['alias' => '/content/source-node'],
     ]);
     $page->save();
     $tokens = [
@@ -68,7 +69,7 @@ class NodeTest extends KernelTestBase {
       'type' => 'page',
       'type-name' => 'Basic page',
       'url:alias' => '/content/source-node',
-      'language:name' => 'English'
+      'language:name' => 'English',
     ];
     $this->assertTokens('node', ['node' => $page], $tokens);
 
@@ -94,7 +95,7 @@ class NodeTest extends KernelTestBase {
       'type' => 'article',
       'type-name' => 'Article',
       'url:alias' => "/node/{$article->id()}",
-      'language:name' => 'English'
+      'language:name' => 'English',
     ];
     $this->assertTokens('node', ['node' => $article], $tokens);
   }

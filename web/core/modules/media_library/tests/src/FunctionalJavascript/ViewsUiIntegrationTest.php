@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\media_library\FunctionalJavascript;
 
 /**
@@ -13,6 +15,11 @@ class ViewsUiIntegrationTest extends MediaLibraryTestBase {
    * {@inheritdoc}
    */
   protected static $modules = ['views_ui'];
+
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
 
   /**
    * {@inheritdoc}
@@ -43,7 +50,7 @@ class ViewsUiIntegrationTest extends MediaLibraryTestBase {
   /**
    * Tests that the integration with Views works correctly.
    */
-  public function testViewsAdmin() {
+  public function testViewsAdmin(): void {
     $page = $this->getSession()->getPage();
 
     // Assert that the widget can be seen and that there are 8 items.
@@ -51,8 +58,8 @@ class ViewsUiIntegrationTest extends MediaLibraryTestBase {
     $this->waitForElementsCount('css', '.js-media-library-item', 8);
 
     // Assert that filtering works in live preview.
-    $page->find('css', '.js-media-library-view .view-filters')->fillField('name', 'snake');
-    $page->find('css', '.js-media-library-view .view-filters')->pressButton('Apply filters');
+    $page->find('css', '.js-media-library-view')->fillField('name', 'snake');
+    $page->find('css', '.js-media-library-view')->pressButton('Apply filters');
     $this->waitForElementsCount('css', '.js-media-library-item', 1);
 
     // Test the same routine but in the view for the table widget.
@@ -60,8 +67,8 @@ class ViewsUiIntegrationTest extends MediaLibraryTestBase {
     $this->waitForElementsCount('css', '.js-media-library-item', 8);
 
     // Assert that filtering works in live preview.
-    $page->find('css', '.js-media-library-view .view-filters')->fillField('name', 'snake');
-    $page->find('css', '.js-media-library-view .view-filters')->pressButton('Apply filters');
+    $page->find('css', '.js-media-library-view')->fillField('name', 'snake');
+    $page->find('css', '.js-media-library-view')->pressButton('Apply filters');
     $this->waitForElementsCount('css', '.js-media-library-item', 1);
 
     // We cannot test clicking the 'Insert selected' button in either view

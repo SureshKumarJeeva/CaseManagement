@@ -18,7 +18,7 @@ use Drupal\media\OEmbed\UrlResolverInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 
 /**
  * Controller which renders an oEmbed resource in a bare page (without blocks).
@@ -115,11 +115,24 @@ class OEmbedIframeController implements ContainerInjectionInterface {
    * @return \Symfony\Component\HttpFoundation\Response
    *   The response object.
    *
-   * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
-   *   Will be thrown if the 'hash' parameter does not match the expected hash
-   *   of the 'url' parameter.
+   * @throws \Symfony\Component\HttpKernel\Exception\BadRequestHttpException
+   *   Will be thrown if either
+   *   - the 'hash' parameter does not match the expected hash of the 'url'
+   *     parameter;
+   *   - the iframe_domain is set in media.settings and does not match the host
+   *     in the request.
    */
   public function render(Request $request) {
+    // @todo Move domain check logic to a separate method.
+    $allowed_domain = \Drupal::config('media.settings')->get('iframe_domain');
+    if ($allowed_domain) {
+      $allowed_host = parse_url($allowed_domain, PHP_URL_HOST);
+      $host = parse_url($request->getSchemeAndHttpHost(), PHP_URL_HOST);
+      if ($allowed_host !== $host) {
+        throw new BadRequestHttpException('This resource is not available');
+      }
+    }
+
     $url = $request->query->get('url');
     $max_width = $request->query->getInt('max_width');
     $max_height = $request->query->getInt('max_height');
@@ -128,7 +141,7 @@ class OEmbedIframeController implements ContainerInjectionInterface {
     // parameter passed in the query string.
     $hash = $this->iFrameUrlHelper->getHash($url, $max_width, $max_height);
     if (!hash_equals($hash, $request->query->get('hash', ''))) {
-      throw new AccessDeniedHttpException('This resource is not available');
+      throw new BadRequestHttpException('This resource is not available');
     }
 
     // Return a response instead of a render array so that the frame content

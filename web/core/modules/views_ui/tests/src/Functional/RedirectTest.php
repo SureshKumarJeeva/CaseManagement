@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\views_ui\Functional;
 
 /**
@@ -24,7 +26,7 @@ class RedirectTest extends UITestBase {
   /**
    * Tests the redirecting.
    */
-  public function testRedirect() {
+  public function testRedirect(): void {
     $view_name = 'test_view';
 
     $random_destination = $this->randomMachineName();
@@ -37,7 +39,7 @@ class RedirectTest extends UITestBase {
     $this->assertSession()->addressEquals($random_destination);
 
     // Setup a view with a certain page display path. If you change the path
-    // but have the old url in the destination the user should be redirected to
+    // but have the old URL in the destination the user should be redirected to
     // the new path.
     $view_name = 'test_redirect_view';
     $new_path = $this->randomMachineName();

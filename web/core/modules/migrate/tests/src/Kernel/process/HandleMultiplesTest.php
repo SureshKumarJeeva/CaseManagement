@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\migrate\Kernel\process;
 
 use Drupal\KernelTests\KernelTestBase;
@@ -71,6 +73,32 @@ class HandleMultiplesTest extends KernelTestBase {
             'delimiter' => '/',
           ],
         ],
+        // Process pipeline for testing 'get' overriding a single.
+        'get_from_single' => [
+          // Returns a string.
+          [
+            'plugin' => 'get',
+            'source' => 'scalar',
+          ],
+          // Ignore previous and return an array.
+          [
+            'plugin' => 'get',
+            'source' => 'multiple',
+          ],
+        ],
+        // Process pipeline for testing 'get' overriding an array.
+        'get_from_multiple' => [
+          // Returns an array.
+          [
+            'plugin' => 'get',
+            'source' => 'multiple',
+          ],
+          // Ignore previous and return a string.
+          [
+            'plugin' => 'get',
+            'source' => 'scalar',
+          ],
+        ],
       ],
       'destination' => [
         'plugin' => 'config',
@@ -89,7 +117,7 @@ class HandleMultiplesTest extends KernelTestBase {
    * @param array $expected_data
    *   The expected results.
    */
-  public function testScalarAndMultipleValues(array $source_data, array $expected_data) {
+  public function testScalarAndMultipleValues(array $source_data, array $expected_data): void {
     $definition = $this->getDefinition();
     $definition['source']['data_rows'] = [$source_data];
 
@@ -110,7 +138,7 @@ class HandleMultiplesTest extends KernelTestBase {
    *
    * @return array
    */
-  public function scalarAndMultipleValuesProviderSource() {
+  public static function scalarAndMultipleValuesProviderSource() {
     return [
       [
         'source_data' => [
@@ -131,6 +159,11 @@ class HandleMultiplesTest extends KernelTestBase {
             'BAR',
             'BAZ',
           ],
+          'get_from_single' => [
+            'foo',
+            'bar/baz',
+          ],
+          'get_from_multiple' => 'foo/bar',
         ],
       ],
     ];

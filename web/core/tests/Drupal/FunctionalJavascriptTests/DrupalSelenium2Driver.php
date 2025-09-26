@@ -1,9 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\FunctionalJavascriptTests;
 
 use Behat\Mink\Driver\Selenium2Driver;
 use Behat\Mink\Exception\DriverException;
+use WebDriver\Element;
 use WebDriver\Exception;
 use WebDriver\Exception\UnknownError;
 use WebDriver\ServiceFactory;
@@ -42,32 +45,6 @@ class DrupalSelenium2Driver extends Selenium2Driver {
     ];
 
     $this->getWebDriverSession()->setCookie($cookieArray);
-  }
-
-  /**
-   * {@inheritdoc}
-   */
-  public function attachFile($xpath, $path) {
-    $element = $this->getWebDriverSession()->element('xpath', $xpath);
-
-    if ('input' !== strtolower($element->name()) || 'file' !== strtolower($element->attribute('type'))) {
-      $message = 'Impossible to %s the element with XPath "%s" as it is not a %s input';
-
-      throw new DriverException(sprintf($message, 'attach a file on', $xpath, 'file'));
-    }
-
-    // Upload the file to Selenium and use the remote path. This will
-    // ensure that Selenium always has access to the file, even if it runs
-    // as a remote instance.
-    try {
-      $remotePath = $this->uploadFileAndGetRemoteFilePath($path);
-    }
-    catch (\Exception $e) {
-      // File could not be uploaded to remote instance. Use the local path.
-      $remotePath = $path;
-    }
-
-    $element->postValue(['value' => [$remotePath]]);
   }
 
   /**
@@ -168,6 +145,34 @@ class DrupalSelenium2Driver extends Selenium2Driver {
     $not_clickable_exception = NULL;
     $result = $this->waitFor(10, function () use (&$not_clickable_exception, $xpath, $value) {
       try {
+        $element = $this->getWebDriverSession()->element('xpath', $xpath);
+        // \Behat\Mink\Driver\Selenium2Driver::setValue() will call .blur() on
+        // the element, modify that to trigger the "input" and "change" events
+        // instead. They indicate the value has changed, rather than implying
+        // user focus changes. This script only runs when Drupal javascript has
+        // been loaded.
+        $this->executeJsOnElement($element, <<<JS
+if (typeof Drupal !== 'undefined') {
+  var node = {{ELEMENT}};
+  var original = node.blur;
+  node.blur = function() {
+    node.dispatchEvent(new Event("input", {bubbles:true}));
+    node.dispatchEvent(new Event("change", {bubbles:true}));
+    // Do not wait for the debounce, which only triggers the 'formUpdated` event
+    // up to once every 0.3 seconds. In tests, no humans are typing, hence there
+    // is no need to debounce.
+    // @see Drupal.behaviors.formUpdated
+    node.dispatchEvent(new Event("formUpdated", {bubbles:true}));
+    node.blur = original;
+  };
+}
+JS);
+        if (!is_string($value) && strtolower($element->name()) === 'input' && in_array(strtolower($element->attribute('type')), ['text', 'number', 'radio'], TRUE)) {
+          // @todo Trigger deprecation in
+          //   https://www.drupal.org/project/drupal/issues/3421105.
+          $value = (string) $value;
+        }
+
         parent::setValue($xpath, $value);
         return TRUE;
       }
@@ -212,6 +217,48 @@ class DrupalSelenium2Driver extends Selenium2Driver {
     } while (microtime(TRUE) < $end);
 
     return $result;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function dragTo($sourceXpath, $destinationXpath) {
+    // Ensure both the source and destination exist at this point.
+    $this->getWebDriverSession()->element('xpath', $sourceXpath);
+    $this->getWebDriverSession()->element('xpath', $destinationXpath);
+
+    try {
+      parent::dragTo($sourceXpath, $destinationXpath);
+    }
+    catch (Exception $e) {
+      // Do not care if this fails for any reason. It is a source of random
+      // fails. The calling code should be doing assertions on the results of
+      // dragging anyway. See upstream issues:
+      // - https://github.com/minkphp/MinkSelenium2Driver/issues/97
+      // - https://github.com/minkphp/MinkSelenium2Driver/issues/51
+    }
+  }
+
+  /**
+   * Executes JS on a given element.
+   *
+   * @param \WebDriver\Element $element
+   *   The webdriver element.
+   * @param string $script
+   *   The script to execute.
+   *
+   * @return mixed
+   *   The result of executing the script.
+   */
+  private function executeJsOnElement(Element $element, string $script) {
+    $script = str_replace('{{ELEMENT}}', 'arguments[0]', $script);
+
+    $options = [
+      'script' => $script,
+      'args' => [$element],
+    ];
+
+    return $this->getWebDriverSession()->execute($options);
   }
 
 }

@@ -405,14 +405,30 @@ class ConfigurableLanguageManager extends LanguageManager implements Configurabl
   public function getLanguageSwitchLinks($type, Url $url) {
     if ($this->negotiator) {
       foreach ($this->negotiator->getNegotiationMethods($type) as $method_id => $method) {
-        $reflector = new \ReflectionClass($method['class']);
-
-        if ($reflector->implementsInterface('\Drupal\language\LanguageSwitcherInterface')) {
+        if (is_subclass_of($method['class'], LanguageSwitcherInterface::class)) {
+          $original_languages = $this->negotiatedLanguages;
           $result = $this->negotiator->getNegotiationMethodInstance($method_id)->getLanguageSwitchLinks($this->requestStack->getCurrentRequest(), $type, $url);
 
           if (!empty($result)) {
             // Allow modules to provide translations for specific links.
             $this->moduleHandler->alter('language_switch_links', $result, $type, $url);
+
+            $result = array_filter($result, function (array $link): bool {
+              $url = $link['url'] ?? NULL;
+              $language = $link['language'] ?? NULL;
+              if ($language instanceof LanguageInterface) {
+                $this->negotiatedLanguages[LanguageInterface::TYPE_CONTENT] = $language;
+                $this->negotiatedLanguages[LanguageInterface::TYPE_INTERFACE] = $language;
+              }
+              try {
+                return $url instanceof Url && $url->access();
+              }
+              catch (\Exception $e) {
+                return FALSE;
+              }
+            });
+            $this->negotiatedLanguages = $original_languages;
+
             $links = (object) ['links' => $result, 'method_id' => $method_id];
             break;
           }
@@ -431,7 +447,7 @@ class ConfigurableLanguageManager extends LanguageManager implements Configurabl
    *
    * @return $this
    */
-  public function setConfigOverrideLanguage(LanguageInterface $language = NULL) {
+  public function setConfigOverrideLanguage(?LanguageInterface $language = NULL) {
     $this->configFactoryOverride->setLanguage($language);
     return $this;
   }

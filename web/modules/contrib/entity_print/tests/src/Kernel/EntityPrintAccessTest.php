@@ -22,7 +22,7 @@ class EntityPrintAccessTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'system',
     'user',
     'node',
@@ -44,7 +44,7 @@ class EntityPrintAccessTest extends KernelTestBase {
    */
   public function setUp(): void {
     parent::setUp();
-    $this->installSchema('system', ['sequences', 'key_value_expire']);
+    $this->installSchema('system', ['sequences']);
     $this->installEntitySchema('user');
     $this->installEntitySchema('node');
     $this->installConfig(['system', 'node', 'filter', 'field']);
@@ -72,7 +72,7 @@ class EntityPrintAccessTest extends KernelTestBase {
   /**
    * Data provider to test access with different combinations of permissions.
    */
-  public function accessPermissionsDataProvider() {
+  public static function accessPermissionsDataProvider() {
     return [
       'Permission "bypass entity print access" only cannot view PDF.' =>
         [['bypass entity print access'], FALSE],
@@ -101,14 +101,17 @@ class EntityPrintAccessTest extends KernelTestBase {
    */
   public function testInvalidRouteParameters($entity_type, $entity_id, $export_type) {
     $entity_id = $entity_id ?: $this->createNode()->id();
-    $account = $this->createUser(['bypass entity print access', 'access content']);
-    $this->assertSame(FALSE, $this->checkAccess($account, $entity_type, $entity_id, $export_type));
+    $account = $this->createUser([
+      'bypass entity print access',
+      'access content',
+    ]);
+    $this->assertFalse($this->checkAccess($account, $entity_type, $entity_id, $export_type));
   }
 
   /**
    * Data provider for invalid route params.
    */
-  public function invalidRouteParametersDataProvider() {
+  public static function invalidRouteParametersDataProvider() {
     return [
       'Invalid entity type triggers access denied.' =>
         ['invalid', FALSE, 'pdf'],
@@ -126,7 +129,10 @@ class EntityPrintAccessTest extends KernelTestBase {
    */
   public function testSecondaryEntityTypeAccess() {
     // User with print entity type user permissions and entity view.
-    $account = $this->createUser(['entity print access type user', 'access content']);
+    $account = $this->createUser([
+      'entity print access type user',
+      'access content',
+    ]);
     $this->assertTrue($this->checkAccess($account, 'user', $account->id()), 'User with "type user" permission and access content permission is allowed to see the content.');
   }
 

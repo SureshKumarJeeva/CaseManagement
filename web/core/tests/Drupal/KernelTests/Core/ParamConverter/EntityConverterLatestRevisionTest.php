@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\KernelTests\Core\ParamConverter;
 
 use Drupal\entity_test\Entity\EntityTest;
@@ -19,9 +21,7 @@ class EntityConverterLatestRevisionTest extends KernelTestBase {
   use UserCreationTrait;
 
   /**
-   * Modules to install.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
     'entity_test',
@@ -57,7 +57,7 @@ class EntityConverterLatestRevisionTest extends KernelTestBase {
   /**
    * Tests with no matching entity.
    */
-  public function testNoEntity() {
+  public function testNoEntity(): void {
     $converted = $this->converter->convert(1, [
       'load_latest_revision' => TRUE,
       'type' => 'entity:entity_test_mulrev',
@@ -68,7 +68,7 @@ class EntityConverterLatestRevisionTest extends KernelTestBase {
   /**
    * Tests with no pending revision.
    */
-  public function testEntityNoPendingRevision() {
+  public function testEntityNoPendingRevision(): void {
     $entity = EntityTestMulRev::create();
     $entity->save();
 
@@ -82,7 +82,7 @@ class EntityConverterLatestRevisionTest extends KernelTestBase {
   /**
    * Tests with a pending revision.
    */
-  public function testEntityWithPendingRevision() {
+  public function testEntityWithPendingRevision(): void {
     $entity = EntityTestMulRev::create();
     $entity->save();
 
@@ -101,7 +101,7 @@ class EntityConverterLatestRevisionTest extends KernelTestBase {
   /**
    * Tests with a translated pending revision.
    */
-  public function testWithTranslatedPendingRevision() {
+  public function testWithTranslatedPendingRevision(): void {
     // Enable translation for test entities.
     $this->container->get('state')->set('entity_test.translation', TRUE);
     $this->container->get('entity_type.bundle.info')->clearCachedBundles();
@@ -149,7 +149,7 @@ class EntityConverterLatestRevisionTest extends KernelTestBase {
   /**
    * Tests that pending revisions are loaded only when needed.
    */
-  public function testOptimizedConvert() {
+  public function testOptimizedConvert(): void {
     $entity = EntityTestMulRev::create();
     $entity->save();
 
@@ -177,7 +177,7 @@ class EntityConverterLatestRevisionTest extends KernelTestBase {
   /**
    * Tests the latest revision flag and non-revisionable entities.
    */
-  public function testConvertNonRevisionableEntityType() {
+  public function testConvertNonRevisionableEntityType(): void {
     $entity = EntityTest::create();
     $entity->save();
 
@@ -187,6 +187,68 @@ class EntityConverterLatestRevisionTest extends KernelTestBase {
     ], 'foo', []);
 
     $this->assertEquals($entity->id(), $converted->id());
+  }
+
+  /**
+   * Tests an entity route parameter having 'bundle' definition property.
+   *
+   * @covers ::convert
+   */
+  public function testRouteParamWithBundleDefinition(): void {
+    $entity1 = EntityTestMulRev::create([
+      'name' => $this->randomString(),
+      'type' => 'foo',
+    ]);
+    $entity1->save();
+    $entity2 = EntityTestMulRev::create([
+      'name' => $this->randomString(),
+      'type' => 'bar',
+    ]);
+    $entity2->save();
+    $entity3 = EntityTestMulRev::create([
+      'name' => $this->randomString(),
+      'type' => 'baz',
+    ]);
+    $entity3->save();
+
+    $definition = [
+      'type' => 'entity:entity_test_mulrev',
+      'bundle' => [
+        'foo',
+        'bar',
+      ],
+      'load_latest_revision' => TRUE,
+    ];
+
+    // An entity whose bundle is in the definition list is converted.
+    $converted = $this->converter->convert($entity1->id(), $definition, 'qux', []);
+    $this->assertSame($entity1->id(), $converted->id());
+
+    // An entity whose bundle is in the definition list is converted.
+    $converted = $this->converter->convert($entity2->id(), $definition, 'qux', []);
+    $this->assertSame($entity2->id(), $converted->id());
+
+    // An entity whose bundle is missed from definition is not converted.
+    $converted = $this->converter->convert($entity3->id(), $definition, 'qux', []);
+    $this->assertNull($converted);
+
+    // A non-existing entity returns NULL.
+    $converted = $this->converter->convert('some-non-existing-entity-id', $definition, 'qux', []);
+    $this->assertNull($converted);
+
+    $definition = [
+      'type' => 'entity:entity_test_mulrev',
+    ];
+
+    // Check that all entities are returned when 'bundle' is not defined.
+    $converted = $this->converter->convert($entity1->id(), $definition, 'qux', []);
+    $this->assertSame($entity1->id(), $converted->id());
+    $converted = $this->converter->convert($entity2->id(), $definition, 'qux', []);
+    $this->assertSame($entity2->id(), $converted->id());
+    $converted = $this->converter->convert($entity3->id(), $definition, 'qux', []);
+    $this->assertSame($entity3->id(), $converted->id());
+    $converted = $this->converter->convert('some-non-existing-entity-id', $definition, 'qux', []);
+    $this->assertNull($converted);
   }
 
 }

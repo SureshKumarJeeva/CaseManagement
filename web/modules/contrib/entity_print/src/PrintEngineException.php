@@ -59,7 +59,7 @@ class PrintEngineException extends \Exception {
       // Wkhtmltopdf.
       '/AuthenticationRequiredError/',
     ];
-    return $this->evalulateRegex($regexs, $message);
+    return $this->evaluateRegex($regexs, $message);
   }
 
   /**
@@ -83,9 +83,9 @@ class PrintEngineException extends \Exception {
    * @return bool
    *   TRUE if anyone of the patterns match otherwise FALSE.
    */
-  protected function evalulateRegex(array $patterns, $subject) {
+  protected function evaluateRegex(array $patterns, $subject) {
     foreach ($patterns as $pattern) {
-      if (preg_match($pattern, $subject, $matches)) {
+      if (preg_match($pattern, $subject)) {
         return TRUE;
       }
     }

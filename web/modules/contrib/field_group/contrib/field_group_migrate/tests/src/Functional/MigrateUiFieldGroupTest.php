@@ -13,6 +13,11 @@ use Drupal\Tests\migrate_drupal_ui\Functional\MigrateUpgradeTestBase;
  */
 class MigrateUiFieldGroupTest extends MigrateUpgradeTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
+  protected $defaultTheme = 'stark';
+
   use FieldGroupMigrationAssertionsTrait;
 
   /**
@@ -29,17 +34,26 @@ class MigrateUiFieldGroupTest extends MigrateUpgradeTestBase {
    * {@inheritdoc}
    */
   protected function getSourceBasePath() {
-    return drupal_get_path('module', 'migrate_drupal_ui') . '/tests/src/Functional/d7/files';
+    return \Drupal::service('extension.list.module')
+      ->getPath('migrate_drupal_ui') . '/tests/src/Functional/d7/files';
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
+
+    $extension_list_module = \Drupal::service('extension.list.module');
+
+    $migrate_drupal_path = $extension_list_module
+      ->getPath('migrate_drupal') . '/tests/fixtures/drupal7.php';
+    $field_group_migrate = $extension_list_module
+      ->getPath('field_group_migrate') . '/tests/fixtures/drupal7.php';
+
     // Field Group's migration database fixture extends Drupal core's fixture.
-    $this->loadFixture(drupal_get_path('module', 'migrate_drupal') . '/tests/fixtures/drupal7.php');
-    $this->loadFixture(drupal_get_path('module', 'field_group_migrate') . '/tests/fixtures/drupal7.php');
+    $this->loadFixture($migrate_drupal_path);
+    $this->loadFixture($field_group_migrate);
   }
 
   /**
@@ -115,30 +129,43 @@ class MigrateUiFieldGroupTest extends MigrateUpgradeTestBase {
     $session = $this->assertSession();
     $session->responseContains("Upgrade a site by importing its files and the data from its database into a clean and empty new install of Drupal");
 
-    $this->drupalPostForm(NULL, [], 'Continue');
+    $this->submitForm([], 'Continue');
     $session->pageTextContains('Provide credentials for the database of the Drupal site you want to upgrade.');
 
-    $driver = $connection_options['driver'];
+    $connectionDriver = $connection_options['driver'];
 
     // Use the driver connection form to get the correct options out of the
     // database settings. This supports all of the databases we test against.
-    $drivers = drupal_get_database_types();
-    $form = $drivers[$driver]->getFormOptions($connection_options);
+    if (\Drupal::hasService('extension.list.database_driver')) {
+      $drivers = [];
+      foreach (\Drupal::service('extension.list.database_driver')->getInstallableList() as $driver) {
+        $drivers[$driver->getNameSpace()] = $driver->getInstallTasks();
+      }
+    }
+    else {
+      // Introduce database driver extensions and
+      // autoload database drivers' dependencies.
+      // @see https://www.drupal.org/node/3258175
+      // @phpstan-ignore-next-line
+      $drivers = drupal_get_database_types();
+    }
+
+    $form = $drivers[$connectionDriver]->getFormOptions($connection_options);
     $connection_options = array_intersect_key($connection_options, $form + $form['advanced_options']);
     $version = $this->getLegacyDrupalVersion($this->sourceDatabase);
     $edit = [
-      $driver => $connection_options,
+      $connectionDriver => $connection_options,
       'source_private_file_path' => $this->getSourceBasePath(),
       'version' => $version,
       'source_base_path' => $this->getSourceBasePath(),
     ];
 
     if (count($drivers) !== 1) {
-      $edit['driver'] = $driver;
+      $edit['driver'] = $connectionDriver;
     }
     $edits = $this->translatePostValues($edit);
 
-    $this->drupalPostForm(NULL, $edits, 'Review upgrade');
+    $this->submitForm($edits, 'Review upgrade');
   }
 
   /**
@@ -154,13 +181,13 @@ class MigrateUiFieldGroupTest extends MigrateUpgradeTestBase {
     // @see https://www.drupal.org/node/2928118
     // @see https://www.drupal.org/node/3105503
     if ($this->getSession()->getPage()->findButton('I acknowledge I may lose data. Continue anyway.')) {
-      $this->drupalPostForm(NULL, [], 'I acknowledge I may lose data. Continue anyway.');
+      $this->submitForm([], 'I acknowledge I may lose data. Continue anyway.');
       $assert_session->statusCodeEquals(200);
     }
 
     // Perform the upgrade.
-    $this->drupalPostForm(NULL, [], 'Perform upgrade');
-    $this->assertText('Congratulations, you upgraded Drupal!');
+    $this->submitForm([], 'Perform upgrade');
+    $this->assertSession()->pageTextContains('Congratulations, you upgraded Drupal!');
 
     // Have to reset all the statics after migration to ensure entities are
     // loadable.

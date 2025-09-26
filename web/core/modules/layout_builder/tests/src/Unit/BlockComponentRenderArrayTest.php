@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\layout_builder\Unit;
 
 use Drupal\block_content\Access\RefinableDependentAccessInterface;
@@ -45,7 +47,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
   /**
    * Data provider for test functions that should test block types.
    */
-  public function providerBlockTypes() {
+  public static function providerBlockTypes() {
     return [
       [TRUE],
       [FALSE],
@@ -72,7 +74,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
    *
    * @dataProvider providerBlockTypes
    */
-  public function testOnBuildRender($refinable_dependent_access) {
+  public function testOnBuildRender($refinable_dependent_access): void {
     $contexts = [];
     if ($refinable_dependent_access) {
       $block = $this->prophesize(TestBlockPluginWithRefinableDependentAccessInterface::class)->willImplement(PreviewFallbackInterface::class);
@@ -120,6 +122,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
       '#base_plugin_id' => 'block_plugin_id',
       '#derivative_plugin_id' => NULL,
       'content' => $block_content,
+      '#in_preview' => FALSE,
     ];
 
     $expected_build_with_expected_cache = $expected_build + [
@@ -145,7 +148,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
    *
    * @dataProvider providerBlockTypes
    */
-  public function testOnBuildRenderWithoutPreviewFallbackString($refinable_dependent_access) {
+  public function testOnBuildRenderWithoutPreviewFallbackString($refinable_dependent_access): void {
     $contexts = [];
     if ($refinable_dependent_access) {
       $block = $this->prophesize(TestBlockPluginWithRefinableDependentAccessInterface::class);
@@ -195,6 +198,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
       '#base_plugin_id' => 'block_plugin_id',
       '#derivative_plugin_id' => NULL,
       'content' => $block_content,
+      '#in_preview' => FALSE,
     ];
 
     $expected_cache = $expected_build + [
@@ -217,7 +221,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
    *
    * @dataProvider providerBlockTypes
    */
-  public function testOnBuildRenderDenied($refinable_dependent_access) {
+  public function testOnBuildRenderDenied($refinable_dependent_access): void {
     $contexts = [];
     if ($refinable_dependent_access) {
       $block = $this->prophesize(TestBlockPluginWithRefinableDependentAccessInterface::class);
@@ -275,7 +279,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
    *
    * @dataProvider providerBlockTypes
    */
-  public function testOnBuildRenderInPreview($refinable_dependent_access) {
+  public function testOnBuildRenderInPreview($refinable_dependent_access): void {
     $contexts = [];
     if ($refinable_dependent_access) {
       $block = $this->prophesize(TestBlockPluginWithRefinableDependentAccessInterface::class)->willImplement(PreviewFallbackInterface::class);
@@ -324,6 +328,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
       '#attributes' => [
         'data-layout-content-preview-placeholder-label' => $placeholder_label,
       ],
+      '#in_preview' => TRUE,
     ];
 
     $expected_cache = $expected_build + [
@@ -332,6 +337,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
         'tags' => ['test'],
         'max-age' => 0,
       ],
+      '#in_preview' => TRUE,
     ];
 
     $subscriber->onBuildRender($event);
@@ -344,7 +350,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
   /**
    * @covers ::onBuildRender
    */
-  public function testOnBuildRenderInPreviewEmptyBuild() {
+  public function testOnBuildRenderInPreviewEmptyBuild(): void {
     $block = $this->prophesize(BlockPluginInterface::class)->willImplement(PreviewFallbackInterface::class);
 
     $block->access($this->account->reveal(), TRUE)->shouldNotBeCalled();
@@ -355,7 +361,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
     $block->getPluginId()->willReturn('block_plugin_id');
     $block->getBaseId()->willReturn('block_plugin_id');
     $block->getDerivativeId()->willReturn(NULL);
-    $block->getPluginDefinition()->willReturn(['admin_label' => 'adminlabel']);
+    $block->getPluginDefinition()->willReturn(['admin_label' => 'admin']);
     $placeholder_string = 'The placeholder string';
     $block->getPreviewFallbackString()->willReturn($placeholder_string);
 
@@ -383,6 +389,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
       '#attributes' => [
         'data-layout-content-preview-placeholder-label' => $placeholder_string,
       ],
+      '#in_preview' => TRUE,
     ];
     $expected_build['content']['#markup'] = $placeholder_string;
 
@@ -392,6 +399,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
         'tags' => ['test'],
         'max-age' => 0,
       ],
+      '#in_preview' => TRUE,
     ];
 
     $subscriber->onBuildRender($event);
@@ -404,7 +412,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
   /**
    * @covers ::onBuildRender
    */
-  public function testOnBuildRenderEmptyBuild() {
+  public function testOnBuildRenderEmptyBuild(): void {
     $block = $this->prophesize(BlockPluginInterface::class);
     $access_result = AccessResult::allowed();
     $block->access($this->account->reveal(), TRUE)->willReturn($access_result)->shouldBeCalled();
@@ -449,7 +457,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
   /**
    * @covers ::onBuildRender
    */
-  public function testOnBuildRenderEmptyBuildWithCacheTags() {
+  public function testOnBuildRenderEmptyBuildWithCacheTags(): void {
     $block = $this->prophesize(BlockPluginInterface::class);
     $access_result = AccessResult::allowed();
     $block->access($this->account->reveal(), TRUE)->willReturn($access_result)->shouldBeCalled();
@@ -477,12 +485,12 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
     $expected_build = [];
 
     $expected_cache = $expected_build + [
-        '#cache' => [
-          'contexts' => [],
-          'tags' => ['empty_build_cache_test', 'test'],
-          'max-age' => -1,
-        ],
-      ];
+      '#cache' => [
+        'contexts' => [],
+        'tags' => ['empty_build_cache_test', 'test'],
+        'max-age' => -1,
+      ],
+    ];
 
     $subscriber->onBuildRender($event);
     $result = $event->getBuild();
@@ -494,7 +502,7 @@ class BlockComponentRenderArrayTest extends UnitTestCase {
   /**
    * @covers ::onBuildRender
    */
-  public function testOnBuildRenderNoBlock() {
+  public function testOnBuildRenderNoBlock(): void {
     $this->blockManager->createInstance('some_block_id', ['id' => 'some_block_id'])->willReturn(NULL);
 
     $component = new SectionComponent('some-uuid', 'some-region', ['id' => 'some_block_id']);

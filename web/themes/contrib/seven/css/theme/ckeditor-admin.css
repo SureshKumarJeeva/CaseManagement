@@ -1,0 +1,17 @@
+/**
+ * @file
+ * Seven styles for CKEditor administration pages.
+ */
+
+/*
+ * The focus ring is added because it is disabled in css/base/elements.css.
+ *
+ * @see https://www.drupal.org/project/seven/issues/2735421
+ */
+.ckeditor-buttons li a:focus {
+  border-color: #40b6ff;
+  outline: medium none;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.05) inset,
+    0 0 8px #40b6ff;
+}

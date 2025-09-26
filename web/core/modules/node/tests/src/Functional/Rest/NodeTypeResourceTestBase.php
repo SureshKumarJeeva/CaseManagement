@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\node\Functional\Rest;
 
 use Drupal\node\Entity\NodeType;
@@ -74,6 +76,7 @@ abstract class NodeTypeResourceTestBase extends ConfigEntityResourceTestBase {
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**

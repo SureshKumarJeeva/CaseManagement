@@ -7,6 +7,7 @@ namespace Drupal\ckeditor5\Plugin\CKEditor5Plugin;
 use Drupal\ckeditor5\Plugin\CKEditor5PluginDefault;
 use Drupal\ckeditor5\Plugin\CKEditor5PluginDefinition;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Url;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\editor\EditorInterface;
@@ -23,6 +24,8 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class MediaLibrary extends CKEditor5PluginDefault implements ContainerFactoryPluginInterface {
 
+  use StringTranslationTrait;
+
   /**
    * The media type entity storage.
    *
@@ -36,7 +39,7 @@ class MediaLibrary extends CKEditor5PluginDefault implements ContainerFactoryPlu
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
    * @param string $plugin_id
-   *   The plugin_id for the plugin instance.
+   *   The plugin ID for the plugin instance.
    * @param \Drupal\ckeditor5\Plugin\CKEditor5PluginDefinition $plugin_definition
    *   The plugin implementation definition.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -48,7 +51,7 @@ class MediaLibrary extends CKEditor5PluginDefault implements ContainerFactoryPlu
   }
 
   /**
-   * {@inheritDoc}
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     return new static(
@@ -64,6 +67,9 @@ class MediaLibrary extends CKEditor5PluginDefault implements ContainerFactoryPlu
    */
   public function getDynamicPluginConfig(array $static_plugin_config, EditorInterface $editor): array {
     $media_type_ids = $this->mediaTypeStorage->getQuery()->execute();
+
+    // Making the title for editor drupal media embed translatable.
+    $static_plugin_config['drupalMedia']['dialogSettings']['title'] = $this->t('Add or select media');
 
     if ($editor->hasAssociatedFilterFormat()) {
       $media_embed_filter = $editor->getFilterFormat()->filters()->get('media_embed');

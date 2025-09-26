@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\migrate\Functional\process;
 
 use Drupal\migrate\MigrateExecutable;
@@ -29,7 +31,7 @@ class DownloadFunctionalTest extends BrowserTestBase {
   /**
    * Tests that an exception is thrown bu migration continues with the next row.
    */
-  public function testExceptionThrow() {
+  public function testExceptionThrow(): void {
     $invalid_url = "{$this->baseUrl}/not-existent-404";
     $valid_url = "{$this->baseUrl}/core/misc/favicon.ico";
 
@@ -76,8 +78,11 @@ class DownloadFunctionalTest extends BrowserTestBase {
     $this->assertCount(1, $messages);
     $message = reset($messages);
 
+    // Assert critical parts of the error message, but not the exact message,
+    // since it depends on Guzzle's internal implementation of PSR-7.
     $id = $migration->getPluginId();
-    $this->assertEquals("$id:uri:download: Client error: `GET $invalid_url` resulted in a `404 Not Found` response ($invalid_url)", $message->message);
+    $this->assertStringContainsString("$id:uri:download:", $message->message);
+    $this->assertStringContainsString($invalid_url, $message->message);
     $this->assertEquals(MigrationInterface::MESSAGE_ERROR, $message->level);
 
     // Check that the second row was migrated successfully.

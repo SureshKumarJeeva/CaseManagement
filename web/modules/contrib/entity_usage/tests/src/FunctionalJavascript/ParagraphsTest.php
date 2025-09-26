@@ -2,12 +2,12 @@
 
 namespace Drupal\Tests\entity_usage\FunctionalJavascript;
 
-use Drupal\field\Entity\FieldConfig;
-use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\media\Entity\Media;
 use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 use Drupal\Tests\media\Traits\MediaTypeCreationTrait;
 use Drupal\Tests\paragraphs\FunctionalJavascript\ParagraphsTestBaseTrait;
+use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
+use Drupal\media\Entity\Media;
 use Drupal\user\Entity\Role;
 
 /**
@@ -24,7 +24,7 @@ class ParagraphsTest extends EntityUsageJavascriptTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'file',
     'image',
     'media',

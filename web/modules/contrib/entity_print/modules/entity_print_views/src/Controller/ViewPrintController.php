@@ -97,7 +97,7 @@ class ViewPrintController extends ControllerBase {
     $executable = $view->getExecutable();
     $executable->setDisplay($display_id);
 
-    if ($args = $this->currentRequest->query->get('view_args')) {
+    if ($args = $this->currentRequest->query->all('view_args')) {
       $executable->setArguments($args);
     }
 
@@ -138,7 +138,7 @@ class ViewPrintController extends ControllerBase {
     $executable = $view->getExecutable();
     $executable->setDisplay($display_id);
 
-    if ($args = $this->currentRequest->query->get('view_args')) {
+    if ($args = $this->currentRequest->query->all('view_args')) {
       $executable->setArguments($args);
     }
 
@@ -162,7 +162,7 @@ class ViewPrintController extends ControllerBase {
    * @return \Drupal\Core\Access\AccessResult
    *   The access result object.
    *
-   * @TODO, improve permissions in https://www.drupal.org/node/2759553
+   * @todo improve permissions in https://www.drupal.org/node/2759553
    */
   public function checkAccess($export_type, $view_name, $display_id) {
     $view = $this->entityTypeManager->getStorage('view')->load($view_name)->getExecutable();

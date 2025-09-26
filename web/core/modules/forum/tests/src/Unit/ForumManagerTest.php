@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\forum\Unit;
 
 use Drupal\Core\Entity\EntityFieldManagerInterface;
@@ -9,13 +11,14 @@ use Drupal\Tests\UnitTestCase;
 /**
  * @coversDefaultClass \Drupal\forum\ForumManager
  * @group forum
+ * @group legacy
  */
 class ForumManagerTest extends UnitTestCase {
 
   /**
    * Tests ForumManager::getIndex().
    */
-  public function testGetIndex() {
+  public function testGetIndex(): void {
     $entity_field_manager = $this->createMock(EntityFieldManagerInterface::class);
     $entity_type_manager = $this->createMock(EntityTypeManagerInterface::class);
 
@@ -31,22 +34,22 @@ class ForumManagerTest extends UnitTestCase {
 
     $config_factory->expects($this->once())
       ->method('get')
-      ->will($this->returnValue($config));
+      ->willReturn($config);
 
     $config->expects($this->once())
       ->method('get')
-      ->will($this->returnValue('forums'));
+      ->willReturn('forums');
 
     $entity_type_manager->expects($this->once())
       ->method('getStorage')
-      ->will($this->returnValue($storage));
+      ->willReturn($storage);
 
     // This is sufficient for testing purposes.
     $term = new \stdClass();
 
     $storage->expects($this->once())
       ->method('create')
-      ->will($this->returnValue($term));
+      ->willReturn($term);
 
     $connection = $this->getMockBuilder('\Drupal\Core\Database\Connection')
       ->disableOriginalConstructor()
@@ -74,7 +77,7 @@ class ForumManagerTest extends UnitTestCase {
 
     $manager->expects($this->once())
       ->method('getChildren')
-      ->will($this->returnValue([]));
+      ->willReturn([]);
 
     // Get the index once.
     $index1 = $manager->getIndex();

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\language\Functional;
 
 use Drupal\Core\Url;
@@ -12,6 +14,9 @@ use Drupal\Tests\BrowserTestBase;
  */
 class LanguageBrowserDetectionTest extends BrowserTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected static $modules = ['language'];
 
   /**
@@ -20,10 +25,9 @@ class LanguageBrowserDetectionTest extends BrowserTestBase {
   protected $defaultTheme = 'stark';
 
   /**
-   * Tests for adding, editing and deleting mappings between browser language
-   * codes and Drupal language codes.
+   * Tests mappings between browser language codes and Drupal language codes.
    */
-  public function testUIBrowserLanguageMappings() {
+  public function testUIBrowserLanguageMappings(): void {
     // User to manage languages.
     $admin_user = $this->drupalCreateUser([
       'administer languages',

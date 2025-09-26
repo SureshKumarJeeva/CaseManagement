@@ -105,7 +105,7 @@ class EntityPrintController extends ControllerBase {
    * @return \Symfony\Component\HttpFoundation\Response
    *   The response object.
    *
-   * @TODO, improve permissions in https://www.drupal.org/node/2759553
+   * @todo improve permissions in https://www.drupal.org/node/2759553
    */
   public function viewPrintDebug($export_type, $entity_type, $entity_id) {
     $entity = $this->entityTypeManager->getStorage($entity_type)->load($entity_id);

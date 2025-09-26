@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\content_translation\Functional;
 
 use Drupal\Core\Entity\ContentEntityInterface;
@@ -15,9 +17,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 abstract class ContentTranslationTestBase extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['text'];
 
@@ -82,9 +82,10 @@ abstract class ContentTranslationTestBase extends BrowserTestBase {
    */
   protected $manager;
 
-  protected function setUp() {
-    parent::setUp();
-
+  /**
+   * Completes preparation for content translation tests.
+   */
+  protected function doSetup(): void {
     $this->setupLanguages();
     $this->setupBundle();
     $this->enableTranslation();

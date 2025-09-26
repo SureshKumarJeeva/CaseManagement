@@ -2,9 +2,11 @@
 
 namespace Drupal\Tests\entity_usage\FunctionalJavascript;
 
+use Drupal\Core\Entity\RevisionableInterface;
+use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
+use Drupal\entity_test\Entity\EntityTest;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\node\Entity\Node;
-use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 use Drupal\user\Entity\Role;
 
 /**
@@ -24,7 +26,31 @@ class RevisionsTranslationsTest extends EntityUsageJavascriptTestBase {
   protected static $modules = [
     'language',
     'content_translation',
+    // To test entities which implement RevisionableInterface but do have
+    // revisions.
+    'entity_test',
   ];
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp(): void {
+    parent::setUp();
+    // Grant the logged-in user permission to entity_test entities.
+    /** @var \Drupal\user\RoleInterface $role */
+    $role = Role::load('authenticated');
+    $this->grantPermissions($role, ['view test entity', 'access entity usage statistics']);
+
+    // Allow absolute links to be picked up by entity usage and the node tab to
+    // be reached.
+    $current_request = \Drupal::request();
+    $config = \Drupal::configFactory()->getEditable('entity_usage.settings');
+    $config
+      ->set('site_domains', [$current_request->getHttpHost() . $current_request->getBasePath()])
+      ->set('local_task_enabled_entity_types', ['node'])
+      ->save();
+    \Drupal::service('router.builder')->rebuild();
+  }
 
   /**
    * Tests the tracking of nodes and revisions.
@@ -257,6 +283,46 @@ class RevisionsTranslationsTest extends EntityUsageJavascriptTestBase {
     $usage = $usage_service->listSources($node3);
     $this->assertEquals([], $usage);
 
+    // Test a revisionable entity type without revisions.
+    $entity_test_1 = EntityTest::create([
+      'name' => 'Test entity',
+      // Use an absolute URL so that tests running Drupal in a subdirectory
+      // still work.
+      'field_test_text' => '<a href="' . $node1->toUrl()->setAbsolute()->toString() . '">test</a>',
+    ]);
+    $entity_test_1->save();
+    $this->assertInstanceOf(RevisionableInterface::class, $entity_test_1);
+    $this->assertNull($entity_test_1->getRevisionId());
+
+    $this->drupalGet("/node/{$node1->id()}/usage");
+    $assert_session->pageTextContains('Entity usage information for Node 1');
+    // Only two usages; the entity_test entity and node 2.
+    $assert_session->elementsCount('xpath', '//table/tbody/tr', 2);
+    $first_row_title = $this->xpath('//table/tbody/tr[1]/td[1]')[0];
+    $this->assertEquals('Test entity', $first_row_title->getText());
+    $first_row_used_in = $this->xpath('//table/tbody/tr[1]/td[6]')[0];
+    $this->assertEquals('Default', $first_row_used_in->getText());
+    $second_row_title = $this->xpath('//table/tbody/tr[2]/td[1]')[0];
+    $this->assertEquals('Node 2', $second_row_title->getText());
+    $second_row_used_in = $this->xpath('//table/tbody/tr[2]/td[6]')[0];
+    $this->assertEquals('Old revision(s)', $second_row_used_in->getText());
+
+    // Create a pending revision of node 2 that links to node 1.
+    $node2 = \Drupal::entityTypeManager()->getStorage('node')->loadUnchanged($node2->id());
+    $node2->setNewRevision();
+    $node2->isDefaultRevision(FALSE);
+    $node2->field_eu_test_related_nodes->target_id = $node1->id();
+    $node2->save();
+    $this->drupalGet("/node/{$node1->id()}/usage");
+    $assert_session->pageTextContains('Entity usage information for Node 1');
+    $assert_session->elementsCount('xpath', '//table/tbody/tr', 2);
+    $second_row_title = $this->xpath('//table/tbody/tr[2]/td[1]')[0];
+    $this->assertEquals('Node 2', $second_row_title->getText());
+    $second_row_used_in = $this->xpath('//table/tbody/tr[2]/td[6]/ul/li[1]')[0];
+    $this->assertEquals('Pending revision(s) / Draft(s)', $second_row_used_in->getText());
+    $second_row_used_in = $this->xpath('//table/tbody/tr[2]/td[6]/ul/li[2]')[0];
+    $this->assertEquals('Old revision(s)', $second_row_used_in->getText());
+
     // If we remove a node only being targeted in previous revisions (N1), all
     // usages tracked should also be deleted.
     $node1->delete();
@@ -289,7 +355,6 @@ class RevisionsTranslationsTest extends EntityUsageJavascriptTestBase {
     $assert_session->pageTextContains('has been deleted.');
     $usage = $usage_service->listSources($node2);
     $this->assertEquals([], $usage);
-
   }
 
   /**
@@ -322,6 +387,7 @@ class RevisionsTranslationsTest extends EntityUsageJavascriptTestBase {
     // Set our content type as translatable.
     $this->drupalGet('/admin/config/regional/content-language');
     $page->checkField('entity_types[node]');
+    $assert_session->elementExists('css', '#edit-settings-node')->click();
     $page->checkField('settings[node][eu_test_ct][translatable]');
     $page->pressButton('Save configuration');
     $session->wait(500);
@@ -462,7 +528,7 @@ class RevisionsTranslationsTest extends EntityUsageJavascriptTestBase {
     $first_row_field_label = $this->xpath('//table/tbody/tr[1]/td[4]')[0];
     $this->assertEquals('Related nodes', $first_row_field_label->getText());
     $first_row_used_in = $this->xpath('//table/tbody/tr[1]/td[6]')[0];
-    $this->assertEquals('Translations or previous revisions', $first_row_used_in->getText());
+    $this->assertEquals('Default: ES.', $first_row_used_in->getText());
     // There's no second row.
     $assert_session->elementNotExists('xpath', '//table/tbody/tr[2]');
 

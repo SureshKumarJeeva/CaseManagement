@@ -14,7 +14,6 @@ jquery.treeTable:
   dependencies:
     - core/jquery
 token:
-  version: VERSION
   js:
     js/token.js: {}
   css:
@@ -23,3 +22,5 @@ token:
   dependencies:
     - core/jquery
     - core/drupal
+    - core/once
+    - token/jquery.treeTable

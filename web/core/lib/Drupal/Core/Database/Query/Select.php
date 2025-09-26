@@ -93,8 +93,9 @@ class Select extends Query implements SelectInterface {
   protected $range;
 
   /**
-   * An array whose elements specify a query to UNION, and the UNION type. The
-   * 'type' key may be '', 'ALL', or 'DISTINCT' to represent a 'UNION',
+   * An array whose elements specify a query to UNION, and the UNION type.
+   *
+   * The 'type' key may be '', 'ALL', or 'DISTINCT' to represent a 'UNION',
    * 'UNION ALL', or 'UNION DISTINCT' statement, respectively.
    *
    * All entries in this array will be applied from front to back, with the
@@ -117,6 +118,16 @@ class Select extends Query implements SelectInterface {
    * @var bool
    */
   protected $forUpdate = FALSE;
+
+  /**
+   * The query metadata for alter purposes.
+   */
+  public array $alterMetaData;
+
+  /**
+   * The query tags.
+   */
+  public array $alterTags;
 
   /**
    * Constructs a Select object.
@@ -430,7 +441,7 @@ class Select extends Query implements SelectInterface {
   /**
    * {@inheritdoc}
    */
-  public function getArguments(PlaceholderInterface $queryPlaceholder = NULL) {
+  public function getArguments(?PlaceholderInterface $queryPlaceholder = NULL) {
     if (!isset($queryPlaceholder)) {
       $queryPlaceholder = $this;
     }
@@ -448,7 +459,7 @@ class Select extends Query implements SelectInterface {
   /**
    * {@inheritdoc}
    */
-  public function preExecute(SelectInterface $query = NULL) {
+  public function preExecute(?SelectInterface $query = NULL) {
     // If no query object is passed in, use $this.
     if (!isset($query)) {
       $query = $this;
@@ -468,10 +479,9 @@ class Select extends Query implements SelectInterface {
       // taxonomy_term_access to its queries. Provide backwards compatibility
       // by adding both tags here instead of attempting to fix all contrib
       // modules in a coordinated effort.
-      // TODO:
-      // - Extract this mechanism into a hook as part of a public (non-security)
-      //   issue.
-      // - Emit E_USER_DEPRECATED if term_access is used.
+      // @todo Extract this mechanism into a hook as part of a public
+      //   (non-security) issue.
+      // @todo Emit E_USER_DEPRECATED if term_access is used.
       //   https://www.drupal.org/node/2575081
       $term_access_tags = ['term_access' => 1, 'taxonomy_term_access' => 1];
       if (array_intersect_key($this->alterTags, $term_access_tags)) {
@@ -790,6 +800,15 @@ class Select extends Query implements SelectInterface {
    * {@inheritdoc}
    */
   public function __toString() {
+    if (!is_array($this->fields) ||
+      !is_array($this->expressions) ||
+      !is_array($this->tables) ||
+      !is_array($this->order) ||
+      !is_array($this->group) ||
+      !is_array($this->union)) {
+      throw new \UnexpectedValueException();
+    }
+
     // For convenience, we compile the query ourselves if the caller forgot
     // to do it. This allows constructs like "(string) $query" to work. When
     // the query will be executed, it will be recompiled using the proper
@@ -845,7 +864,7 @@ class Select extends Query implements SelectInterface {
       else {
         $table_string = $this->connection->escapeTable($table['table']);
         // Do not attempt prefixing cross database / schema queries.
-        if (strpos($table_string, '.') === FALSE) {
+        if (!str_contains($table_string, '.')) {
           $table_string = '{' . $table_string . '}';
         }
       }
@@ -867,7 +886,10 @@ class Select extends Query implements SelectInterface {
 
     // GROUP BY
     if ($this->group) {
-      $query .= "\nGROUP BY " . implode(', ', $this->group);
+      $group_by_fields = array_map(function (string $field): string {
+        return $this->connection->escapeField($field);
+      }, $this->group);
+      $query .= "\nGROUP BY " . implode(', ', $group_by_fields);
     }
 
     // HAVING

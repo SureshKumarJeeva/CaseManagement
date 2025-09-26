@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\path\Functional;
 
-use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\Tests\BrowserTestBase;
 use Drupal\Tests\content_moderation\Traits\ContentModerationTestTrait;
+use Drupal\Tests\content_translation\Traits\ContentTranslationTestTrait;
 
 /**
  * Tests path aliases with Content Moderation.
@@ -15,11 +17,10 @@ use Drupal\Tests\content_moderation\Traits\ContentModerationTestTrait;
 class PathContentModerationTest extends BrowserTestBase {
 
   use ContentModerationTestTrait;
+  use ContentTranslationTestTrait;
 
   /**
-   * Modules to install.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
     'node',
@@ -38,7 +39,7 @@ class PathContentModerationTest extends BrowserTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    ConfigurableLanguage::createFromLangcode('fr')->save();
+    static::createLanguageFromLangcode('fr');
     $this->rebuildContainer();
 
     // Created a content type.
@@ -52,30 +53,44 @@ class PathContentModerationTest extends BrowserTestBase {
     $workflow->getTypePlugin()->addEntityTypeAndBundle('node', 'moderated');
     $workflow->save();
 
-    $this->drupalLogin($this->rootUser);
+    $this->drupalLogin($this->drupalCreateUser([
+      'administer workflows',
+      'access administration pages',
+      'administer content types',
+      'administer content translation',
+      'administer nodes',
+      'view latest version',
+      'view any unpublished content',
+      'access content overview',
+      'use editorial transition create_new_draft',
+      'use editorial transition publish',
+      'use editorial transition archive',
+      'use editorial transition archived_draft',
+      'use editorial transition archived_published',
+      'administer languages',
+      'administer site configuration',
+      'administer url aliases',
+      'create url aliases',
+      'view the administration theme',
+      'translate any entity',
+      'create content translations',
+      'create moderated content',
+      'edit own moderated content',
+    ]));
 
     // Enable URL language detection and selection.
     $edit = ['language_interface[enabled][language-url]' => 1];
     $this->drupalGet('admin/config/regional/language/detection');
     $this->submitForm($edit, 'Save settings');
 
-    // Enable translation for moderated node.
-    $edit = [
-      'entity_types[node]' => 1,
-      'settings[node][moderated][translatable]' => 1,
-      'settings[node][moderated][fields][path]' => 1,
-      'settings[node][moderated][fields][body]' => 1,
-      'settings[node][moderated][settings][language][language_alterable]' => 1,
-    ];
-    $this->drupalGet('admin/config/regional/content-language');
-    $this->submitForm($edit, 'Save configuration');
-    \Drupal::entityTypeManager()->clearCachedDefinitions();
+    // Enable translation for page.
+    $this->enableContentTranslation('node', 'moderated');
   }
 
   /**
    * Tests node path aliases on a moderated content type.
    */
-  public function testNodePathAlias() {
+  public function testNodePathAlias(): void {
     // Create some moderated content with a path alias.
     $this->drupalGet('node/add/moderated');
     $this->assertSession()->fieldValueEquals('path[0][alias]', '');
@@ -94,7 +109,7 @@ class PathContentModerationTest extends BrowserTestBase {
       'path[0][alias]' => '/moderated-content',
       'moderation_state[0][state]' => 'draft',
     ], 'Save');
-    $this->assertSession()->pageTextNotContains('You can only change the URL alias for the published version of this content.');
+    $this->assertSession()->statusMessageNotContains('You can only change the URL alias for the published version of this content.');
 
     // Create some moderated content with no path alias.
     $this->drupalGet('node/add/moderated');
@@ -114,7 +129,7 @@ class PathContentModerationTest extends BrowserTestBase {
       'path[0][alias]' => '/pending-revision',
       'moderation_state[0][state]' => 'draft',
     ], 'Save');
-    $this->assertSession()->pageTextContains('You can only change the URL alias for the published version of this content.');
+    $this->assertSession()->statusMessageContains('You can only change the URL alias for the published version of this content.', 'error');
 
     // Create some moderated content with no path alias.
     $this->drupalGet('node/add/moderated');
@@ -134,13 +149,13 @@ class PathContentModerationTest extends BrowserTestBase {
       'path[0][alias]' => '',
       'moderation_state[0][state]' => 'draft',
     ], 'Save');
-    $this->assertSession()->pageTextNotContains('You can only change the URL alias for the published version of this content.');
+    $this->assertSession()->statusMessageNotContains('You can only change the URL alias for the published version of this content.');
   }
 
   /**
    * Tests that translated and moderated node can get new draft revision.
    */
-  public function testTranslatedModeratedNodeAlias() {
+  public function testTranslatedModeratedNodeAlias(): void {
     // Create one node with a random alias.
     $default_node = $this->drupalCreateNode([
       'type' => 'moderated',
@@ -176,7 +191,7 @@ class PathContentModerationTest extends BrowserTestBase {
     $this->drupalGet('fr/node/' . $default_node->id() . '/edit');
     $this->submitForm($edit_new_translation_draft_with_alias, 'Save (this translation)');
     // Confirm the expected error.
-    $this->assertSession()->pageTextContains('You can only change the URL alias for the published version of this content.');
+    $this->assertSession()->statusMessageContains('You can only change the URL alias for the published version of this content.', 'error');
 
     // Create new draft revision for translation without changing path alias.
     $edit_new_translation_draft = [
@@ -186,7 +201,7 @@ class PathContentModerationTest extends BrowserTestBase {
     $this->drupalGet('fr/node/' . $default_node->id() . '/edit');
     $this->submitForm($edit_new_translation_draft, 'Save (this translation)');
     // Confirm that the new draft revision was created.
-    $this->assertSession()->pageTextNotContains('You can only change the URL alias for the published version of this content.');
+    $this->assertSession()->statusMessageNotContains('You can only change the URL alias for the published version of this content.');
     $this->assertSession()->pageTextContains($edit_new_translation_draft['body[0][value]']);
     $this->assertPathsAreAccessible([$default_path, $translation_path]);
 
@@ -199,7 +214,7 @@ class PathContentModerationTest extends BrowserTestBase {
     $this->drupalGet('fr/node/' . $default_node->id() . '/edit');
     $this->submitForm($edit_new_translation_draft_with_defaults_alias, 'Save (this translation)');
     // Verify the expected error.
-    $this->assertSession()->pageTextContains('You can only change the URL alias for the published version of this content.');
+    $this->assertSession()->statusMessageContains('You can only change the URL alias for the published version of this content.', 'error');
 
     // Try to create new draft revision for translation with deleted (empty)
     // path alias.
@@ -211,7 +226,7 @@ class PathContentModerationTest extends BrowserTestBase {
     $this->drupalGet('fr/node/' . $default_node->id() . '/edit');
     $this->submitForm($edit_new_translation_draft_empty_alias, 'Save (this translation)');
     // Confirm the expected error.
-    $this->assertSession()->pageTextContains('You can only change the URL alias for the published version of this content.');
+    $this->assertSession()->statusMessageContains('You can only change the URL alias for the published version of this content.', 'error');
 
     // Create new default (published) revision for translation with new path
     // alias.
@@ -223,7 +238,7 @@ class PathContentModerationTest extends BrowserTestBase {
     $this->drupalGet('fr/node/' . $default_node->id() . '/edit');
     $this->submitForm($edit_new_translation, 'Save (this translation)');
     // Confirm that the new published revision was created.
-    $this->assertSession()->pageTextNotContains('You can only change the URL alias for the published version of this content.');
+    $this->assertSession()->statusMessageNotContains('You can only change the URL alias for the published version of this content.');
     $this->assertSession()->pageTextContains($edit_new_translation['body[0][value]']);
     $this->assertSession()->addressEquals('fr' . $edit_new_translation['path[0][alias]']);
     $this->assertPathsAreAccessible([$default_path]);

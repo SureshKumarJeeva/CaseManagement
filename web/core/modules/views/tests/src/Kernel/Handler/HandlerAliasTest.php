@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\views\Kernel\Handler;
 
 use Drupal\Tests\views\Kernel\ViewsKernelTestBase;
@@ -12,6 +14,9 @@ use Drupal\views\Views;
  */
 class HandlerAliasTest extends ViewsKernelTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected static $modules = ['user'];
 
   /**
@@ -21,6 +26,9 @@ class HandlerAliasTest extends ViewsKernelTestBase {
    */
   public static $testViews = ['test_filter', 'test_alias'];
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp($import_test_views = TRUE): void {
     parent::setUp();
 
@@ -40,7 +48,7 @@ class HandlerAliasTest extends ViewsKernelTestBase {
     return $data;
   }
 
-  public function testPluginAliases() {
+  public function testPluginAliases(): void {
     $view = Views::getView('test_filter');
     $view->initDisplay();
 

@@ -50,8 +50,8 @@ class TcPdfv1 extends PrintEngineBase {
    */
   public function defaultConfiguration() {
     return [
-      'page_format' => 'A4',
-      'orientation' => static::PORTRAIT,
+      'default_paper_size' => 'A4',
+      'default_paper_orientation' => static::PORTRAIT,
     ];
   }
 
@@ -60,21 +60,21 @@ class TcPdfv1 extends PrintEngineBase {
    */
   public function buildConfigurationForm(array $form, FormStateInterface $form_state) {
     $page_formats = array_combine(array_keys(\TCPDF_STATIC::$page_formats), array_keys(\TCPDF_STATIC::$page_formats));
-    $form['page_format'] = [
+    $form['default_paper_size'] = [
       '#title' => $this->t('Paper Size'),
       '#type' => 'select',
       '#options' => $page_formats,
-      '#default_value' => $this->configuration['page_format'],
+      '#default_value' => $this->configuration['default_paper_size'],
       '#description' => $this->t('The page size to print the PDF to.'),
     ];
-    $form['orientation'] = [
+    $form['default_paper_orientation'] = [
       '#title' => $this->t('Paper Orientation'),
       '#type' => 'select',
       '#options' => [
         static::PORTRAIT => $this->t('Portrait'),
         static::LANDSCAPE => $this->t('Landscape'),
       ],
-      '#default_value' => $this->configuration['orientation'],
+      '#default_value' => $this->configuration['default_paper_orientation'],
       '#description' => $this->t('The paper orientation one of Landscape or Portrait'),
     ];
     return $form;
@@ -84,8 +84,10 @@ class TcPdfv1 extends PrintEngineBase {
    * {@inheritdoc}
    */
   public function addPage($content) {
-    $this->tcpdf->AddPage($this->configuration['orientation'], $this->configuration['page_format']);
+    $this->tcpdf->AddPage($this->configuration['default_paper_orientation'], $this->configuration['default_paper_size']);
     $this->tcpdf->writeHTML($content);
+
+    return $this;
   }
 
   /**

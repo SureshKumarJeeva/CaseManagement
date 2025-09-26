@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\FunctionalTests\Rest;
 
 use Drupal\Core\Entity\Entity\EntityViewDisplay;
@@ -95,6 +97,7 @@ abstract class EntityViewDisplayResourceTestBase extends ConfigEntityResourceTes
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**

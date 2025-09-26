@@ -3,11 +3,11 @@
 namespace Drupal\Tests\entity_usage\FunctionalJavascript;
 
 use Drupal\Core\Entity\ContentEntityTypeInterface;
+use Drupal\Tests\media\Traits\MediaTypeCreationTrait;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\media\Entity\Media;
 use Drupal\node\Entity\Node;
-use Drupal\Tests\media\Traits\MediaTypeCreationTrait;
 
 /**
  * Tests the configuration form.

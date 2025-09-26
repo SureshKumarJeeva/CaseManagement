@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\content_translation\Functional;
 
 use Drupal\Core\Url;
@@ -22,13 +24,14 @@ class ContentTranslationOutdatedRevisionTranslationTest extends ContentTranslati
    */
   protected function setUp(): void {
     parent::setUp();
+    $this->doSetup();
     $this->enableContentModeration();
   }
 
   /**
    * Tests that outdated revision translations work correctly.
    */
-  public function testFlagAsOutdatedHidden() {
+  public function testFlagAsOutdatedHidden(): void {
     // Create a test node.
     $values = [
       'title' => 'Test 1.1 EN',
@@ -39,7 +42,8 @@ class ContentTranslationOutdatedRevisionTranslationTest extends ContentTranslati
     $entity = $this->storage->load($id);
 
     // Add a published Italian translation.
-    $add_translation_url = Url::fromRoute("entity.{$this->entityTypeId}.content_translation_add", [
+    $add_translation_url = Url::fromRoute("entity.{$this->entityTypeId}.content_translation_add",
+      [
         $entity->getEntityTypeId() => $id,
         'source' => 'en',
         'target' => 'it',
@@ -58,7 +62,8 @@ class ContentTranslationOutdatedRevisionTranslationTest extends ContentTranslati
     $this->submitForm($edit, 'Save (this translation)');
 
     // Add a published French translation.
-    $add_translation_url = Url::fromRoute("entity.{$this->entityTypeId}.content_translation_add", [
+    $add_translation_url = Url::fromRoute("entity.{$this->entityTypeId}.content_translation_add",
+      [
         $entity->getEntityTypeId() => $id,
         'source' => 'en',
         'target' => 'fr',

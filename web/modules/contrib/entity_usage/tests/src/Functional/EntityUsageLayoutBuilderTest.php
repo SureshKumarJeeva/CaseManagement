@@ -2,9 +2,10 @@
 
 namespace Drupal\Tests\entity_usage\Functional;
 
+use Drupal\Core\Url;
+use Drupal\Tests\BrowserTestBase;
 use Drupal\block_content\Entity\BlockContent;
 use Drupal\block_content\Entity\BlockContentType;
-use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
@@ -12,7 +13,6 @@ use Drupal\layout_builder\Entity\LayoutBuilderEntityViewDisplay;
 use Drupal\layout_builder\Plugin\SectionStorage\OverridesSectionStorage;
 use Drupal\layout_builder\Section;
 use Drupal\layout_builder\SectionComponent;
-use Drupal\Tests\BrowserTestBase;
 
 /**
  * Tests layout builder usage through Inline Blocks displays in UI.
@@ -26,7 +26,7 @@ class EntityUsageLayoutBuilderTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'stark';
 
   /**
    * {@inheritdoc}
@@ -47,7 +47,7 @@ class EntityUsageLayoutBuilderTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
 
     LayoutBuilderEntityViewDisplay::create([
@@ -79,9 +79,11 @@ class EntityUsageLayoutBuilderTest extends BrowserTestBase {
    * navigating to entityInner, the source relationship is shown as ultimately
    * coming from entityHost (via Block Content).
    */
-  public function testLayoutBuilderInlineBlockUsage() {
+  public function testLayoutBuilderInlineAndReusableBlockUsage(): void {
     $innerEntity = EntityTest::create(['name' => $this->randomMachineName()]);
     $innerEntity->save();
+    $innerEntity2 = EntityTest::create(['name' => $this->randomMachineName()]);
+    $innerEntity2->save();
 
     $type = BlockContentType::create([
       'id' => 'foo',
@@ -111,11 +113,21 @@ class EntityUsageLayoutBuilderTest extends BrowserTestBase {
     ]);
     $block->save();
 
+    $block2 = BlockContent::create([
+      'type' => $type->id(),
+      'reusable' => 1,
+      'myref' => $innerEntity2,
+    ]);
+    $block2->save();
+
     $sectionData = [
       new Section('layout_onecol', [], [
         'first-uuid' => new SectionComponent('first-uuid', 'content', [
           'id' => 'inline_block:' . $type->id(),
           'block_revision_id' => $block->getRevisionId(),
+        ]),
+        'second-uuid' => new SectionComponent('second-uuid', 'content', [
+          'id' => 'block_content:' . $block2->uuid(),
         ]),
       ]),
     ];
@@ -131,14 +143,20 @@ class EntityUsageLayoutBuilderTest extends BrowserTestBase {
       'view test entity',
     ]));
 
-    $this->drupalGet(Url::fromRoute('entity.entity_test.entity_usage', ['entity_test' => $innerEntity->id()]));
+    $this->assertInnerEntityUsage($innerEntity, $entityHost);
+    $this->assertInnerEntityUsage($innerEntity2, $entityHost);
+  }
+
+  /**
+   * Asserts that a host entity is listed against the usage of an inner entity.
+   */
+  protected function assertInnerEntityUsage(EntityTest $inner, EntityTest $host): void {
+    $this->drupalGet(Url::fromRoute('entity.entity_test.entity_usage', ['entity_test' => $inner->id()]));
     $this->assertSession()->statusCodeEquals(200);
-
-    $row1 = $this->assertSession()->elementExists('css', 'table tbody tr:nth-child(1)');
-
-    $link = $this->assertSession()->elementExists('css', 'td:nth-child(1) a', $row1);
-    $this->assertEquals($entityHost->label(), $link->getText());
-    $this->assertEquals($link->getAttribute('href'), $entityHost->toUrl()->toString());
+    $row = $this->assertSession()->elementExists('css', 'table tbody tr:nth-child(1)');
+    $link = $this->assertSession()->elementExists('css', 'td:nth-child(1) a', $row);
+    $this->assertEquals($host->label(), $link->getText());
+    $this->assertEquals($link->getAttribute('href'), $host->toUrl()->toString());
   }
 
 }

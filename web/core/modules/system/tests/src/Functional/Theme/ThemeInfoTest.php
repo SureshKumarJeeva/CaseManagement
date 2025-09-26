@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\Theme;
 
 use Drupal\Tests\BrowserTestBase;
@@ -12,9 +14,7 @@ use Drupal\Tests\BrowserTestBase;
 class ThemeInfoTest extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['theme_test'];
 
@@ -56,9 +56,9 @@ class ThemeInfoTest extends BrowserTestBase {
   }
 
   /**
-   * Tests stylesheets-remove.
+   * Tests libraries-override.
    */
-  public function testStylesheets() {
+  public function testStylesheets(): void {
     $this->themeInstaller->install(['test_basetheme', 'test_subtheme']);
     $this->config('system.theme')
       ->set('default', 'test_subtheme')
@@ -71,23 +71,23 @@ class ThemeInfoTest extends BrowserTestBase {
     // should work nevertheless.
     $this->drupalGet('theme-test/info/stylesheets');
 
-    $this->assertCount(1, $this->xpath('//link[contains(@href, :href)]', [':href' => "$base/base-add.css"]), "$base/base-add.css found");
-    $this->assertCount(0, $this->xpath('//link[contains(@href, :href)]', [':href' => "base-remove.css"]), "base-remove.css not found");
+    $this->assertSession()->elementsCount('xpath', '//link[contains(@href, "' . $base . '/base-add.css")]', 1);
+    $this->assertSession()->elementNotExists('xpath', '//link[contains(@href, "base-remove.css")]');
 
-    $this->assertCount(1, $this->xpath('//link[contains(@href, :href)]', [':href' => "$sub/sub-add.css"]), "$sub/sub-add.css found");
-    $this->assertCount(0, $this->xpath('//link[contains(@href, :href)]', [':href' => "sub-remove.css"]), "sub-remove.css not found");
-    $this->assertCount(0, $this->xpath('//link[contains(@href, :href)]', [':href' => "base-add.sub-remove.css"]), "base-add.sub-remove.css not found");
+    $this->assertSession()->elementsCount('xpath', '//link[contains(@href, "' . $sub . '/sub-add.css")]', 1);
+    $this->assertSession()->elementNotExists('xpath', '//link[contains(@href, "sub-remove.css")]');
+    $this->assertSession()->elementNotExists('xpath', '//link[contains(@href, "base-add.sub-remove.css")]');
 
     // Verify that CSS files with the same name are loaded from both the base theme and subtheme.
-    $this->assertCount(1, $this->xpath('//link[contains(@href, :href)]', [':href' => "$base/samename.css"]), "$base/samename.css found");
-    $this->assertCount(1, $this->xpath('//link[contains(@href, :href)]', [':href' => "$sub/samename.css"]), "$sub/samename.css found");
+    $this->assertSession()->elementsCount('xpath', '//link[contains(@href, "' . $base . '/samename.css")]', 1);
+    $this->assertSession()->elementsCount('xpath', '//link[contains(@href, "' . $sub . '/samename.css")]', 1);
 
   }
 
   /**
    * Tests that changes to the info file are picked up.
    */
-  public function testChanges() {
+  public function testChanges(): void {
     $this->themeInstaller->install(['test_theme']);
     $this->config('system.theme')->set('default', 'test_theme')->save();
     $this->themeManager->resetActiveTheme();
@@ -95,13 +95,13 @@ class ThemeInfoTest extends BrowserTestBase {
     $active_theme = $this->themeManager->getActiveTheme();
     // Make sure we are not testing the wrong theme.
     $this->assertEquals('test_theme', $active_theme->getName());
-    $this->assertEquals(['classy/base', 'classy/messages', 'core/normalize', 'test_theme/global-styling'], $active_theme->getLibraries());
+    $this->assertEquals(['starterkit_theme/base', 'starterkit_theme/messages', 'core/normalize', 'test_theme/global-styling'], $active_theme->getLibraries());
 
     // @see theme_test_system_info_alter()
     $this->state->set('theme_test.modify_info_files', TRUE);
     $this->resetAll();
     $active_theme = $this->themeManager->getActiveTheme();
-    $this->assertEquals(['classy/base', 'classy/messages', 'core/normalize', 'test_theme/global-styling', 'core/once'], $active_theme->getLibraries());
+    $this->assertEquals(['starterkit_theme/base', 'starterkit_theme/messages', 'core/normalize', 'test_theme/global-styling', 'core/once'], $active_theme->getLibraries());
   }
 
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\KernelTests\Core\Entity;
 
 /**
@@ -9,6 +11,9 @@ namespace Drupal\KernelTests\Core\Entity;
  */
 class EntityUUIDTest extends EntityKernelTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -23,7 +28,7 @@ class EntityUUIDTest extends EntityKernelTestBase {
   /**
    * Tests UUID generation in entity CRUD operations.
    */
-  public function testCRUD() {
+  public function testCRUD(): void {
     // All entity variations have to have the same results.
     foreach (entity_test_entity_types() as $entity_type) {
       $this->assertCRUD($entity_type);

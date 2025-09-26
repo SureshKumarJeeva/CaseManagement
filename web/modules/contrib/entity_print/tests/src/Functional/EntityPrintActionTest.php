@@ -16,7 +16,14 @@ class EntityPrintActionTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['node', 'entity_print_test', 'views'];
+  protected static $modules = ['node', 'entity_print_test', 'views'];
+
+  /**
+   * The node object to test against.
+   *
+   * @var \Drupal\node\Entity\Node
+   */
+  protected $node;
 
   /**
    * {@inheritdoc}
@@ -54,7 +61,7 @@ class EntityPrintActionTest extends BrowserTestBase {
    */
   public function testDownloadPdfAction() {
     $this->drupalGet('/admin/content');
-    $this->drupalPostForm(NULL, [
+    $this->submitForm([
       'action' => 'entity_print_pdf_download_action',
       'node_bulk_form[0]' => 1,
     ], 'Apply to selected items');
@@ -68,6 +75,7 @@ class EntityPrintActionTest extends BrowserTestBase {
     // A meta refresh is inserted when using the test PDF engine, but this is
     // not present for real engines. So the test can assert the engine is
     // invoked, do not follow the meta refresh.
+    return FALSE;
   }
 
 }

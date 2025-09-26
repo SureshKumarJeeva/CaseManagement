@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\field\Kernel\Email;
 
 use Drupal\Core\Field\FieldItemListInterface;
@@ -16,6 +18,9 @@ use Drupal\field\Entity\FieldStorageConfig;
  */
 class EmailItemTest extends FieldKernelTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -43,7 +48,7 @@ class EmailItemTest extends FieldKernelTestBase {
   /**
    * Tests using entity fields of the email field type.
    */
-  public function testEmailItem() {
+  public function testEmailItem(): void {
     // Verify entity creation.
     $entity = EntityTest::create();
     $value = 'test@example.com';

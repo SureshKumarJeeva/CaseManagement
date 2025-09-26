@@ -2,6 +2,7 @@
 
 namespace Drupal\path_alias;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Core\Cache\CacheBackendInterface;
 use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
@@ -102,12 +103,24 @@ class AliasManager implements AliasManagerInterface {
    *   The language manager.
    * @param \Drupal\Core\Cache\CacheBackendInterface $cache
    *   Cache backend.
+   * @param \Drupal\Component\Datetime\TimeInterface|null $time
+   *   The time service.
    */
-  public function __construct($alias_repository, AliasWhitelistInterface $whitelist, LanguageManagerInterface $language_manager, CacheBackendInterface $cache) {
+  public function __construct(
+    AliasRepositoryInterface $alias_repository,
+    AliasWhitelistInterface $whitelist,
+    LanguageManagerInterface $language_manager,
+    CacheBackendInterface $cache,
+    protected ?TimeInterface $time = NULL,
+  ) {
     $this->pathAliasRepository = $alias_repository;
     $this->languageManager = $language_manager;
     $this->whitelist = $whitelist;
     $this->cache = $cache;
+    if (!$time) {
+      @trigger_error('Calling ' . __METHOD__ . '() without the $time argument is deprecated in drupal:10.3.0 and it will be required in drupal:11.0.0. See https://www.drupal.org/node/3387233', E_USER_DEPRECATED);
+      $this->time = \Drupal::service(TimeInterface::class);
+    }
   }
 
   /**
@@ -140,7 +153,7 @@ class AliasManager implements AliasManagerInterface {
       }
 
       $twenty_four_hours = 60 * 60 * 24;
-      $this->cache->set($this->cacheKey, $path_lookups, $this->getRequestTime() + $twenty_four_hours);
+      $this->cache->set($this->cacheKey, $path_lookups, $this->time->getRequestTime() + $twenty_four_hours);
     }
   }
 
@@ -181,7 +194,7 @@ class AliasManager implements AliasManagerInterface {
    * {@inheritdoc}
    */
   public function getAliasByPath($path, $langcode = NULL) {
-    if ($path[0] !== '/') {
+    if (!str_starts_with($path, '/')) {
       throw new \InvalidArgumentException(sprintf('Source path %s has to start with a slash.', $path));
     }
     // If no language is explicitly specified we default to the current URL
@@ -221,7 +234,7 @@ class AliasManager implements AliasManagerInterface {
       if (!empty($this->preloadedPathLookups[$langcode])) {
         $this->lookupMap[$langcode] = $this->pathAliasRepository->preloadPathAlias($this->preloadedPathLookups[$langcode], $langcode);
         // Keep a record of paths with no alias to avoid querying twice.
-        $this->noAlias[$langcode] = array_flip(array_diff_key($this->preloadedPathLookups[$langcode], array_keys($this->lookupMap[$langcode])));
+        $this->noAlias[$langcode] = array_flip(array_diff($this->preloadedPathLookups[$langcode], array_keys($this->lookupMap[$langcode])));
       }
     }
 
@@ -275,9 +288,6 @@ class AliasManager implements AliasManagerInterface {
    *
    * @param string $path
    *   An optional path for which an alias is being inserted.
-   *
-   * @return
-   *   An array containing a white list of path aliases.
    */
   protected function pathAliasWhitelistRebuild($path = NULL) {
     // When paths are inserted, only rebuild the whitelist if the path has a top
@@ -294,9 +304,15 @@ class AliasManager implements AliasManagerInterface {
    * Wrapper method for REQUEST_TIME constant.
    *
    * @return int
+   *
+   * @deprecated in drupal:10.3.0 and is removed from drupal:11.0.0. Use
+   *   the $this->time->getRequestTime() service instead.
+   *
+   * @see https://www.drupal.org/node/3387233
    */
   protected function getRequestTime() {
-    return defined('REQUEST_TIME') ? REQUEST_TIME : (int) $_SERVER['REQUEST_TIME'];
+    @trigger_error(__METHOD__ . '() is deprecated in drupal:10.3.0 and is removed from drupal:11.0.0. Use the $this->time->getRequestTime() instead. See https://www.drupal.org/node/3387233', E_USER_DEPRECATED);
+    return $this->time->getRequestTime();
   }
 
 }

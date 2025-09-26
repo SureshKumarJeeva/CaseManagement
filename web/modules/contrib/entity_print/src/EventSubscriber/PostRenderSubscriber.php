@@ -52,21 +52,44 @@ class PostRenderSubscriber implements EventSubscriberInterface {
    * @see https://drupal.org/node/1494670
    */
   public function postRender(PrintHtmlAlterEvent $event) {
-    // We only apply the fix to PHP Wkhtmltopdf because the other
-    // implementations allow us to specify a base url.
+    // We apply the fix to PHP Wkhtmltopdf and any engine when run in CLI.
     $config = $this->configFactory->get('entity_print.settings');
-    if ($config->get('print_engines.pdf_engine') !== 'phpwkhtmltopdf') {
+    if (
+      $config->get('print_engines.pdf_engine') !== 'phpwkhtmltopdf' &&
+      $event->getPhpSapi() !== 'cli'
+    ) {
       return;
     }
 
     $html_string = &$event->getHtml();
     $html5 = new HTML5();
     $document = $html5->loadHTML($html_string);
+    $request_base_url = $this->requestStack->getCurrentRequest()->getSchemeAndHttpHost();
+    $base_url = $config->get('base_url') ?: $request_base_url;
+
+    // Only add a base element if there is none set in the html.
+    if ($document->getElementsByTagName('base')->count() === 0) {
+      $base = $document->createElement('base');
+      $base->setAttribute('href', $base_url);
+
+      // Add new base element to the head element or ...
+      if ($document->getElementsByTagName('head')->count() !== 0) {
+        /** @var \DOMNode $head */
+        foreach ($document->getElementsByTagName('head') as $head) {
+          $head->appendChild($base);
+        }
+      }
+      // (edge-case) create a head element to add the base element to.
+      else {
+        $head = $document->createElement('head');
+        $document->appendChild($head);
+        $head->appendChild($base);
+      }
+    }
 
     // Define a function that will convert root relative uris into absolute
     // urls.
-    $transform = function ($tag, $attribute) use ($document) {
-      $base_url = $this->requestStack->getCurrentRequest()->getSchemeAndHttpHost();
+    $transform = function ($tag, $attribute) use ($document, $base_url) {
       foreach ($document->getElementsByTagName($tag) as $node) {
         $attribute_value = $node->getAttribute($attribute);
 
@@ -92,7 +115,7 @@ class PostRenderSubscriber implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     return [PrintEvents::POST_RENDER => 'postRender'];
   }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\user\Kernel\Plugin\migrate\source;
 
 use Drupal\Tests\migrate\Kernel\MigrateSqlSourceTestBase;
@@ -20,12 +22,12 @@ class ProfileFieldTest extends MigrateSqlSourceTestBase {
   /**
    * {@inheritdoc}
    */
-  public function providerSource() {
+  public static function providerSource() {
     $tests = [
       [
         'source_data' => [],
         'expected_data' => [],
-       ],
+      ],
     ];
 
     $profile_fields = [

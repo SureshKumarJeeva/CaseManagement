@@ -8,8 +8,9 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\ReplaceCommand;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Render\Attribute\FormElement;
 use Drupal\Core\Render\Element;
-use Drupal\Core\Render\Element\FormElement;
+use Drupal\Core\Render\Element\FormElementBase;
 use Drupal\Core\Site\Settings;
 use Drupal\Core\Url;
 use Drupal\file\Entity\File;
@@ -19,10 +20,9 @@ use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Provides an AJAX/progress aware widget for uploading and saving a file.
- *
- * @FormElement("managed_file")
  */
-class ManagedFile extends FormElement {
+#[FormElement('managed_file')]
+class ManagedFile extends FormElementBase {
 
   /**
    * {@inheritdoc}
@@ -194,10 +194,6 @@ class ManagedFile extends FormElement {
     if (isset($form['#file_upload_delta']) && $current_file_count < $form['#file_upload_delta']) {
       $form[$current_file_count]['#attributes']['class'][] = 'ajax-new-content';
     }
-    // Otherwise just add the new content class on a placeholder.
-    else {
-      $form['#suffix'] .= '<span class="ajax-new-content"></span>';
-    }
 
     $status_messages = ['#type' => 'status_messages'];
     $form['#prefix'] .= $renderer->renderRoot($status_messages);
@@ -280,19 +276,17 @@ class ManagedFile extends FormElement {
     ];
 
     // Add progress bar support to the upload if possible.
-    if ($element['#progress_indicator'] == 'bar' && $implementation = file_progress_implementation()) {
+    if ($element['#progress_indicator'] == 'bar' && extension_loaded('uploadprogress')) {
       $upload_progress_key = mt_rand();
 
-      if ($implementation == 'uploadprogress') {
-        $element['UPLOAD_IDENTIFIER'] = [
-          '#type' => 'hidden',
-          '#value' => $upload_progress_key,
-          '#attributes' => ['class' => ['file-progress']],
-          // Uploadprogress extension requires this field to be at the top of
-          // the form.
-          '#weight' => -20,
-        ];
-      }
+      $element['UPLOAD_IDENTIFIER'] = [
+        '#type' => 'hidden',
+        '#value' => $upload_progress_key,
+        '#attributes' => ['class' => ['file-progress']],
+        // Uploadprogress extension requires this field to be at the top of
+        // the form.
+        '#weight' => -20,
+      ];
 
       // Add the upload progress callback.
       $element['upload_button']['#ajax']['progress']['url'] = Url::fromRoute('file.ajax_progress', ['key' => $upload_progress_key]);
@@ -326,6 +320,11 @@ class ManagedFile extends FormElement {
       '#weight' => -10,
       '#error_no_message' => TRUE,
     ];
+
+    if (!empty($element['#description'])) {
+      $element['upload']['#attributes']['aria-describedby'] = $element['#id'] . '--description';
+    }
+
     if (!empty($element['#accept'])) {
       $element['upload']['#attributes'] = ['accept' => $element['#accept']];
     }
@@ -343,7 +342,7 @@ class ManagedFile extends FormElement {
         if ($element['#multiple']) {
           $element['file_' . $delta]['selected'] = [
             '#type' => 'checkbox',
-            '#title' => \Drupal::service('renderer')->renderPlain($file_link),
+            '#title' => \Drupal::service('renderer')->renderInIsolation($file_link),
           ];
         }
         else {
@@ -364,8 +363,15 @@ class ManagedFile extends FormElement {
     }
 
     // Add the extension list to the page as JavaScript settings.
-    if (isset($element['#upload_validators']['file_validate_extensions'][0])) {
-      $extension_list = implode(',', array_filter(explode(' ', $element['#upload_validators']['file_validate_extensions'][0])));
+    if (isset($element['#upload_validators']['file_validate_extensions'][0]) || isset($element['#upload_validators']['FileExtension']['extensions'])) {
+      if (isset($element['#upload_validators']['file_validate_extensions'][0])) {
+        @trigger_error('\'file_validate_extensions\' is deprecated in drupal:10.2.0 and is removed from drupal:11.0.0. Use the \'FileExtension\' constraint instead. See https://www.drupal.org/node/3363700', E_USER_DEPRECATED);
+        $allowed_extensions = $element['#upload_validators']['file_validate_extensions'][0];
+      }
+      else {
+        $allowed_extensions = $element['#upload_validators']['FileExtension']['extensions'];
+      }
+      $extension_list = implode(',', array_filter(explode(' ', $allowed_extensions)));
       $element['upload']['#attached']['drupalSettings']['file']['elements']['#' . $id] = $extension_list;
     }
 
@@ -415,7 +421,8 @@ class ManagedFile extends FormElement {
    * Render API callback: Validates the managed_file element.
    */
   public static function validateManagedFile(&$element, FormStateInterface $form_state, &$complete_form) {
-    $clicked_button = end($form_state->getTriggeringElement()['#parents']);
+    $triggering_element = $form_state->getTriggeringElement();
+    $clicked_button = isset($triggering_element['#parents']) ? end($triggering_element['#parents']) : '';
     if ($clicked_button != 'remove_button' && !empty($element['fids']['#value'])) {
       $fids = $element['fids']['#value'];
       foreach ($fids as $fid) {

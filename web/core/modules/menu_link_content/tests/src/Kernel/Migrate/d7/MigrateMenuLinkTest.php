@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\menu_link_content\Kernel\Migrate\d7;
 
 use Drupal\Core\Menu\MenuTreeParameters;
@@ -58,7 +60,7 @@ class MigrateMenuLinkTest extends MigrateDrupal7TestBase {
   /**
    * Tests migration of menu links.
    */
-  public function testMenuLinks() {
+  public function testMenuLinks(): void {
     $this->assertEntity(469, 'und', 'Bing', static::MENU_NAME, 'Bing', TRUE, FALSE, ['attributes' => ['title' => 'Bing']], 'http://bing.com', 0);
     // This link has an i18n translation so the language is changed to the
     // default language of the source site.
@@ -112,6 +114,11 @@ class MigrateMenuLinkTest extends MigrateDrupal7TestBase {
     $this->assertEntity(485, 'en', 'is - The thing about Deep Space 9', 'tools', NULL, TRUE, FALSE, ['attributes' => ['title' => '']], 'entity:node/2', 10);
     $this->assertEntity(486, 'und', 'is - The thing about Firefly', 'tools', NULL, TRUE, FALSE, ['attributes' => ['title' => '']], 'entity:node/4', 11);
     $this->assertEntity(487, 'en', 'en - The thing about Firefly', 'tools', NULL, TRUE, FALSE, ['attributes' => ['title' => '']], 'entity:node/4', 12);
+
+    // Test there have been no attempts to stub a shortcut in a MigrationLookup
+    // process.
+    $messages = $this->getMigration('d7_menu')->getIdMap()->getMessages()->fetchAll();
+    $this->assertCount(0, $messages);
   }
 
 }

@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\TestSite\Commands;
 
+use Drupal\Core\Config\ConfigImporter;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Test\FunctionalTestSetupTrait;
 use Drupal\Core\Test\TestDatabase;
@@ -14,6 +17,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\SymfonyStyle;
+use Symfony\Component\Filesystem\Filesystem;
 
 /**
  * Command to create a test Drupal site.
@@ -29,6 +33,29 @@ class TestSiteInstallCommand extends Command {
   use TestSetupTrait {
     changeDatabasePrefix as protected changeDatabasePrefixTrait;
   }
+
+  /**
+   * The theme to install as the default for testing.
+   *
+   * Defaults to the install profile's default theme, if it specifies any.
+   */
+  protected string $defaultTheme;
+
+  /**
+   * The base URL.
+   */
+  protected string $baseUrl;
+
+  /**
+   * The original array of shutdown function callbacks.
+   */
+  protected array $originalShutdownCallbacks = [];
+
+
+  /**
+   * The config importer that can be used in a test.
+   */
+  protected ?ConfigImporter $configImporter;
 
   /**
    * The install profile to use.
@@ -47,18 +74,22 @@ class TestSiteInstallCommand extends Command {
   protected $timeLimit = 500;
 
   /**
-   * The database prefix of this test run.
-   *
-   * @var string
-   */
-  protected $databasePrefix;
-
-  /**
    * The language to install the site in.
    *
    * @var string
    */
   protected $langcode = 'en';
+
+  /**
+   * {@inheritdoc}
+   *
+   * @todo Remove and fix test to not rely on super user.
+   * @see https://www.drupal.org/project/drupal/issues/3437620
+   */
+  public function __construct(?string $name = NULL) {
+    parent::__construct($name);
+    $this->usesSuperUserAccessPolicy = TRUE;
+  }
 
   /**
    * {@inheritdoc}
@@ -75,13 +106,13 @@ class TestSiteInstallCommand extends Command {
       ->addOption('json', NULL, InputOption::VALUE_NONE, 'Output test site connection details in JSON.')
       ->addUsage('--setup-file core/tests/Drupal/TestSite/TestSiteMultilingualInstallTestScript.php --json')
       ->addUsage('--install-profile demo_umami --langcode fr')
-      ->addUsage('--base-url "http://example.com" --db-url "mysql://username:password@localhost/databasename#table_prefix"');
+      ->addUsage('--base-url "http://example.com" --db-url "mysql://username:password@localhost/database_name#table_prefix"');
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function execute(InputInterface $input, OutputInterface $output) {
+  protected function execute(InputInterface $input, OutputInterface $output): int {
     // Determines and validates the setup class prior to installing a database
     // to avoid creating unnecessary sites.
     $root = dirname(__DIR__, 5);
@@ -97,6 +128,18 @@ class TestSiteInstallCommand extends Command {
 
     // Manage site fixture.
     $this->setup($input->getOption('install-profile'), $class_name, $input->getOption('langcode'));
+
+    // Make sure there is an entry in sites.php for the new site.
+    $fs = new Filesystem();
+    if (!$fs->exists($root . '/sites/sites.php')) {
+      $fs->copy($root . '/sites/example.sites.php', $root . '/sites/sites.php');
+    }
+    $parsed = parse_url($base_url);
+    $port = $parsed['port'] ?? 80;
+    $host = $parsed['host'] ?? 'localhost';
+    // Remove 'sites/' from the beginning of the path.
+    $site_path = substr($this->siteDirectory, 6);
+    $fs->appendToFile($root . '/sites/sites.php', "\$sites['$port.$host'] = '$site_path';");
 
     $user_agent = drupal_generate_test_ua($this->databasePrefix);
     if ($input->getOption('json')) {

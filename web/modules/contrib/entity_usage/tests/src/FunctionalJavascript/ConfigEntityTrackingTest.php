@@ -2,11 +2,11 @@
 
 namespace Drupal\Tests\entity_usage\FunctionalJavascript;
 
+use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 use Drupal\block_content\Entity\BlockContent;
 use Drupal\block_content\Entity\BlockContentType;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\field\Entity\FieldStorageConfig;
-use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 use Drupal\user\Entity\Role;
 
 /**
@@ -30,17 +30,18 @@ class ConfigEntityTrackingTest extends EntityUsageJavascriptTestBase {
     'block',
     'block_content',
     'block_field',
+    'dblog',
   ];
 
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'stark';
 
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     /** @var \Drupal\user\RoleInterface $role */
@@ -48,6 +49,7 @@ class ConfigEntityTrackingTest extends EntityUsageJavascriptTestBase {
     $this->grantPermissions($role, [
       'access entity usage statistics',
       'administer blocks',
+      'administer block content',
       'administer entity usage',
       'administer views',
       'administer webform',
@@ -142,8 +144,7 @@ class ConfigEntityTrackingTest extends EntityUsageJavascriptTestBase {
     $this->assertSession()->pageTextContains('eu_test_ct Node that points to a webform has been created.');
 
     // Visit the webform page, check the usage tab is there.
-    $webform_link = $assert_session->elementExists('css', '.field--name-field-eu-test-related-webforms a');
-    $webform_link->click();
+    $this->clickLink('Contact');
     $this->saveHtmlOutput();
 
     // Click on the tab and verify if the usage was correctly tracked.
@@ -370,9 +371,8 @@ class ConfigEntityTrackingTest extends EntityUsageJavascriptTestBase {
     $this->assertEquals($expected, $usage);
 
     // We should also be able to get to the usage page from the block page.
-    $this->drupalGet("/block/{$block_content->id()}");
-    $assert_session->linkExists('Usage');
-    $this->drupalGet("/block/{$block_content->id()}/usage");
+    $this->drupalGet($block_content->toUrl());
+    $this->clickLink('Usage');
     $first_row_title_link = $assert_session->elementExists('xpath', '//table/tbody/tr[1]/td[1]/a');
     $this->assertEquals($host_node->label(), $first_row_title_link->getText());
     $this->assertStringContainsString($host_node->toUrl()->toString(), $first_row_title_link->getAttribute('href'));

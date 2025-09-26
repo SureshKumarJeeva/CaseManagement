@@ -82,7 +82,7 @@ class Base64ImageFormatter extends ImageFormatter {
    * @return bool|string
    *   A uri for this image style.
    *
-   * @TODO We should use ImageStyleDownloadController once core is fixed.
+   * @todo We should use ImageStyleDownloadController once core is fixed.
    * Currently this code does not acquire a look to generate the derivative and
    * may cause issues on high traffic sites with multiple web heads.
    *

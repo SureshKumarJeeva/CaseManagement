@@ -2,7 +2,7 @@ name: associatedps
 type: theme
 description: 'Custom theme based on adminimal.'
 # core: 8.x
-base theme: adminimal_theme
+base theme: claro
 
 libraries:
   - associatedps/global-styling
@@ -22,4 +22,4 @@ regions_hidden:
   - sidebar_first
 
 version: '8.x-1.0'
-core: '8.x'
+core_version_requirement: ^9 || ^10

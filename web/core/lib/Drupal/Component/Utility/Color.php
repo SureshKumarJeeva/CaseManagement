@@ -58,8 +58,7 @@ class Color {
   }
 
   /**
-   * Converts RGB color arrays and RGB strings in CSS notation to lowercase
-   * simple colors like '#aabbcc'.
+   * Converts RGB color arrays or strings to lowercase CSS notation.
    *
    * @param array|string $input
    *   The value to convert. If the value is an array the first three elements
@@ -85,7 +84,7 @@ class Color {
       $out |= $v << (16 - $k * 8);
     }
 
-    return '#' . str_pad(dechex($out), 6, 0, STR_PAD_LEFT);
+    return '#' . str_pad(dechex($out), 6, '0', STR_PAD_LEFT);
   }
 
   /**

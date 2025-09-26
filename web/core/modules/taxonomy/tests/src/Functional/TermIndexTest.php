@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\taxonomy\Functional;
 
 use Drupal\Core\Link;
@@ -14,9 +16,7 @@ use Drupal\Core\Field\FieldStorageDefinitionInterface;
 class TermIndexTest extends TaxonomyTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['views'];
 
@@ -46,6 +46,9 @@ class TermIndexTest extends TaxonomyTestBase {
    */
   protected $fieldName2;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -58,11 +61,11 @@ class TermIndexTest extends TaxonomyTestBase {
     // Create a vocabulary and add two term reference fields to article nodes.
     $this->vocabulary = $this->createVocabulary();
 
-    $this->fieldName1 = mb_strtolower($this->randomMachineName());
+    $this->fieldName1 = $this->randomMachineName();
     $handler_settings = [
       'target_bundles' => [
         $this->vocabulary->id() => $this->vocabulary->id(),
-       ],
+      ],
       'auto_create' => TRUE,
     ];
     $this->createEntityReferenceField('node', 'article', $this->fieldName1, NULL, 'taxonomy_term', 'default', $handler_settings, FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED);
@@ -80,7 +83,7 @@ class TermIndexTest extends TaxonomyTestBase {
       ])
       ->save();
 
-    $this->fieldName2 = mb_strtolower($this->randomMachineName());
+    $this->fieldName2 = $this->randomMachineName();
     $this->createEntityReferenceField('node', 'article', $this->fieldName2, NULL, 'taxonomy_term', 'default', $handler_settings, FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED);
 
     /** @var \Drupal\Core\Entity\EntityDisplayRepositoryInterface $display_repository */
@@ -100,7 +103,7 @@ class TermIndexTest extends TaxonomyTestBase {
   /**
    * Tests that the taxonomy index is maintained properly.
    */
-  public function testTaxonomyIndex() {
+  public function testTaxonomyIndex(): void {
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     // Create terms in the vocabulary.
     $term_1 = $this->createTerm($this->vocabulary);
@@ -236,7 +239,7 @@ class TermIndexTest extends TaxonomyTestBase {
   /**
    * Tests that there is a link to the parent term on the child term page.
    */
-  public function testTaxonomyTermHierarchyBreadcrumbs() {
+  public function testTaxonomyTermHierarchyBreadcrumbs(): void {
     // Create two taxonomy terms and set term2 as the parent of term1.
     $term1 = $this->createTerm($this->vocabulary);
     $term2 = $this->createTerm($this->vocabulary);

@@ -1,9 +1,6 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\Tests\field\Unit\FieldConfigEntityUnitTest.
- */
+declare(strict_types=1);
 
 namespace Drupal\Tests\field\Unit;
 
@@ -74,6 +71,8 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
    * {@inheritdoc}
    */
   protected function setUp(): void {
+    parent::setUp();
+
     $this->entityTypeId = $this->randomMachineName();
     $this->entityType = $this->createMock('\Drupal\Core\Config\Entity\ConfigEntityTypeInterface');
 
@@ -95,10 +94,10 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
     $this->fieldStorage = $this->createMock('\Drupal\field\FieldStorageConfigInterface');
     $this->fieldStorage->expects($this->any())
       ->method('getType')
-      ->will($this->returnValue('test_field'));
+      ->willReturn('test_field');
     $this->fieldStorage->expects($this->any())
       ->method('getName')
-      ->will($this->returnValue('field_test'));
+      ->willReturn('field_test');
     $this->fieldStorage->expects($this->any())
       ->method('getSettings')
       ->willReturn([]);
@@ -106,20 +105,20 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
     $this->entityFieldManager->expects($this->any())
       ->method('getFieldStorageDefinitions')
       ->with('test_entity_type')
-      ->will($this->returnValue([
+      ->willReturn([
         $this->fieldStorage->getName() => $this->fieldStorage,
-      ]));
+      ]);
   }
 
   /**
    * @covers ::calculateDependencies
    */
-  public function testCalculateDependencies() {
+  public function testCalculateDependencies(): void {
     // Mock the interfaces necessary to create a dependency on a bundle entity.
     $target_entity_type = $this->createMock('\Drupal\Core\Entity\EntityTypeInterface');
     $target_entity_type->expects($this->any())
       ->method('getBundleConfigDependency')
-      ->will($this->returnValue(['type' => 'config', 'name' => 'test.test_entity_type.id']));
+      ->willReturn(['type' => 'config', 'name' => 'test.test_entity_type.id']);
 
     $this->entityTypeManager->expects($this->any())
       ->method('getDefinition')
@@ -135,7 +134,7 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
 
     $this->fieldStorage->expects($this->once())
       ->method('getConfigDependencyName')
-      ->will($this->returnValue('field.storage.test_entity_type.test_field'));
+      ->willReturn('field.storage.test_entity_type.test_field');
 
     $field = new FieldConfig([
       'field_name' => $this->fieldStorage->getName(),
@@ -152,17 +151,17 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
   /**
    * Tests that invalid bundles are handled.
    */
-  public function testCalculateDependenciesIncorrectBundle() {
+  public function testCalculateDependenciesIncorrectBundle(): void {
     $storage = $this->createMock('\Drupal\Core\Config\Entity\ConfigEntityStorageInterface');
     $storage->expects($this->any())
       ->method('load')
       ->with('test_bundle_not_exists')
-      ->will($this->returnValue(NULL));
+      ->willReturn(NULL);
 
     $this->entityTypeManager->expects($this->any())
       ->method('getStorage')
       ->with('bundle_entity_type')
-      ->will($this->returnValue($storage));
+      ->willReturn($storage);
 
     $target_entity_type = new EntityType([
       'id' => 'test_entity_type',
@@ -195,7 +194,7 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
   /**
    * @covers ::onDependencyRemoval
    */
-  public function testOnDependencyRemoval() {
+  public function testOnDependencyRemoval(): void {
     $this->fieldTypePluginManager->expects($this->any())
       ->method('getDefinition')
       ->with('test_field')
@@ -224,7 +223,7 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
   /**
    * @covers ::toArray
    */
-  public function testToArray() {
+  public function testToArray(): void {
     $field = new FieldConfig([
       'field_name' => $this->fieldStorage->getName(),
       'entity_type' => 'test_entity_type',
@@ -252,15 +251,15 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
     $this->entityTypeManager->expects($this->any())
       ->method('getDefinition')
       ->with($this->entityTypeId)
-      ->will($this->returnValue($this->entityType));
+      ->willReturn($this->entityType);
     $this->entityType->expects($this->once())
       ->method('getKey')
       ->with('id')
-      ->will($this->returnValue('id'));
+      ->willReturn('id');
     $this->entityType->expects($this->once())
       ->method('getPropertiesToExport')
       ->with('test_entity_type.test_bundle.field_test')
-      ->will($this->returnValue(array_combine(array_keys($expected), array_keys($expected))));
+      ->willReturn(array_combine(array_keys($expected), array_keys($expected)));
 
     $export = $field->toArray();
     $this->assertEquals($expected, $export);
@@ -269,7 +268,7 @@ class FieldConfigEntityUnitTest extends UnitTestCase {
   /**
    * @covers ::getType
    */
-  public function testGetType() {
+  public function testGetType(): void {
     // Ensure that FieldConfig::getType() is not delegated to
     // FieldStorage.
     $this->entityFieldManager->expects($this->never())

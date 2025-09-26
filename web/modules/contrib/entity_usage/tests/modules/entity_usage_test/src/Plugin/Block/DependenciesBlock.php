@@ -42,4 +42,5 @@ class DependenciesBlock extends BlockBase {
     }
     return $dependencies;
   }
+
 }

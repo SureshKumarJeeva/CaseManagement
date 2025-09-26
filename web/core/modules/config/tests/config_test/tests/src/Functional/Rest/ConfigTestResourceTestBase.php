@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\config_test\Functional\Rest;
 
 use Drupal\config_test\Entity\ConfigTest;
@@ -68,6 +70,7 @@ abstract class ConfigTestResourceTestBase extends ConfigEntityResourceTestBase {
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**

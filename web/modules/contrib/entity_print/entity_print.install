@@ -121,15 +121,29 @@ function entity_print_update_8102() {
 }
 
 /**
- * Upgrade the permissions inline with the more granular permissions.
+ * Standardize configuration keys for page size and orientation.
  */
-function entity_print_update_8101() {
-  $roles = user_roles();
-  foreach ($roles as $role) {
-    if ($role->hasPermission('entity print access')) {
-      $role->grantPermission('bypass entity print access');
-      $role->revokePermission('entity print access');
-      $role->save();
+function entity_print_update_8201() {
+  $config_factory = \Drupal::configFactory();
+  foreach ($config_factory->listAll('entity_print.print_engine.') as $print_engine_config_name) {
+    $print_engine_config = $config_factory->getEditable($print_engine_config_name);
+    $orientation = $print_engine_config->get('settings.orientation');
+    if (NULL !== $orientation) {
+      $print_engine_config->set('settings.default_paper_orientation', $orientation);
+      $print_engine_config->clear('settings.orientation');
     }
+    $page_format = $print_engine_config->get('settings.page_format');
+    if (NULL !== $page_format) {
+      $print_engine_config->set('settings.default_paper_size', $page_format);
+      $print_engine_config->clear('settings.page_format');
+    }
+    $print_engine_config->save(TRUE);
   }
+}
+
+/**
+ * Implements hook_update_last_removed().
+ */
+function entity_print_update_last_removed() {
+  return 8101;
 }

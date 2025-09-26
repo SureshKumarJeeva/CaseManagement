@@ -68,7 +68,7 @@ class EntityPrintPermissions implements ContainerInjectionInterface {
     });
 
     $permissions = [];
-    foreach ($content_entity_types as $key => $content_entity_type) {
+    foreach ($content_entity_types as $content_entity_type) {
       $permissions['entity print access type ' . $content_entity_type->id()] = [
         'title' => $this->t('%entity_label: Use all print engines', [
           '%entity_label' => $content_entity_type->getLabel(),
@@ -86,7 +86,7 @@ class EntityPrintPermissions implements ContainerInjectionInterface {
       foreach ($entity_type_bundles as $bundle_key => $entity_type_bundle) {
         $permissions['entity print access bundle ' . $bundle_key] = [
           'title' => $this->t('%entity_bundle_label: Use all print engines', [
-            '%entity_bundle_label' => $entity_type_bundle['label'],
+            '%entity_bundle_label' => $entity_type_bundle['label'] ?? $bundle_key,
           ]),
         ];
       }

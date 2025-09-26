@@ -5,6 +5,7 @@
  *
  * Available variables:
  * - heading_id: Pagination heading ID.
+ * - pagination_heading_level: The heading level to use for the pager.
  * - items: List of pager items.
  *
  * @see template_preprocess_views_mini_pager()
@@ -12,7 +13,7 @@
 #}
 {% if items.previous or items.next %}
   <nav class="pager" role="navigation" aria-labelledby="{{ heading_id }}">
-    <h4 id="{{ heading_id }}" class="visually-hidden">{{ 'Pagination'|t }}</h4>
+    <{{ pagination_heading_level }} id="{{ heading_id }}" class="visually-hidden">{{ 'Pagination'|t }}</{{ pagination_heading_level }}>
     <ul class="pager__items js-pager__items">
       {# Print previous item if we are not on the first page. #}
       {% if items.previous %}
@@ -38,7 +39,7 @@
         {% apply spaceless %}
           <li class="pager__item pager__item--control pager__item--next">
             <a href="{{ items.next.href }}" class="pager__link" title="{{ 'Go to next page'|t }}" rel="next"{{ items.next.attributes|without('href', 'title', 'rel') }}>
-              <span class="visually-hidden">{{ 'Previous page'|t }}</span>
+              <span class="visually-hidden">{{ 'Next page'|t }}</span>
               {% include "@olivero/../images/pager-previous.svg" %}
             </a>
           </li>

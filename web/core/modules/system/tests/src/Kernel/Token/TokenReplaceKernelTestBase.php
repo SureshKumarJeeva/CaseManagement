@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Kernel\Token;
 
 use Drupal\KernelTests\Core\Entity\EntityKernelTestBase;
@@ -24,13 +26,14 @@ abstract class TokenReplaceKernelTestBase extends EntityKernelTestBase {
   protected $tokenService;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['system'];
 
-  protected function setUp() {
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
     parent::setUp();
     // Install default system configuration.
     $this->installConfig(['system']);

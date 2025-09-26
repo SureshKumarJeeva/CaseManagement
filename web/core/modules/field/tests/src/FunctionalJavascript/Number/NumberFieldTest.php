@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\field\FunctionalJavascript\Number;
 
 use Drupal\field\Entity\FieldConfig;
@@ -44,10 +46,10 @@ class NumberFieldTest extends WebDriverTestBase {
   /**
    * Tests default formatter behavior.
    */
-  public function testNumberFormatter() {
-    $type = mb_strtolower($this->randomMachineName());
-    $float_field = mb_strtolower($this->randomMachineName());
-    $integer_field = mb_strtolower($this->randomMachineName());
+  public function testNumberFormatter(): void {
+    $type = $this->randomMachineName();
+    $float_field = $this->randomMachineName();
+    $integer_field = $this->randomMachineName();
     $thousand_separators = ['', '.', ',', ' ', chr(8201), "'"];
     $decimal_separators = ['.', ','];
     $prefix = $this->randomMachineName();
@@ -133,18 +135,18 @@ class NumberFieldTest extends WebDriverTestBase {
     $scale = rand(0, 10);
 
     $page = $this->getSession()->getPage();
-    $page->pressButton("${float_field}_settings_edit");
+    $page->pressButton("{$float_field}_settings_edit");
     $assert_session->waitForElement('css', '.ajax-new-content');
     $edit = [
-      "fields[${float_field}][settings_edit_form][settings][prefix_suffix]" => TRUE,
-      "fields[${float_field}][settings_edit_form][settings][scale]" => $scale,
-      "fields[${float_field}][settings_edit_form][settings][decimal_separator]" => $decimal_separator,
-      "fields[${float_field}][settings_edit_form][settings][thousand_separator]" => $thousand_separator,
+      "fields[{$float_field}][settings_edit_form][settings][prefix_suffix]" => TRUE,
+      "fields[{$float_field}][settings_edit_form][settings][scale]" => $scale,
+      "fields[{$float_field}][settings_edit_form][settings][decimal_separator]" => $decimal_separator,
+      "fields[{$float_field}][settings_edit_form][settings][thousand_separator]" => $thousand_separator,
     ];
     foreach ($edit as $name => $value) {
       $page->fillField($name, $value);
     }
-    $page->pressButton("${float_field}_plugin_settings_update");
+    $page->pressButton("{$float_field}_plugin_settings_update");
     $assert_session->waitForElement('css', '.field-plugin-summary-cell > .ajax-new-content');
     $this->submitForm([], 'Save');
 
@@ -165,16 +167,16 @@ class NumberFieldTest extends WebDriverTestBase {
     $thousand_separator = $thousand_separators[array_rand($thousand_separators)];
 
     $page = $this->getSession()->getPage();
-    $page->pressButton("${integer_field}_settings_edit");
+    $page->pressButton("{$integer_field}_settings_edit");
     $assert_session->waitForElement('css', '.ajax-new-content');
     $edit = [
-      "fields[${integer_field}][settings_edit_form][settings][prefix_suffix]" => FALSE,
-      "fields[${integer_field}][settings_edit_form][settings][thousand_separator]" => $thousand_separator,
+      "fields[{$integer_field}][settings_edit_form][settings][prefix_suffix]" => FALSE,
+      "fields[{$integer_field}][settings_edit_form][settings][thousand_separator]" => $thousand_separator,
     ];
     foreach ($edit as $name => $value) {
       $page->fillField($name, $value);
     }
-    $page->pressButton("${integer_field}_plugin_settings_update");
+    $page->pressButton("{$integer_field}_plugin_settings_update");
     $assert_session->waitForElement('css', '.field-plugin-summary-cell > .ajax-new-content');
     $this->submitForm([], 'Save');
 

@@ -1,12 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\language\Kernel\Migrate\d7;
 
 use Drupal\language\Entity\ContentLanguageSettings;
 use Drupal\Tests\migrate_drupal\Kernel\d7\MigrateDrupal7TestBase;
 
 /**
- * Tests migration of language content setting variables,
+ * Tests the migration of language-related settings.
+ *
+ * Settings tested include the language content setting variables,
  * language_content_type_$type, i18n_node_options_* and i18n_lock_node_*.
  *
  * @group migrate_drupal_7
@@ -40,7 +44,7 @@ class MigrateLanguageContentSettingsTest extends MigrateDrupal7TestBase {
   /**
    * Tests migration of content language settings.
    */
-  public function testLanguageContent() {
+  public function testLanguageContent(): void {
     // Assert that a translatable content is still translatable.
     $config = $this->config('language.content_settings.node.blog');
     $this->assertSame($config->get('target_entity_type_id'), 'node');

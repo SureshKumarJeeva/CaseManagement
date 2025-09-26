@@ -37,7 +37,7 @@ class TestEngineConfigurationAlter implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     return [
       PrintEvents::CONFIGURATION_ALTER => 'alterConfiguration',
       PrintEvents::CSS_ALTER => 'alterCss',

@@ -3,18 +3,18 @@
 namespace Drupal\views\Plugin\views\filter;
 
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\views\Attribute\ViewsFilter;
 
 /**
  * Filter handler which allows to search on multiple fields.
  *
  * @ingroup views_field_handlers
- *
- * @ViewsFilter("combine")
  */
+#[ViewsFilter("combine")]
 class Combine extends StringFilter {
 
   /**
-   * @var views_plugin_query_default
+   * @var \Drupal\views\Plugin\views\query\QueryPluginBase
    */
   public $query;
 
@@ -71,7 +71,7 @@ class Combine extends StringFilter {
       $field = $this->view->field[$id];
       // Always add the table of the selected fields to be sure a table alias exists.
       $field->ensureMyTable();
-      if (!empty($field->field_alias) && !empty($field->field_alias)) {
+      if (!empty($field->tableAlias) && !empty($field->realField)) {
         $fields[] = "$field->tableAlias.$field->realField";
       }
     }
@@ -128,12 +128,13 @@ class Combine extends StringFilter {
   }
 
   /**
-   * By default things like opEqual uses add_where, that doesn't support
-   * complex expressions, so override opEqual (and all operators below).
+   * {@inheritdoc}
    */
   public function opEqual($expression) {
+    // By default, things like opEqual uses add_where, that doesn't support
+    // complex expressions, so override opEqual (and all operators below).
     $placeholder = $this->placeholder();
-    $operator = $this->getConditionOperator('LIKE');
+    $operator = $this->getConditionOperator($this->operator());
     $this->query->addWhereExpression($this->options['group'], "$expression $operator $placeholder", [$placeholder => $this->value]);
   }
 
@@ -209,7 +210,8 @@ class Combine extends StringFilter {
 
   protected function opRegex($expression) {
     $placeholder = $this->placeholder();
-    $this->query->addWhereExpression($this->options['group'], "$expression REGEXP $placeholder", [$placeholder => $this->value]);
+    $operator = $this->getConditionOperator('REGEXP');
+    $this->query->addWhereExpression($this->options['group'], "$expression $operator $placeholder", [$placeholder => $this->value]);
   }
 
   protected function opEmpty($expression) {

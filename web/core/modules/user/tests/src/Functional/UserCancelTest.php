@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\user\Functional;
 
 use Drupal\comment\CommentInterface;
 use Drupal\comment\Entity\Comment;
 use Drupal\comment\Tests\CommentTestTrait;
+use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\node\Entity\Node;
 use Drupal\node\Entity\NodeType;
 use Drupal\Tests\BrowserTestBase;
@@ -20,9 +23,7 @@ class UserCancelTest extends BrowserTestBase {
   use CommentTestTrait;
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['node', 'comment'];
 
@@ -31,6 +32,9 @@ class UserCancelTest extends BrowserTestBase {
    */
   protected $defaultTheme = 'stark';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -40,7 +44,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Attempt to cancel account without permission.
    */
-  public function testUserCancelWithoutPermission() {
+  public function testUserCancelWithoutPermission(): void {
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
     $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
@@ -77,7 +81,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Tests ability to change the permission for canceling users.
    */
-  public function testUserCancelChangePermission() {
+  public function testUserCancelChangePermission(): void {
     \Drupal::service('module_installer')->install(['user_form_test']);
     $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
 
@@ -102,7 +106,7 @@ class UserCancelTest extends BrowserTestBase {
    * This should never be possible, or the site owner would become unable to
    * administer the site.
    */
-  public function testUserCancelUid1() {
+  public function testUserCancelUid1(): void {
     $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
 
     \Drupal::service('module_installer')->install(['views']);
@@ -126,7 +130,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Attempt invalid account cancellations.
    */
-  public function testUserCancelInvalid() {
+  public function testUserCancelInvalid(): void {
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
     $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
@@ -150,7 +154,7 @@ class UserCancelTest extends BrowserTestBase {
     // Attempt bogus account cancellation request confirmation.
     $bogus_timestamp = $timestamp + 60;
     $this->drupalGet("user/" . $account->id() . "/cancel/confirm/$bogus_timestamp/" . user_pass_rehash($account, $bogus_timestamp));
-    $this->assertSession()->pageTextContains('You have tried to use an account cancellation link that has expired. Please request a new one using the form below.');
+    $this->assertSession()->pageTextContains('You have tried to use an account cancellation link that has expired. Request a new one using the form below.');
     $user_storage->resetCache([$account->id()]);
     $account = $user_storage->load($account->id());
     $this->assertTrue($account->isActive(), 'User account was not canceled.');
@@ -158,7 +162,7 @@ class UserCancelTest extends BrowserTestBase {
     // Attempt expired account cancellation request confirmation.
     $bogus_timestamp = $timestamp - 86400 - 60;
     $this->drupalGet("user/" . $account->id() . "/cancel/confirm/$bogus_timestamp/" . user_pass_rehash($account, $bogus_timestamp));
-    $this->assertSession()->pageTextContains('You have tried to use an account cancellation link that has expired. Please request a new one using the form below.');
+    $this->assertSession()->pageTextContains('You have tried to use an account cancellation link that has expired. Request a new one using the form below.');
     $user_storage->resetCache([$account->id()]);
     $account = $user_storage->load($account->id());
     $this->assertTrue($account->isActive(), 'User account was not canceled.');
@@ -173,7 +177,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Disable account and keep all content.
    */
-  public function testUserBlock() {
+  public function testUserBlock(): void {
     $this->config('user.settings')->set('cancel_method', 'user_cancel_block')->save();
     $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
 
@@ -210,7 +214,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Disable account and unpublish all content.
    */
-  public function testUserBlockUnpublish() {
+  public function testUserBlockUnpublish(): void {
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     $this->config('user.settings')->set('cancel_method', 'user_cancel_block_unpublish')->save();
     // Create comment field on page.
@@ -270,7 +274,7 @@ class UserCancelTest extends BrowserTestBase {
     $node_storage->resetCache([$node->id()]);
     $test_node = $node_storage->load($node->id());
     $this->assertFalse($test_node->isPublished(), 'Node of the user has been unpublished.');
-    $test_node = node_revision_load($node->getRevisionId());
+    $test_node = $node_storage->loadRevision($node->getRevisionId());
     $this->assertFalse($test_node->isPublished(), 'Node revision of the user has been unpublished.');
 
     $storage = \Drupal::entityTypeManager()->getStorage('comment');
@@ -282,7 +286,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Tests nodes are unpublished even if inaccessible to cancelling user.
    */
-  public function testUserBlockUnpublishNodeAccess() {
+  public function testUserBlockUnpublishNodeAccess(): void {
     \Drupal::service('module_installer')->install(['node_access_test', 'user_form_test']);
 
     // Setup node access
@@ -324,7 +328,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Delete account and anonymize all content.
    */
-  public function testUserAnonymize() {
+  public function testUserAnonymize(): void {
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
     // Create comment field on page.
@@ -386,7 +390,7 @@ class UserCancelTest extends BrowserTestBase {
     $test_node = $node_storage->load($node->id());
     $this->assertEquals(0, $test_node->getOwnerId(), 'Node of the user has been attributed to anonymous user.');
     $this->assertTrue($test_node->isPublished());
-    $test_node = node_revision_load($revision, TRUE);
+    $test_node = $node_storage->loadRevision($revision);
     $this->assertEquals(0, $test_node->getRevisionUser()->id(), 'Node revision of the user has been attributed to anonymous user.');
     $this->assertTrue($test_node->isPublished());
     $node_storage->resetCache([$revision_node->id()]);
@@ -408,7 +412,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Delete account and anonymize all content using a batch process.
    */
-  public function testUserAnonymizeBatch() {
+  public function testUserAnonymizeBatch(): void {
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
     $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
@@ -455,7 +459,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Delete account and remove all content.
    */
-  public function testUserDelete() {
+  public function testUserDelete(): void {
     $node_storage = $this->container->get('entity_type.manager')->getStorage('node');
     $this->config('user.settings')->set('cancel_method', 'user_cancel_delete')->save();
     \Drupal::service('module_installer')->install(['comment']);
@@ -523,7 +527,7 @@ class UserCancelTest extends BrowserTestBase {
     // Confirm that user's content has been deleted.
     $node_storage->resetCache([$node->id()]);
     $this->assertNull($node_storage->load($node->id()), 'Node of the user has been deleted.');
-    $this->assertNull(node_revision_load($revision), 'Node revision of the user has been deleted.');
+    $this->assertNull($node_storage->loadRevision($revision), 'Node revision of the user has been deleted.');
     $node_storage->resetCache([$revision_node->id()]);
     $this->assertInstanceOf(Node::class, $node_storage->load($revision_node->id()));
     \Drupal::entityTypeManager()->getStorage('comment')->resetCache([$comment->id()]);
@@ -536,7 +540,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Create an administrative user and delete another user.
    */
-  public function testUserCancelByAdmin() {
+  public function testUserCancelByAdmin(): void {
     $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
 
     // Create a regular user.
@@ -560,7 +564,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Tests deletion of a user account without an email address.
    */
-  public function testUserWithoutEmailCancelByAdmin() {
+  public function testUserWithoutEmailCancelByAdmin(): void {
     $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
 
     // Create a regular user.
@@ -587,7 +591,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Create an administrative user and mass-delete other users.
    */
-  public function testMassUserCancelByAdmin() {
+  public function testMassUserCancelByAdmin(): void {
     \Drupal::service('module_installer')->install(['views']);
     $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
     $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
@@ -622,7 +626,7 @@ class UserCancelTest extends BrowserTestBase {
     $this->submitForm([], 'Confirm');
     $status = TRUE;
     foreach ($users as $account) {
-      $status = $status && (strpos($this->getTextContent(), "Account {$account->getAccountName()} has been deleted.") !== FALSE);
+      $status = $status && (str_contains($this->getTextContent(), "Account {$account->getAccountName()} has been deleted."));
       $user_storage->resetCache([$account->id()]);
       $status = $status && !$user_storage->load($account->id());
     }
@@ -642,7 +646,7 @@ class UserCancelTest extends BrowserTestBase {
   /**
    * Tests user cancel with node access.
    */
-  public function testUserDeleteWithContentAndNodeAccess() {
+  public function testUserDeleteWithContentAndNodeAccess(): void {
 
     \Drupal::service('module_installer')->install(['node_access_test']);
     // Rebuild node access.
@@ -653,6 +657,83 @@ class UserCancelTest extends BrowserTestBase {
     $account->delete();
     $load2 = \Drupal::entityTypeManager()->getStorage('node')->load($node->id());
     $this->assertEmpty($load2);
+  }
+
+  /**
+   * Delete account and anonymize all content and it's translations.
+   */
+  public function testUserAnonymizeTranslations(): void {
+    $this->config('user.settings')->set('cancel_method', 'user_cancel_reassign')->save();
+    // Create comment field on page.
+    $this->addDefaultCommentField('node', 'page');
+    $user_storage = $this->container->get('entity_type.manager')->getStorage('user');
+
+    \Drupal::service('module_installer')->install([
+      'language',
+      'locale',
+    ]);
+    \Drupal::service('router.builder')->rebuildIfNeeded();
+    ConfigurableLanguage::createFromLangcode('ur')->save();
+    // Rebuild the container to update the default language container variable.
+    $this->rebuildContainer();
+
+    $account = $this->drupalCreateUser(['cancel account']);
+    $this->drupalLogin($account);
+    $user_storage->resetCache([$account->id()]);
+    $account = $user_storage->load($account->id());
+
+    $node = $this->drupalCreateNode(['uid' => $account->id()]);
+
+    // Add a comment to the page.
+    $comment_subject = $this->randomMachineName(8);
+    $comment_body = $this->randomMachineName(8);
+    $comment = Comment::create([
+      'subject' => $comment_subject,
+      'comment_body' => $comment_body,
+      'entity_id' => $node->id(),
+      'entity_type' => 'node',
+      'field_name' => 'comment',
+      'status' => CommentInterface::PUBLISHED,
+      'uid' => $account->id(),
+    ]);
+    $comment->save();
+    $comment->addTranslation('ur', [
+      'subject' => 'ur ' . $comment->label(),
+      'status' => CommentInterface::PUBLISHED,
+    ])->save();
+
+    // Attempt to cancel account.
+    $this->drupalGet('user/' . $account->id() . '/cancel');
+    $this->assertSession()->pageTextContains('Are you sure you want to cancel your account?');
+    $this->assertSession()->pageTextContains('Your account will be removed and all account information deleted. All of your content will be assigned to the ' . $this->config('user.settings')->get('anonymous') . ' user.');
+
+    // Confirm account cancellation.
+    $timestamp = time();
+    $this->submitForm([], 'Confirm');
+    $this->assertSession()->pageTextContains('A confirmation request to cancel your account has been sent to your email address.');
+
+    // Confirm account cancellation request.
+    $this->drupalGet('user/' . $account->id() . "/cancel/confirm/$timestamp/" . user_pass_rehash($account, $timestamp));
+    $user_storage->resetCache([$account->id()]);
+    $this->assertNull($user_storage->load($account->id()), 'User is not found in the database.');
+
+    // Confirm that user's content has been attributed to anonymous user.
+    $anonymous_user = User::getAnonymousUser();
+
+    $storage = \Drupal::entityTypeManager()->getStorage('comment');
+    $storage->resetCache([$comment->id()]);
+    $test_comment = $storage->load($comment->id());
+    $this->assertEquals(0, $test_comment->getOwnerId());
+    $this->assertTrue($test_comment->isPublished(), 'Comment of the user has been attributed to anonymous user.');
+    $this->assertEquals($anonymous_user->getDisplayName(), $test_comment->getAuthorName());
+
+    $comment_translation = $test_comment->getTranslation('ur');
+    $this->assertEquals(0, $comment_translation->getOwnerId());
+    $this->assertTrue($comment_translation->isPublished(), 'Comment translation of the user has been attributed to anonymous user.');
+    $this->assertEquals($anonymous_user->getDisplayName(), $comment_translation->getAuthorName());
+
+    // Confirm that the confirmation message made it through to the end user.
+    $this->assertSession()->responseContains(t('%name has been deleted.', ['%name' => $account->getAccountName()]));
   }
 
 }

@@ -4,10 +4,13 @@ namespace Drupal\language\Plugin\LanguageNegotiation;
 
 use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
+use Drupal\Core\Language\LanguageInterface;
 use Drupal\Core\PathProcessor\OutboundPathProcessorInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
+use Drupal\language\Attribute\LanguageNegotiation;
 use Drupal\language\LanguageNegotiationMethodBase;
 use Drupal\language\LanguageSwitcherInterface;
 use Drupal\Core\Routing\RouteObjectInterface;
@@ -17,15 +20,14 @@ use Symfony\Component\Routing\Route;
 
 /**
  * Class for identifying the content translation language.
- *
- * @LanguageNegotiation(
- *   id = Drupal\language\Plugin\LanguageNegotiation\LanguageNegotiationContentEntity::METHOD_ID,
- *   types = {Drupal\Core\Language\LanguageInterface::TYPE_CONTENT},
- *   weight = -9,
- *   name = @Translation("Content language"),
- *   description = @Translation("Determines the content language from the request parameter named 'language_content_entity'."),
- * )
  */
+#[LanguageNegotiation(
+  id: LanguageNegotiationContentEntity::METHOD_ID,
+  name: new TranslatableMarkup('Content language'),
+  types: [LanguageInterface::TYPE_CONTENT],
+  weight: -9,
+  description: new TranslatableMarkup("Determines the content language from the request parameter named 'language_content_entity'.")
+)]
 class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase implements OutboundPathProcessorInterface, LanguageSwitcherInterface, ContainerFactoryPluginInterface {
 
   /**
@@ -89,7 +91,11 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
   /**
    * {@inheritdoc}
    */
-  public function getLangcode(Request $request = NULL) {
+  public function getLangcode(?Request $request = NULL) {
+    if ($request === NULL || $this->languageManager === NULL) {
+      return NULL;
+    }
+
     $langcode = $request->query->get(static::QUERY_PARAMETER);
 
     $language_enabled = array_key_exists($langcode, $this->languageManager->getLanguages());
@@ -99,10 +105,10 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
   /**
    * {@inheritdoc}
    */
-  public function processOutbound($path, &$options = [], Request $request = NULL, BubbleableMetadata $bubbleable_metadata = NULL) {
-    // If appropriate, process outbound to add a query parameter to the url and
-    // remove the language option, so that url negotiator does not rewrite the
-    // url.
+  public function processOutbound($path, &$options = [], ?Request $request = NULL, ?BubbleableMetadata $bubbleable_metadata = NULL) {
+    // If appropriate, process outbound to add a query parameter to the URL and
+    // remove the language option, so that URL negotiator does not rewrite the
+    // URL.
 
     // First, check if processing conditions are met.
     if (!($request && !empty($options['route']) && $this->hasLowerLanguageNegotiationWeight() && $this->meetsContentEntityRoutesCondition($options['route'], $request))) {
@@ -110,8 +116,8 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
     }
 
     if (isset($options['language']) || $langcode = $this->getLangcode($request)) {
-      // If the language option is set, unset it, so that the url language
-      // negotiator does not rewrite the url.
+      // If the language option is set, unset it, so that the URL language
+      // negotiator does not rewrite the URL.
       if (isset($options['language'])) {
         $langcode = $options['language']->getId();
         unset($options['language']);
@@ -139,7 +145,7 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
   public function getLanguageSwitchLinks(Request $request, $type, Url $url) {
     $links = [];
     $query = [];
-    parse_str($request->getQueryString(), $query);
+    parse_str($request->getQueryString() ?? '', $query);
 
     foreach ($this->languageManager->getNativeLanguages() as $language) {
       $langcode = $language->getId();
@@ -158,13 +164,13 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
   /**
    * Determines if content entity language negotiator has higher priority.
    *
-   * The content entity language negotiator having higher priority than the url
+   * The content entity language negotiator having higher priority than the URL
    * language negotiator, is a criteria in
    * \Drupal\language\Plugin\LanguageNegotiation\LanguageNegotiationContentEntity::processOutbound().
    *
    * @return bool
    *   TRUE if the content entity language negotiator has higher priority than
-   *   the url language negotiator, FALSE otherwise.
+   *   the URL language negotiator, FALSE otherwise.
    */
   protected function hasLowerLanguageNegotiationWeight() {
     if (!isset($this->hasLowerLanguageNegotiationWeightResult)) {
@@ -173,7 +179,7 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
       $content_method_weights = $this->config->get('language.types')->get('negotiation.language_content.enabled') ?: [];
 
       // Check if the content language is configured to be dependent on the
-      // url negotiator directly or indirectly over the interface negotiator.
+      // URL negotiator directly or indirectly over the interface negotiator.
       if (isset($content_method_weights[LanguageNegotiationUrl::METHOD_ID]) && ($content_method_weights[static::METHOD_ID] > $content_method_weights[LanguageNegotiationUrl::METHOD_ID])) {
         $this->hasLowerLanguageNegotiationWeightResult = FALSE;
       }
@@ -202,10 +208,10 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
    * Determines if content entity route condition is met.
    *
    * Requirements: currently being on a content entity route and processing
-   * outbound url pointing to the same content entity.
+   * outbound URL pointing to the same content entity.
    *
    * @param \Symfony\Component\Routing\Route $outbound_route
-   *   The route object for the current outbound url being processed.
+   *   The route object for the current outbound URL being processed.
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The HttpRequest object representing the current request.
    *
@@ -245,7 +251,7 @@ class LanguageNegotiationContentEntity extends LanguageNegotiationMethodBase imp
 
     if ($current_route = $request->attributes->get(RouteObjectInterface::ROUTE_OBJECT)) {
       $current_route_path = $current_route->getPath();
-      $content_entity_type_id_for_current_route = isset($this->getContentEntityPaths()[$current_route_path]) ? $this->getContentEntityPaths()[$current_route_path] : '';
+      $content_entity_type_id_for_current_route = $this->getContentEntityPaths()[$current_route_path] ?? '';
     }
 
     return $content_entity_type_id_for_current_route;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\editor\Functional;
 
 use Drupal\Component\Render\FormattableMarkup;
@@ -16,9 +18,7 @@ use Drupal\Tests\BrowserTestBase;
 class EditorAdminTest extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['filter', 'editor'];
 
@@ -34,6 +34,9 @@ class EditorAdminTest extends BrowserTestBase {
    */
   protected $adminUser;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -53,7 +56,7 @@ class EditorAdminTest extends BrowserTestBase {
   /**
    * Tests an existing format without any editors available.
    */
-  public function testNoEditorAvailable() {
+  public function testNoEditorAvailable(): void {
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('admin/config/content/formats/manage/filtered_html');
 
@@ -77,7 +80,7 @@ class EditorAdminTest extends BrowserTestBase {
   /**
    * Tests adding a text editor to an existing text format.
    */
-  public function testAddEditorToExistingFormat() {
+  public function testAddEditorToExistingFormat(): void {
     $this->enableUnicornEditor();
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('admin/config/content/formats/manage/filtered_html');
@@ -98,7 +101,7 @@ class EditorAdminTest extends BrowserTestBase {
   /**
    * Tests adding a text editor to a new text format.
    */
-  public function testAddEditorToNewFormat() {
+  public function testAddEditorToNewFormat(): void {
     $this->addEditorToNewFormat('monoceros', 'Monoceros');
     $this->verifyUnicornEditorConfiguration('monoceros');
   }
@@ -106,14 +109,14 @@ class EditorAdminTest extends BrowserTestBase {
   /**
    * Tests format disabling.
    */
-  public function testDisableFormatWithEditor() {
+  public function testDisableFormatWithEditor(): void {
     $formats = ['monoceros' => 'Monoceros', 'tattoo' => 'Tattoo'];
 
     // Install the node module.
     $this->container->get('module_installer')->install(['node']);
     $this->resetAll();
     // Create a new node type and attach the 'body' field to it.
-    $node_type = NodeType::create(['type' => mb_strtolower($this->randomMachineName()), 'name' => $this->randomString()]);
+    $node_type = NodeType::create(['type' => $this->randomMachineName(), 'name' => $this->randomString()]);
     $node_type->save();
     node_add_body_field($node_type, $this->randomString());
 
@@ -156,7 +159,7 @@ class EditorAdminTest extends BrowserTestBase {
   /**
    * Tests switching text editor to none does not throw a TypeError.
    */
-  public function testSwitchEditorToNone() {
+  public function testSwitchEditorToNone(): void {
     $this->enableUnicornEditor();
     $this->drupalLogin($this->adminUser);
     $this->drupalGet('admin/config/content/formats/manage/filtered_html');

@@ -1,0 +1,4 @@
+simple_multistep:
+  css:
+    theme:
+      css/main.css: {}

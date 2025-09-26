@@ -14,7 +14,7 @@ class EntityPrintPluginManagerTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['entity_print', 'entity_print_test'];
+  protected static $modules = ['entity_print', 'entity_print_test'];
 
   /**
    * The plugin manager.
@@ -37,6 +37,8 @@ class EntityPrintPluginManagerTest extends KernelTestBase {
    * @covers ::createSelectedInstance
    */
   public function testCreateSelectedInstance() {
+    $this->expectException(PrintEngineException::class);
+
     /** @var \Drupal\Core\Config\ConfigFactoryInterface $factory */
     $factory = $this->container->get('config.factory');
     $config = $factory->getEditable('entity_print.settings');
@@ -60,7 +62,7 @@ class EntityPrintPluginManagerTest extends KernelTestBase {
   /**
    * Data provider for isPrintEngineEnabled test.
    */
-  public function isPrintEngineEnabledDataProvider() {
+  public static function isPrintEngineEnabledDataProvider() {
     return [
       'Non-existent plugin ID' => ['abc123', FALSE],
       'Empty plugin ID' => ['', FALSE],
@@ -85,7 +87,7 @@ class EntityPrintPluginManagerTest extends KernelTestBase {
   /**
    * Data provider for getDisabledDefinitions test.
    */
-  public function getDisabledDefinitionsDataProvider() {
+  public static function getDisabledDefinitionsDataProvider() {
     return [
       'Filter by pdf' => [
         'pdf',

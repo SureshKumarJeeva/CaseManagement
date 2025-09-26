@@ -3,13 +3,16 @@
 namespace Drupal\views\Plugin\EntityReferenceSelection;
 
 use Drupal\Component\Utility\Xss;
+use Drupal\Core\Entity\Attribute\EntityReferenceSelection;
 use Drupal\Core\Entity\EntityReferenceSelection\SelectionPluginBase;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
+use Drupal\Core\Render\Element;
 use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\Core\Url;
 use Drupal\views\Render\ViewsRenderPipelineMarkup;
 use Drupal\views\Views;
@@ -18,14 +21,13 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 
 /**
  * Plugin implementation of the 'selection' entity_reference.
- *
- * @EntityReferenceSelection(
- *   id = "views",
- *   label = @Translation("Views: Filter by an entity reference view"),
- *   group = "views",
- *   weight = 0
- * )
  */
+#[EntityReferenceSelection(
+  id: "views",
+  label: new TranslatableMarkup("Views: Filter by an entity reference view"),
+  group: "views",
+  weight: 0
+)]
 class ViewsSelection extends SelectionPluginBase implements ContainerFactoryPluginInterface {
   use StringTranslationTrait;
 
@@ -70,7 +72,7 @@ class ViewsSelection extends SelectionPluginBase implements ContainerFactoryPlug
    * @param array $configuration
    *   A configuration array containing information about the plugin instance.
    * @param string $plugin_id
-   *   The plugin_id for the plugin instance.
+   *   The plugin ID for the plugin instance.
    * @param mixed $plugin_definition
    *   The plugin implementation definition.
    * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
@@ -252,7 +254,7 @@ class ViewsSelection extends SelectionPluginBase implements ContainerFactoryPlug
    * @return array
    *   The results.
    */
-  protected function getDisplayExecutionResults(string $match = NULL, string $match_operator = 'CONTAINS', int $limit = 0, array $ids = NULL) {
+  protected function getDisplayExecutionResults(?string $match = NULL, string $match_operator = 'CONTAINS', int $limit = 0, ?array $ids = NULL) {
     $display_name = $this->getConfiguration()['view']['display_name'];
     $arguments = $this->getConfiguration()['view']['arguments'];
     $results = [];
@@ -282,10 +284,10 @@ class ViewsSelection extends SelectionPluginBase implements ContainerFactoryPlug
     }
 
     $stripped_results = [];
-    foreach ($results as $id => $row) {
-      $entity = $row['#row']->_entity;
+    foreach (Element::children($results) as $id) {
+      $entity = $results[$id]['#row']->_entity;
       $stripped_results[$entity->bundle()][$id] = ViewsRenderPipelineMarkup::create(
-        Xss::filter($this->renderer->renderPlain($row), $allowed_tags)
+        Xss::filter($this->renderer->renderInIsolation($results[$id]), $allowed_tags)
       );
     }
 
@@ -321,7 +323,7 @@ class ViewsSelection extends SelectionPluginBase implements ContainerFactoryPlug
       [$view, $display] = explode(':', $element['view_and_display']['#value']);
     }
     else {
-      $form_state->setError($element, t('The views entity selection mode requires a view.'));
+      $form_state->setError($element, new TranslatableMarkup('The views entity selection mode requires a view.'));
       return;
     }
 

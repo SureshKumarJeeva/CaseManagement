@@ -79,7 +79,7 @@ abstract class PrintEngineBase extends PluginBase implements PrintEngineInterfac
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     $values = OptGroup::flattenOptions($form_state->getValues());
     foreach ($this->defaultConfiguration() as $key => $value) {
-      $this->configuration[$key] = isset($values[$key]) ? $values[$key] : NULL;
+      $this->configuration[$key] = $values[$key] ?? NULL;
     }
   }
 

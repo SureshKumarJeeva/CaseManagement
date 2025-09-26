@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\taxonomy\Functional;
 
 /**
@@ -14,6 +16,9 @@ class ThemeTest extends TaxonomyTestBase {
    */
   protected $defaultTheme = 'stark';
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -37,7 +42,7 @@ class ThemeTest extends TaxonomyTestBase {
   /**
    * Tests the theme used when adding, viewing and editing taxonomy terms.
    */
-  public function testTaxonomyTermThemes() {
+  public function testTaxonomyTermThemes(): void {
     // Adding a term to a vocabulary is considered an administrative action and
     // should use the administrative theme.
     $vocabulary = $this->createVocabulary();

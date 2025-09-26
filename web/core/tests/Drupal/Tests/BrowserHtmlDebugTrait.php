@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests;
 
 use Drupal\Component\Utility\Html;
@@ -81,7 +83,7 @@ trait BrowserHtmlDebugTrait {
    * @return string
    *   The formatted HTML string.
    */
-  protected function formatHtmlOutputHeaders(array $headers) {
+  protected function formatHtmlOutputHeaders(array $headers): string {
     $flattened_headers = array_map(function ($header) {
       if (is_array($header)) {
         return implode(';', array_map('trim', $header));
@@ -137,7 +139,7 @@ trait BrowserHtmlDebugTrait {
    */
   protected function initBrowserOutputFile() {
     $browser_output_file = getenv('BROWSERTEST_OUTPUT_FILE');
-    $this->htmlOutputEnabled = is_file($browser_output_file);
+    $this->htmlOutputEnabled = is_string($browser_output_file) && is_file($browser_output_file);
     $this->htmlOutputBaseUrl = getenv('BROWSERTEST_OUTPUT_BASE_URL') ?: $GLOBALS['base_url'];
     if ($this->htmlOutputEnabled) {
       $this->htmlOutputFile = $browser_output_file;
@@ -179,11 +181,16 @@ trait BrowserHtmlDebugTrait {
               $html_output = 'Called from ' . $caller['function'] . ' line ' . $caller['line'];
               $html_output .= '<hr />' . $request->getMethod() . ' request to: ' . $request->getUri();
 
-              // Get the response body as a string. Any errors are silenced as
-              // tests should not fail if there is a problem. On PHP 7.4
-              // \Drupal\Tests\migrate\Functional\process\DownloadFunctionalTest
-              // fails without the usage of a silence operator.
-              $body = @(string) $response->getBody();
+              /** @var \Psr\Http\Message\StreamInterface $stream */
+              $stream = $response->getBody();
+
+              // Get the response body as a string. The response stream is set
+              // to the sink, which defaults to a readable temp stream but can
+              // be overridden by setting $options['sink'].
+              $body = $stream->isReadable()
+                ? (string) $stream
+                : 'Response is not readable.';
+
               // On redirect responses (status code starting with '3') we need
               // to remove the meta tag that would do a browser refresh. We
               // don't want to redirect developers away when they look at the

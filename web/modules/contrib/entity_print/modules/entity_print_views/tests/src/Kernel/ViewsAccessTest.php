@@ -20,7 +20,7 @@ class ViewsAccessTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'system',
     'node',
     'user',
@@ -35,7 +35,7 @@ class ViewsAccessTest extends KernelTestBase {
    */
   public function setUp(): void {
     parent::setUp();
-    $this->installSchema('system', ['sequences', 'key_value_expire']);
+    $this->installSchema('system', ['sequences']);
     $this->installEntitySchema('user');
     $this->installConfig('entity_print_views_test_views');
 
@@ -60,7 +60,10 @@ class ViewsAccessTest extends KernelTestBase {
     $this->assertFalse($this->checkAccess($account, 'my_test_view', 'page_1'), 'Access not allowed because user does not have entity print permission.');
 
     // Both entity print access and views access.
-    $account = $this->createUser(['entity print views access', 'administer nodes']);
+    $account = $this->createUser([
+      'entity print views access',
+      'administer nodes',
+    ]);
     $this->assertTrue($this->checkAccess($account, 'my_test_view', 'page_1'), 'Access allowed for user with "entity print views access" and "administer nodes"');
   }
 

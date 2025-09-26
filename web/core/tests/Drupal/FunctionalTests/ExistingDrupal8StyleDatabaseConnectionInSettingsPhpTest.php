@@ -1,7 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\FunctionalTests;
 
+use Drupal\Core\Database\Connection;
 use Drupal\Core\Database\Database;
 use Drupal\Tests\BrowserTestBase;
 
@@ -35,13 +38,26 @@ class ExistingDrupal8StyleDatabaseConnectionInSettingsPhpTest extends BrowserTes
     $namespace_search = "'namespace' => 'Drupal\\\\$driver\\\\Driver\\\\Database\\\\$driver',";
     $namespace_replace = "'namespace' => 'Drupal\\\\Core\\\\Database\\\\Driver\\\\$driver',";
     $contents = str_replace($namespace_search, $namespace_replace, $contents);
+
+    // Add a replica connection to the database settings.
+    $contents .= "\$databases['default']['replica'][] = array (\n";
+    $contents .= "  'database' => 'db',\n";
+    $contents .= "  'username' => 'db',\n";
+    $contents .= "  'password' => 'db',\n";
+    $contents .= "  'prefix' => 'test22806835',\n";
+    $contents .= "  'host' => 'db',\n";
+    $contents .= "  'port' => 3306,\n";
+    $contents .= "  $namespace_replace\n";
+    $contents .= "  'driver' => 'mysql',\n";
+    $contents .= ");\n";
+
     file_put_contents($filename, $contents);
   }
 
   /**
    * Confirms that the site works with Drupal 8 style database connection array.
    */
-  public function testExistingDrupal8StyleDatabaseConnectionInSettingsPhp() {
+  public function testExistingDrupal8StyleDatabaseConnectionInSettingsPhp(): void {
     $this->drupalLogin($this->drupalCreateUser());
     $this->assertSession()->addressEquals('user/2');
     $this->assertSession()->statusCodeEquals(200);
@@ -54,6 +70,16 @@ class ExistingDrupal8StyleDatabaseConnectionInSettingsPhpTest extends BrowserTes
     $this->assertStringContainsString("'namespace' => 'Drupal\\\\Core\\\\Database\\\\Driver\\\\$driver',", $contents);
     $this->assertStringContainsString("'driver' => '$driver',", $contents);
     $this->assertStringNotContainsString("'autoload' => 'core/modules/$driver/src/Driver/Database/$driver/", $contents);
+  }
+
+  /**
+   * Confirms that the replica database connection works.
+   */
+  public function testReplicaDrupal8StyleDatabaseConnectionInSettingsPhp(): void {
+    $this->drupalLogin($this->drupalCreateUser());
+
+    $replica = Database::getConnection('replica', 'default');
+    $this->assertInstanceOf(Connection::class, $replica);
   }
 
 }

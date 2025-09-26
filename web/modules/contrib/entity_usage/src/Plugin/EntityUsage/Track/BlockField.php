@@ -2,9 +2,9 @@
 
 namespace Drupal\entity_usage\Plugin\EntityUsage\Track;
 
-use Drupal\block_content\Plugin\Block\BlockContentBlock;
 use Drupal\Core\Block\BlockPluginInterface;
 use Drupal\Core\Field\FieldItemInterface;
+use Drupal\block_content\Plugin\Block\BlockContentBlock;
 use Drupal\entity_usage\EntityUsageTrackBase;
 
 /**
@@ -34,7 +34,7 @@ class BlockField extends EntityUsageTrackBase {
 
     // If there is a view inside this block, track the view entity instead.
     if ($block_instance->getBaseId() === 'views_block') {
-      list($view_name, $display_id) = explode('-', $block_instance->getDerivativeId(), 2);
+      [$view_name, $display_id] = explode('-', $block_instance->getDerivativeId(), 2);
       // @todo worth trying to track the display id as well?
       // At this point the view is supposed to exist. Only track it if so.
       if ($this->entityTypeManager->getStorage('view')->load($view_name)) {

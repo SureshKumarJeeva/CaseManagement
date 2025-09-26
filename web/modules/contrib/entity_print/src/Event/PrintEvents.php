@@ -63,4 +63,16 @@ final class PrintEvents {
    */
   const POST_RENDER = 'entity_print.print.html_alter';
 
+  /**
+   * This event is fired after the HTML has been generated.
+   *
+   * The Filename is an array of strings, which will be imploded
+   * and passed to the renderer.
+   *
+   * @Event
+   *
+   * @see \Drupal\entity_print\Event\FilenameAlterEvent
+   */
+  const FILENAME_ALTER = 'entity_print.print.filename_alter';
+
 }

@@ -5,8 +5,9 @@ namespace Drupal\Core\Updater;
 use Drupal\Core\Url;
 
 /**
- * Defines a class for updating themes using
- * Drupal\Core\FileTransfer\FileTransfer classes via authorize.php.
+ * Defines a class for updating themes.
+ *
+ * Uses Drupal\Core\FileTransfer\FileTransfer classes via authorize.php.
  */
 class Theme extends Updater implements UpdaterInterface {
 
@@ -82,7 +83,7 @@ class Theme extends Updater implements UpdaterInterface {
   public function postInstall() {
     // Update the theme info.
     clearstatcache();
-    \Drupal::service('theme_handler')->rebuildThemeData();
+    \Drupal::service('extension.list.theme')->reset();
   }
 
   /**

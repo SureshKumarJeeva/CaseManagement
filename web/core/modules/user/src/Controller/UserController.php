@@ -2,6 +2,7 @@
 
 namespace Drupal\user\Controller;
 
+use Drupal\Component\Datetime\TimeInterface;
 use Drupal\Component\Utility\Crypt;
 use Drupal\Component\Utility\Xss;
 use Drupal\Core\Controller\ControllerBase;
@@ -14,6 +15,7 @@ use Drupal\user\UserInterface;
 use Drupal\user\UserStorageInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
@@ -70,13 +72,26 @@ class UserController extends ControllerBase {
    *   A logger instance.
    * @param \Drupal\Core\Flood\FloodInterface $flood
    *   The flood service.
+   * @param \Drupal\Component\Datetime\TimeInterface|null $time
+   *   The time service.
    */
-  public function __construct(DateFormatterInterface $date_formatter, UserStorageInterface $user_storage, UserDataInterface $user_data, LoggerInterface $logger, FloodInterface $flood) {
+  public function __construct(
+    DateFormatterInterface $date_formatter,
+    UserStorageInterface $user_storage,
+    UserDataInterface $user_data,
+    LoggerInterface $logger,
+    FloodInterface $flood,
+    protected ?TimeInterface $time = NULL,
+  ) {
     $this->dateFormatter = $date_formatter;
     $this->userStorage = $user_storage;
     $this->userData = $user_data;
     $this->logger = $logger;
     $this->flood = $flood;
+    if ($this->time === NULL) {
+      @trigger_error('Calling ' . __METHOD__ . ' without the $time argument is deprecated in drupal:10.3.0 and it will be required in drupal:11.0.0. See https://www.drupal.org/node/3112298', E_USER_DEPRECATED);
+      $this->time = \Drupal::service('datetime.time');
+    }
   }
 
   /**
@@ -88,7 +103,8 @@ class UserController extends ControllerBase {
       $container->get('entity_type.manager')->getStorage('user'),
       $container->get('user.data'),
       $container->get('logger.factory')->get('user'),
-      $container->get('flood')
+      $container->get('flood'),
+      $container->get('datetime.time'),
     );
   }
 
@@ -132,9 +148,10 @@ class UserController extends ControllerBase {
       // A different user is already logged in on the computer.
       else {
         /** @var \Drupal\user\UserInterface $reset_link_user */
-        if ($reset_link_user = $this->userStorage->load($uid)) {
+        $reset_link_user = $this->userStorage->load($uid);
+        if ($reset_link_user && $this->validatePathParameters($reset_link_user, $timestamp, $hash)) {
           $this->messenger()
-            ->addWarning($this->t('Another user (%other_user) is already logged into the site on this computer, but you tried to use a one-time link for user %resetting_user. Please <a href=":logout">log out</a> and try using the link again.',
+            ->addWarning($this->t('Another user (%other_user) is already logged into the site on this computer, but you tried to use a one-time link for user %resetting_user. <a href=":logout">Log out</a> and try using the link again.',
               [
                 '%other_user' => $account->getAccountName(),
                 '%resetting_user' => $reset_link_user->getAccountName(),
@@ -147,6 +164,12 @@ class UserController extends ControllerBase {
         }
         return $this->redirect('<front>');
       }
+    }
+
+    /** @var \Drupal\user\UserInterface $reset_link_user */
+    $reset_link_user = $this->userStorage->load($uid);
+    if ($redirect = $this->determineErrorRedirect($reset_link_user, $timestamp, $hash)) {
+      return $redirect;
     }
 
     $session = $request->getSession();
@@ -222,11 +245,66 @@ class UserController extends ControllerBase {
    *   If $uid is for a blocked user or invalid user ID.
    */
   public function resetPassLogin($uid, $timestamp, $hash, Request $request) {
-    // The current user is not logged in, so check the parameters.
-    $current = REQUEST_TIME;
     /** @var \Drupal\user\UserInterface $user */
     $user = $this->userStorage->load($uid);
+    if ($redirect = $this->determineErrorRedirect($user, $timestamp, $hash)) {
+      return $redirect;
+    }
 
+    $flood_config = $this->config('user.flood');
+    if ($flood_config->get('uid_only')) {
+      $identifier = $user->id();
+    }
+    else {
+      $identifier = $user->id() . '-' . $request->getClientIP();
+    }
+
+    $this->flood->clear('user.failed_login_user', $identifier);
+    $this->flood->clear('user.http_login', $identifier);
+
+    user_login_finalize($user);
+    $this->logger->info('User %name used one-time login link at time %timestamp.', ['%name' => $user->getDisplayName(), '%timestamp' => $timestamp]);
+    $this->messenger()->addStatus($this->t('You have used a one-time login link. You can set your new password now.'));
+    // Let the user's password be changed without the current password
+    // check.
+    $token = Crypt::randomBytesBase64(55);
+    $request->getSession()->set('pass_reset_' . $user->id(), $token);
+    // Clear any flood events for this user.
+    $this->flood->clear('user.password_request_user', $uid);
+    return $this->redirect(
+      'entity.user.edit_form',
+      ['user' => $user->id()],
+      [
+        'query' => ['pass-reset-token' => $token],
+        'absolute' => TRUE,
+      ]
+    );
+  }
+
+  /**
+   * Validates user, hash, and timestamp.
+   *
+   * This method allows the 'user.reset' and 'user.reset.login' routes to use
+   * the same logic to check the user, timestamp and hash and redirect to the
+   * same location with the same messages.
+   *
+   * @param \Drupal\user\UserInterface|null $user
+   *   User requesting reset. NULL if the user does not exist.
+   * @param int $timestamp
+   *   The current timestamp.
+   * @param string $hash
+   *   Login link hash.
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse|null
+   *   Returns a redirect if the information is incorrect. It redirects to
+   *   'user.pass' route with a message for the user.
+   *
+   * @throws \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException
+   *   If $uid is for a blocked user or invalid user ID.
+   */
+  protected function determineErrorRedirect(?UserInterface $user, int $timestamp, string $hash): ?RedirectResponse {
+    // The current user is not logged in, so check the parameters.
+    $current = $this->time->getRequestTime();
     // Verify that the user exists and is active.
     if ($user === NULL || !$user->isActive()) {
       // Blocked or invalid user ID, so deny access. The parameters will be in
@@ -238,31 +316,37 @@ class UserController extends ControllerBase {
     $timeout = $this->config('user.settings')->get('password_reset_timeout');
     // No time out for first time login.
     if ($user->getLastLoginTime() && $current - $timestamp > $timeout) {
-      $this->messenger()->addError($this->t('You have tried to use a one-time login link that has expired. Please request a new one using the form below.'));
+      $this->messenger()->addError($this->t('You have tried to use a one-time login link that has expired. Request a new one using the form below.'));
       return $this->redirect('user.pass');
     }
-    elseif ($user->isAuthenticated() && ($timestamp >= $user->getLastLoginTime()) && ($timestamp <= $current) && hash_equals($hash, user_pass_rehash($user, $timestamp))) {
-      user_login_finalize($user);
-      $this->logger->notice('User %name used one-time login link at time %timestamp.', ['%name' => $user->getDisplayName(), '%timestamp' => $timestamp]);
-      $this->messenger()->addStatus($this->t('You have just used your one-time login link. It is no longer necessary to use this link to log in. Please change your password.'));
-      // Let the user's password be changed without the current password
-      // check.
-      $token = Crypt::randomBytesBase64(55);
-      $request->getSession()->set('pass_reset_' . $user->id(), $token);
-      // Clear any flood events for this user.
-      $this->flood->clear('user.password_request_user', $uid);
-      return $this->redirect(
-        'entity.user.edit_form',
-        ['user' => $user->id()],
-        [
-          'query' => ['pass-reset-token' => $token],
-          'absolute' => TRUE,
-        ]
-      );
+    elseif ($user->isAuthenticated() && $this->validatePathParameters($user, $timestamp, $hash, $timeout)) {
+      // The information provided is valid.
+      return NULL;
     }
 
-    $this->messenger()->addError($this->t('You have tried to use a one-time login link that has either been used or is no longer valid. Please request a new one using the form below.'));
+    $this->messenger()->addError($this->t('You have tried to use a one-time login link that has either been used or is no longer valid. Request a new one using the form below.'));
     return $this->redirect('user.pass');
+  }
+
+  /**
+   * Validates hash and timestamp.
+   *
+   * @param \Drupal\user\UserInterface $user
+   *   User requesting reset.
+   * @param int $timestamp
+   *   The timestamp.
+   * @param string $hash
+   *   Login link hash.
+   * @param int $timeout
+   *   Link expiration timeout.
+   *
+   * @return bool
+   *   Whether the provided data are valid.
+   */
+  protected function validatePathParameters(UserInterface $user, int $timestamp, string $hash, int $timeout = 0): bool {
+    $current = \Drupal::time()->getRequestTime();
+    $timeout_valid = ((!empty($timeout) && $current - $timestamp < $timeout) || empty($timeout));
+    return ($timestamp >= $user->getLastLoginTime()) && $timestamp <= $current && $timeout_valid && hash_equals($hash, user_pass_rehash($user, $timestamp));
   }
 
   /**
@@ -283,15 +367,14 @@ class UserController extends ControllerBase {
    * Redirects users to their profile edit page.
    *
    * This controller assumes that it is only invoked for authenticated users.
-   * This is enforced for the 'user.well-known.change_password' route with the
-   * '_user_is_logged_in' requirement.
+   * This is typically enforced with the '_user_is_logged_in' requirement.
    *
    * @return \Symfony\Component\HttpFoundation\RedirectResponse
    *   Returns a redirect to the profile edit form of the currently logged in
    *   user.
    */
   public function userEditPage() {
-    return $this->redirect('entity.user.edit_form', ['user' => $this->currentUser()->id()], [], 301);
+    return $this->redirect('entity.user.edit_form', ['user' => $this->currentUser()->id()], [], 302);
   }
 
   /**
@@ -304,7 +387,7 @@ class UserController extends ControllerBase {
    *   The user account name as a render array or an empty string if $user is
    *   NULL.
    */
-  public function userTitle(UserInterface $user = NULL) {
+  public function userTitle(?UserInterface $user = NULL) {
     return $user ? ['#markup' => $user->getDisplayName(), '#allowed_tags' => Xss::getHtmlTagList()] : '';
   }
 
@@ -337,13 +420,12 @@ class UserController extends ControllerBase {
   public function confirmCancel(UserInterface $user, $timestamp = 0, $hashed_pass = '') {
     // Time out in seconds until cancel URL expires; 24 hours = 86400 seconds.
     $timeout = 86400;
-    $current = REQUEST_TIME;
 
     // Basic validation of arguments.
     $account_data = $this->userData->get('user', $user->id());
     if (isset($account_data['cancel_method']) && !empty($timestamp) && !empty($hashed_pass)) {
       // Validate expiration and hashed password/login.
-      if ($timestamp <= $current && $current - $timestamp < $timeout && $user->id() && $timestamp >= $user->getLastLoginTime() && hash_equals($hashed_pass, user_pass_rehash($user, $timestamp))) {
+      if ($user->id() && $this->validatePathParameters($user, $timestamp, $hashed_pass, $timeout)) {
         $edit = [
           'user_cancel_notify' => $account_data['cancel_notify'] ?? $this->config('user.settings')->get('notify.status_canceled'),
         ];
@@ -354,7 +436,7 @@ class UserController extends ControllerBase {
         return batch_process('<front>');
       }
       else {
-        $this->messenger()->addError($this->t('You have tried to use an account cancellation link that has expired. Please request a new one using the form below.'));
+        $this->messenger()->addError($this->t('You have tried to use an account cancellation link that has expired. Request a new one using the form below.'));
         return $this->redirect('entity.user.cancel_form', ['user' => $user->id()], ['absolute' => TRUE]);
       }
     }

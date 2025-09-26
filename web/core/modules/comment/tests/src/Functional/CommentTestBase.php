@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\comment\Functional;
 
 use Drupal\Component\Render\FormattableMarkup;
@@ -20,9 +22,7 @@ abstract class CommentTestBase extends BrowserTestBase {
   use CommentTestTrait;
 
   /**
-   * Modules to install.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
     'block',
@@ -54,7 +54,10 @@ abstract class CommentTestBase extends BrowserTestBase {
    */
   protected $node;
 
-  protected function setUp() {
+  /**
+   * {@inheritdoc}
+   */
+  protected function setUp(): void {
     parent::setUp();
 
     // Create an article content type only if it does not yet exist, so that
@@ -78,7 +81,7 @@ abstract class CommentTestBase extends BrowserTestBase {
       // permission is granted.
       'access user profiles',
       'access content',
-     ]);
+    ]);
     $this->webUser = $this->drupalCreateUser([
       'access comments',
       'post comments',
@@ -115,7 +118,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    * @return \Drupal\comment\CommentInterface|null
    *   The posted comment or NULL when posted comment was not found.
    */
-  public function postComment($entity, $comment, $subject = '', $contact = NULL, $field_name = 'comment') {
+  protected function postComment($entity, $comment, $subject = '', $contact = NULL, $field_name = 'comment') {
     $edit = [];
     $edit['comment_body[0][value]'] = $comment;
 
@@ -196,7 +199,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    * @return bool
    *   Boolean indicating whether the comment was found.
    */
-  public function commentExists(CommentInterface $comment = NULL, $reply = FALSE) {
+  protected function commentExists(?CommentInterface $comment = NULL, $reply = FALSE) {
     if ($comment) {
       $comment_element = $this->cssSelect(($reply ? '.indented ' : '') . 'article#comment-' . $comment->id());
       if (empty($comment_element)) {
@@ -226,7 +229,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    * @param \Drupal\comment\CommentInterface $comment
    *   Comment to delete.
    */
-  public function deleteComment(CommentInterface $comment) {
+  protected function deleteComment(CommentInterface $comment) {
     $this->drupalGet('comment/' . $comment->id() . '/delete');
     $this->submitForm([], 'Delete');
     $this->assertSession()->pageTextContains('The comment and all its replies have been deleted.');
@@ -238,7 +241,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    * @param bool $enabled
    *   Boolean specifying whether the subject field should be enabled.
    */
-  public function setCommentSubject($enabled) {
+  protected function setCommentSubject($enabled) {
     $form_display = $this->container->get('entity_display.repository')
       ->getFormDisplay('comment', 'comment');
 
@@ -262,7 +265,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    *   (optional) Field name through which the comment should be posted.
    *   Defaults to 'comment'.
    */
-  public function setCommentPreview($mode, $field_name = 'comment') {
+  protected function setCommentPreview($mode, $field_name = 'comment') {
     switch ($mode) {
       case DRUPAL_DISABLED:
         $mode_text = 'disabled';
@@ -289,7 +292,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    *   (optional) Field name through which the comment should be posted.
    *   Defaults to 'comment'.
    */
-  public function setCommentForm($enabled, $field_name = 'comment') {
+  protected function setCommentForm($enabled, $field_name = 'comment') {
     $this->setCommentSettings('form_location', ($enabled ? CommentItemInterface::FORM_BELOW : CommentItemInterface::FORM_SEPARATE_PAGE), 'Comment controls ' . ($enabled ? 'enabled' : 'disabled') . '.', $field_name);
   }
 
@@ -302,7 +305,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    *   - 1: Contact information allowed but not required.
    *   - 2: Contact information required.
    */
-  public function setCommentAnonymous($level) {
+  protected function setCommentAnonymous($level) {
     $this->setCommentSettings('anonymous', $level, new FormattableMarkup('Anonymous commenting set to level @level.', ['@level' => $level]));
   }
 
@@ -315,7 +318,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    *   (optional) Field name through which the comment should be posted.
    *   Defaults to 'comment'.
    */
-  public function setCommentsPerPage($number, $field_name = 'comment') {
+  protected function setCommentsPerPage($number, $field_name = 'comment') {
     $this->setCommentSettings('per_page', $number, new FormattableMarkup('Number of comments per page set to @number.', ['@number' => $number]), $field_name);
   }
 
@@ -332,7 +335,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    *   (optional) Field name through which the comment should be posted.
    *   Defaults to 'comment'.
    */
-  public function setCommentSettings($name, $value, $message, $field_name = 'comment') {
+  protected function setCommentSettings($name, $value, $message, $field_name = 'comment') {
     $field = FieldConfig::loadByName('node', 'article', $field_name);
     $field->setSetting($name, $value);
     $field->save();
@@ -344,7 +347,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    * @return bool
    *   Contact info is available.
    */
-  public function commentContactInfoAvailable() {
+  protected function commentContactInfoAvailable() {
     return (bool) preg_match('/(input).*?(name="name").*?(input).*?(name="mail").*?(input).*?(name="homepage")/s', $this->getSession()->getPage()->getContent());
   }
 
@@ -358,7 +361,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    * @param bool $approval
    *   Operation is found on approval page.
    */
-  public function performCommentOperation(CommentInterface $comment, $operation, $approval = FALSE) {
+  protected function performCommentOperation(CommentInterface $comment, $operation, $approval = FALSE) {
     $edit = [];
     $edit['operation'] = $operation;
     $edit['comments[' . $comment->id() . ']'] = TRUE;
@@ -383,7 +386,7 @@ abstract class CommentTestBase extends BrowserTestBase {
    * @return int
    *   Comment id.
    */
-  public function getUnapprovedComment($subject) {
+  protected function getUnapprovedComment($subject) {
     $this->drupalGet('admin/content/comment/approval');
     preg_match('/href="(.*?)#comment-([^"]+)"(.*?)>(' . $subject . ')/', $this->getSession()->getPage()->getContent(), $match);
 

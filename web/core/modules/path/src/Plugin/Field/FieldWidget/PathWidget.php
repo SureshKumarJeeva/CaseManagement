@@ -2,22 +2,21 @@
 
 namespace Drupal\path\Plugin\Field\FieldWidget;
 
+use Drupal\Core\Field\Attribute\FieldWidget;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Symfony\Component\Validator\ConstraintViolationInterface;
 
 /**
  * Plugin implementation of the 'path' widget.
- *
- * @FieldWidget(
- *   id = "path",
- *   label = @Translation("URL alias"),
- *   field_types = {
- *     "path"
- *   }
- * )
  */
+#[FieldWidget(
+  id: 'path',
+  label: new TranslatableMarkup('URL alias'),
+  field_types: ['path']
+)]
 class PathWidget extends WidgetBase {
 
   /**
@@ -44,7 +43,7 @@ class PathWidget extends WidgetBase {
     $element['source'] = [
       '#type' => 'value',
       '#value' => !$entity->isNew() ? '/' . $entity->toUrl()->getInternalPath() : NULL,
-     ];
+    ];
     $element['langcode'] = [
       '#type' => 'value',
       '#value' => $items[$delta]->langcode,
@@ -56,7 +55,7 @@ class PathWidget extends WidgetBase {
     if (isset($form['advanced'])) {
       $element += [
         '#type' => 'details',
-        '#title' => t('URL path settings'),
+        '#title' => $this->t('URL path settings'),
         '#open' => !empty($items[$delta]->alias),
         '#group' => 'advanced',
         '#access' => $entity->get('path')->access('edit'),

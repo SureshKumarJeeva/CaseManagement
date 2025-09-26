@@ -6,9 +6,9 @@ use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Connection;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\entity_usage\Events\Events;
 use Drupal\entity_usage\Events\EntityUsageEvent;
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Drupal\entity_usage\Events\Events;
+use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * Defines the entity usage base class.
@@ -16,62 +16,15 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class EntityUsage implements EntityUsageInterface {
 
   /**
-   * The database connection used to store entity usage information.
-   *
-   * @var \Drupal\Core\Database\Connection
+   * Construct the EntityUsage service.
    */
-  protected $connection;
-
-  /**
-   * The name of the SQL table used to store entity usage information.
-   *
-   * @var string
-   */
-  protected $tableName;
-
-  /**
-   * An event dispatcher instance.
-   *
-   * @var \Symfony\Component\EventDispatcher\EventDispatcherInterface
-   */
-  protected $eventDispatcher;
-
-  /**
-   * The config factory.
-   *
-   * @var \Drupal\Core\Config\ImmutableConfig
-   */
-  protected $config;
-
-  /**
-   * The ModuleHandler service.
-   *
-   * @var \Drupal\Core\Extension\ModuleHandlerInterface
-   */
-  protected $moduleHandler;
-
-  /**
-   * Construct the EntityUsage object.
-   *
-   * @param \Drupal\Core\Database\Connection $connection
-   *   The database connection which will be used to store the entity usage
-   *   information.
-   * @param \Symfony\Component\EventDispatcher\EventDispatcherInterface $event_dispatcher
-   *   An event dispatcher instance to use for events.
-   * @param \Drupal\Core\Config\ConfigFactoryInterface $config_factory
-   *   The config factory.
-   * @param \Drupal\Core\Extension\ModuleHandlerInterface $module_handler
-   *   The ModuleHandler service.
-   * @param string $table
-   *   (optional) The table to store the entity usage info. Defaults to
-   *   'entity_usage'.
-   */
-  public function __construct(Connection $connection, EventDispatcherInterface $event_dispatcher, ConfigFactoryInterface $config_factory, ModuleHandlerInterface $module_handler, $table = 'entity_usage') {
-    $this->connection = $connection;
-    $this->tableName = $table;
-    $this->eventDispatcher = $event_dispatcher;
-    $this->moduleHandler = $module_handler;
-    $this->config = $config_factory->get('entity_usage.settings');
+  final public function __construct(
+    private Connection $connection,
+    private EventDispatcherInterface $eventDispatcher,
+    private ConfigFactoryInterface $configFactory,
+    private ModuleHandlerInterface $moduleHandler,
+    private string $tableName,
+  ) {
   }
 
   /**
@@ -80,7 +33,10 @@ class EntityUsage implements EntityUsageInterface {
   public function registerUsage($target_id, $target_type, $source_id, $source_type, $source_langcode, $source_vid, $method, $field_name, $count = 1) {
     // Check if target entity type is enabled, all entity types are enabled by
     // default.
-    $enabled_target_entity_types = $this->config->get('track_enabled_target_entity_types');
+    $enabled_target_entity_types = $this
+      ->configFactory
+      ->get('entity_usage.settings')
+      ->get('track_enabled_target_entity_types');
     if (is_array($enabled_target_entity_types) && !in_array($target_type, $enabled_target_entity_types, TRUE)) {
       return;
     }
@@ -138,7 +94,7 @@ class EntityUsage implements EntityUsageInterface {
     }
 
     $event = new EntityUsageEvent($target_id, $target_type, $source_id, $source_type, $source_langcode, $source_vid, $method, $field_name, $count);
-    $this->eventDispatcher->dispatch(Events::USAGE_REGISTER, $event);
+    $this->eventDispatcher->dispatch($event, Events::USAGE_REGISTER);
   }
 
   /**
@@ -150,7 +106,7 @@ class EntityUsage implements EntityUsageInterface {
     $query->execute();
 
     $event = new EntityUsageEvent(NULL, $target_type, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-    $this->eventDispatcher->dispatch(Events::BULK_DELETE_DESTINATIONS, $event);
+    $this->eventDispatcher->dispatch($event, Events::BULK_DELETE_DESTINATIONS);
   }
 
   /**
@@ -162,7 +118,7 @@ class EntityUsage implements EntityUsageInterface {
     $query->execute();
 
     $event = new EntityUsageEvent(NULL, NULL, NULL, $source_type, NULL, NULL, NULL, NULL, NULL);
-    $this->eventDispatcher->dispatch(Events::BULK_DELETE_SOURCES, $event);
+    $this->eventDispatcher->dispatch($event, Events::BULK_DELETE_SOURCES);
   }
 
   /**
@@ -175,7 +131,7 @@ class EntityUsage implements EntityUsageInterface {
     $query->execute();
 
     $event = new EntityUsageEvent(NULL, NULL, NULL, $source_type, NULL, NULL, NULL, $field_name, NULL);
-    $this->eventDispatcher->dispatch(Events::DELETE_BY_FIELD, $event);
+    $this->eventDispatcher->dispatch($event, Events::DELETE_BY_FIELD);
   }
 
   /**
@@ -198,7 +154,7 @@ class EntityUsage implements EntityUsageInterface {
     $query->execute();
 
     $event = new EntityUsageEvent(NULL, NULL, $source_id, $source_type, $source_langcode, $source_vid, NULL, NULL, NULL);
-    $this->eventDispatcher->dispatch(Events::DELETE_BY_SOURCE_ENTITY, $event);
+    $this->eventDispatcher->dispatch($event, Events::DELETE_BY_SOURCE_ENTITY);
   }
 
   /**
@@ -215,17 +171,17 @@ class EntityUsage implements EntityUsageInterface {
     $query->execute();
 
     $event = new EntityUsageEvent($target_id, $target_type, NULL, NULL, NULL, NULL, NULL, NULL, NULL);
-    $this->eventDispatcher->dispatch(Events::DELETE_BY_TARGET_ENTITY, $event);
+    $this->eventDispatcher->dispatch($event, Events::DELETE_BY_TARGET_ENTITY);
   }
 
   /**
    * {@inheritdoc}
    */
-  public function listSources(EntityInterface $target_entity, $nest_results = TRUE) {
+  public function listSources(EntityInterface $target_entity, $nest_results = TRUE, int $limit = 0) {
     // Entities can have string IDs. We support that by using different columns
     // on each case.
     $target_id_column = $this->isInt($target_entity->id()) ? 'target_id' : 'target_id_string';
-    $result = $this->connection->select($this->tableName, 'e')
+    $query = $this->connection->select($this->tableName, 'e')
       ->fields('e', [
         'source_id',
         'source_id_string',
@@ -242,8 +198,13 @@ class EntityUsage implements EntityUsageInterface {
       ->orderBy('source_type')
       ->orderBy('source_id', 'DESC')
       ->orderBy('source_vid', 'DESC')
-      ->orderBy('source_langcode')
-      ->execute();
+      ->orderBy('source_langcode');
+
+    if ($limit > 0) {
+      $query->range(0, $limit);
+    }
+
+    $result = $query->execute();
 
     $references = [];
     foreach ($result as $usage) {
@@ -319,8 +280,6 @@ class EntityUsage implements EntityUsageInterface {
    * Core doesn't support big integers (bigint) for entity reference fields.
    * Therefore we consider integers with more than 10 digits (big integer) to be
    * strings.
-   * @todo: Fix bigint support once fixed in core. More info on #2680571 and
-   * #2989033.
    *
    * @param int|string $value
    *   The value to check.
@@ -328,6 +287,9 @@ class EntityUsage implements EntityUsageInterface {
    * @return bool
    *   TRUE if the value is a numeric integer or a string containing an integer,
    *   FALSE otherwise.
+   *
+   * @todo Fix bigint support once fixed in core. More info on #2680571 and
+   *   #2989033.
    */
   protected function isInt($value) {
     return ((string) (int) $value === (string) $value) && strlen($value) < 11;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\book\Functional;
 
 use Drupal\Tests\BrowserTestBase;
@@ -8,6 +10,7 @@ use Drupal\Tests\BrowserTestBase;
  * Create a book, add pages, and test book interface.
  *
  * @group book
+ * @group legacy
  */
 class BookBreadcrumbTest extends BrowserTestBase {
 
@@ -21,7 +24,7 @@ class BookBreadcrumbTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'stark';
 
   /**
    * A book node.
@@ -58,18 +61,6 @@ class BookBreadcrumbTest extends BrowserTestBase {
       'create book content',
       'edit own book content',
       'add content to books',
-    ]);
-    $this->adminUser = $this->drupalCreateUser([
-      'create new books',
-      'create book content',
-      'edit any book content',
-      'delete any book content',
-      'add content to books',
-      'administer blocks',
-      'administer permissions',
-      'administer book outlines',
-      'administer content types',
-      'administer site configuration',
     ]);
   }
 
@@ -129,8 +120,8 @@ class BookBreadcrumbTest extends BrowserTestBase {
     static $number = 0;
 
     $edit = [];
-    $edit['title[0][value]'] = str_pad($number, 2, '0', STR_PAD_LEFT) . ' - SimpleTest test node ' . $this->randomMachineName(10);
-    $edit['body[0][value]'] = 'SimpleTest test body ' . $this->randomMachineName(32) . ' ' . $this->randomMachineName(32);
+    $edit['title[0][value]'] = str_pad((string) $number, 2, '0', STR_PAD_LEFT) . ' - test node ' . $this->randomMachineName(10);
+    $edit['body[0][value]'] = 'test body ' . $this->randomMachineName(32) . ' ' . $this->randomMachineName(32);
     $edit['book[bid]'] = $book_nid;
 
     if ($parent !== NULL) {
@@ -159,7 +150,7 @@ class BookBreadcrumbTest extends BrowserTestBase {
   /**
    * Tests that the breadcrumb is updated when book content changes.
    */
-  public function testBreadcrumbTitleUpdates() {
+  public function testBreadcrumbTitleUpdates(): void {
     // Create a new book.
     $nodes = $this->createBreadcrumbBook();
     $book = $this->book;
@@ -168,7 +159,7 @@ class BookBreadcrumbTest extends BrowserTestBase {
 
     $this->drupalGet($nodes[4]->toUrl());
     // Fetch each node title in the current breadcrumb.
-    $links = $this->xpath('//nav[@class="breadcrumb"]/ol/li/a');
+    $links = $this->xpath('//nav[@aria-labelledby="system-breadcrumb"]/ol/li/a');
     $got_breadcrumb = [];
     foreach ($links as $link) {
       $got_breadcrumb[] = $link->getText();
@@ -183,7 +174,7 @@ class BookBreadcrumbTest extends BrowserTestBase {
     $this->submitForm($edit, 'Save');
     $this->drupalGet($nodes[4]->toUrl());
     // Fetch each node title in the current breadcrumb.
-    $links = $this->xpath('//nav[@class="breadcrumb"]/ol/li/a');
+    $links = $this->xpath('//nav[@aria-labelledby="system-breadcrumb"]/ol/li/a');
     $got_breadcrumb = [];
     foreach ($links as $link) {
       $got_breadcrumb[] = $link->getText();
@@ -195,7 +186,7 @@ class BookBreadcrumbTest extends BrowserTestBase {
   /**
    * Tests that the breadcrumb is updated when book access changes.
    */
-  public function testBreadcrumbAccessUpdates() {
+  public function testBreadcrumbAccessUpdates(): void {
     // Create a new book.
     $nodes = $this->createBreadcrumbBook();
     $this->drupalLogin($this->bookAuthor);
@@ -205,7 +196,7 @@ class BookBreadcrumbTest extends BrowserTestBase {
     $this->drupalGet($nodes[3]->toUrl('edit-form'));
     $this->submitForm($edit, 'Save');
     $this->drupalGet($nodes[4]->toUrl());
-    $links = $this->xpath('//nav[@class="breadcrumb"]/ol/li/a');
+    $links = $this->xpath('//nav[@aria-labelledby="system-breadcrumb"]/ol/li/a');
     $got_breadcrumb = [];
     foreach ($links as $link) {
       $got_breadcrumb[] = $link->getText();
@@ -215,7 +206,7 @@ class BookBreadcrumbTest extends BrowserTestBase {
     $config = $this->container->get('config.factory')->getEditable('book_breadcrumb_test.settings');
     $config->set('hide', TRUE)->save();
     $this->drupalGet($nodes[4]->toUrl());
-    $links = $this->xpath('//nav[@class="breadcrumb"]/ol/li/a');
+    $links = $this->xpath('//nav[@aria-labelledby="system-breadcrumb"]/ol/li/a');
     $got_breadcrumb = [];
     foreach ($links as $link) {
       $got_breadcrumb[] = $link->getText();

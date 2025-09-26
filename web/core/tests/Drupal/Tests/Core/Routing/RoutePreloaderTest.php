@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\Core\Routing;
 
 use Drupal\Core\Routing\RoutePreloader;
@@ -16,9 +18,9 @@ use Symfony\Component\Routing\RouteCollection;
 class RoutePreloaderTest extends UnitTestCase {
 
   /**
-   * The mocked route provider.
+   * The mocked preloadable route provider.
    *
-   * @var \Drupal\Core\Routing\RouteProviderInterface|\PHPUnit\Framework\MockObject\MockObject
+   * @var \Drupal\Core\Routing\PreloadableRouteProviderInterface|\PHPUnit\Framework\MockObject\MockObject
    */
   protected $routeProvider;
 
@@ -37,26 +39,20 @@ class RoutePreloaderTest extends UnitTestCase {
   protected $preloader;
 
   /**
-   * The mocked cache.
-   *
-   * @var \Drupal\Core\Cache\CacheBackendInterface|\PHPUnit\Framework\MockObject\MockObject
-   */
-  protected $cache;
-
-  /**
    * {@inheritdoc}
    */
   protected function setUp(): void {
+    parent::setUp();
+
     $this->routeProvider = $this->createMock('Drupal\Core\Routing\PreloadableRouteProviderInterface');
     $this->state = $this->createMock('\Drupal\Core\State\StateInterface');
-    $this->cache = $this->createMock('Drupal\Core\Cache\CacheBackendInterface');
-    $this->preloader = new RoutePreloader($this->routeProvider, $this->state, $this->cache);
+    $this->preloader = new RoutePreloader($this->routeProvider, $this->state);
   }
 
   /**
    * Tests onAlterRoutes with just admin routes.
    */
-  public function testOnAlterRoutesWithAdminRoutes() {
+  public function testOnAlterRoutesWithAdminRoutes(): void {
     $event = $this->getMockBuilder('Drupal\Core\Routing\RouteBuildEvent')
       ->disableOriginalConstructor()
       ->getMock();
@@ -65,7 +61,7 @@ class RoutePreloaderTest extends UnitTestCase {
     $route_collection->add('test2', new Route('/admin/bar', ['_controller' => 'Drupal\ExampleController']));
     $event->expects($this->once())
       ->method('getRouteCollection')
-      ->will($this->returnValue($route_collection));
+      ->willReturn($route_collection);
 
     $this->state->expects($this->once())
       ->method('set')
@@ -77,7 +73,7 @@ class RoutePreloaderTest extends UnitTestCase {
   /**
    * Tests onAlterRoutes with "admin" appearing in the path.
    */
-  public function testOnAlterRoutesWithAdminPathNoAdminRoute() {
+  public function testOnAlterRoutesWithAdminPathNoAdminRoute(): void {
     $event = $this->getMockBuilder('Drupal\Core\Routing\RouteBuildEvent')
       ->disableOriginalConstructor()
       ->getMock();
@@ -88,7 +84,7 @@ class RoutePreloaderTest extends UnitTestCase {
     $route_collection->add('test4', new Route('/admin', ['_controller' => 'Drupal\ExampleController']));
     $event->expects($this->once())
       ->method('getRouteCollection')
-      ->will($this->returnValue($route_collection));
+      ->willReturn($route_collection);
 
     $this->state->expects($this->once())
       ->method('set')
@@ -100,7 +96,7 @@ class RoutePreloaderTest extends UnitTestCase {
   /**
    * Tests onAlterRoutes with admin routes and non admin routes.
    */
-  public function testOnAlterRoutesWithNonAdminRoutes() {
+  public function testOnAlterRoutesWithNonAdminRoutes(): void {
     $event = $this->getMockBuilder('Drupal\Core\Routing\RouteBuildEvent')
       ->disableOriginalConstructor()
       ->getMock();
@@ -126,7 +122,7 @@ class RoutePreloaderTest extends UnitTestCase {
 
     $event->expects($this->once())
       ->method('getRouteCollection')
-      ->will($this->returnValue($route_collection));
+      ->willReturn($route_collection);
 
     $this->state->expects($this->once())
       ->method('set')
@@ -138,7 +134,7 @@ class RoutePreloaderTest extends UnitTestCase {
   /**
    * Tests onRequest on a non html request.
    */
-  public function testOnRequestNonHtml() {
+  public function testOnRequestNonHtml(): void {
     $event = $this->getMockBuilder('\Symfony\Component\HttpKernel\Event\KernelEvent')
       ->disableOriginalConstructor()
       ->getMock();
@@ -146,7 +142,7 @@ class RoutePreloaderTest extends UnitTestCase {
     $request->setRequestFormat('non-html');
     $event->expects($this->any())
       ->method('getRequest')
-      ->will($this->returnValue($request));
+      ->willReturn($request);
 
     $this->routeProvider->expects($this->never())
       ->method('getRoutesByNames');
@@ -159,7 +155,7 @@ class RoutePreloaderTest extends UnitTestCase {
   /**
    * Tests onRequest on a html request.
    */
-  public function testOnRequestOnHtml() {
+  public function testOnRequestOnHtml(): void {
     $event = $this->getMockBuilder('\Symfony\Component\HttpKernel\Event\KernelEvent')
       ->disableOriginalConstructor()
       ->getMock();
@@ -167,7 +163,7 @@ class RoutePreloaderTest extends UnitTestCase {
     $request->setRequestFormat('html');
     $event->expects($this->any())
       ->method('getRequest')
-      ->will($this->returnValue($request));
+      ->willReturn($request);
 
     $this->routeProvider->expects($this->once())
       ->method('preLoadRoutes')
@@ -175,9 +171,17 @@ class RoutePreloaderTest extends UnitTestCase {
     $this->state->expects($this->once())
       ->method('get')
       ->with('routing.non_admin_routes')
-      ->will($this->returnValue(['test2']));
+      ->willReturn(['test2']);
 
     $this->preloader->onRequest($event);
+  }
+
+  /**
+   * @group legacy
+   */
+  public function testConstructorDeprecation(): void {
+    $this->expectDeprecation('Passing a cache bin to Drupal\Core\Routing\RoutePreloader::__construct is deprecated in drupal:10.3.0 and will be removed before drupal:11.0.0. Caching is now managed by the state service. See https://www.drupal.org/node/3177901');
+    new RoutePreloader($this->routeProvider, $this->state, $this->createMock('Drupal\Core\Cache\CacheBackendInterface'));
   }
 
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\content_translation\Unit\Menu;
 
 use Drupal\Tests\Core\Menu\LocalTaskIntegrationTestBase;
@@ -11,6 +13,9 @@ use Drupal\Tests\Core\Menu\LocalTaskIntegrationTestBase;
  */
 class ContentTranslationLocalTasksTest extends LocalTaskIntegrationTestBase {
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     $this->directoryList = [
       'content_translation' => 'core/modules/content_translation',
@@ -31,9 +36,9 @@ class ContentTranslationLocalTasksTest extends LocalTaskIntegrationTestBase {
     $content_translation_manager = $this->createMock('Drupal\content_translation\ContentTranslationManagerInterface');
     $content_translation_manager->expects($this->any())
       ->method('getSupportedEntityTypes')
-      ->will($this->returnValue([
+      ->willReturn([
         'node' => $entity_type,
-      ]));
+      ]);
     \Drupal::getContainer()->set('content_translation.manager', $content_translation_manager);
     \Drupal::getContainer()->set('string_translation', $this->getStringTranslationStub());
   }
@@ -43,14 +48,14 @@ class ContentTranslationLocalTasksTest extends LocalTaskIntegrationTestBase {
    *
    * @dataProvider providerTestBlockAdminDisplay
    */
-  public function testBlockAdminDisplay($route, $expected) {
+  public function testBlockAdminDisplay($route, $expected): void {
     $this->assertLocalTasks($route, $expected);
   }
 
   /**
    * Provides a list of routes to test.
    */
-  public function providerTestBlockAdminDisplay() {
+  public static function providerTestBlockAdminDisplay() {
     return [
       [
         'entity.node.canonical',

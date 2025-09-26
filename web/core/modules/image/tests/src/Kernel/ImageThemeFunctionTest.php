@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\image\Kernel;
 
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
-use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\File\FileExists;
 use Drupal\Core\Url;
 use Drupal\entity_test\Entity\EntityTest;
 use Drupal\field\Entity\FieldConfig;
+use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\file\Entity\File;
 use Drupal\image\Entity\ImageStyle;
 use Drupal\KernelTests\KernelTestBase;
-use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\Tests\TestFileCreationTrait;
 
 /**
@@ -26,9 +28,7 @@ class ImageThemeFunctionTest extends KernelTestBase {
   }
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
     'entity_test',
@@ -51,6 +51,9 @@ class ImageThemeFunctionTest extends KernelTestBase {
    */
   protected $imageFactory;
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
 
@@ -81,14 +84,14 @@ class ImageThemeFunctionTest extends KernelTestBase {
   /**
    * Tests usage of the image field formatters.
    */
-  public function testImageFormatterTheme() {
+  public function testImageFormatterTheme(): void {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
 
     // Create an image.
     $files = $this->drupalGetTestFiles('image');
     $file = reset($files);
-    $original_uri = \Drupal::service('file_system')->copy($file->uri, 'public://', FileSystemInterface::EXISTS_RENAME);
+    $original_uri = \Drupal::service('file_system')->copy($file->uri, 'public://', FileExists::Rename);
 
     // Create a style.
     $style = ImageStyle::create(['name' => 'test', 'label' => 'Test']);
@@ -143,14 +146,14 @@ class ImageThemeFunctionTest extends KernelTestBase {
   /**
    * Tests usage of the image style theme function.
    */
-  public function testImageStyleTheme() {
+  public function testImageStyleTheme(): void {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
 
     // Create an image.
     $files = $this->drupalGetTestFiles('image');
     $file = reset($files);
-    $original_uri = \Drupal::service('file_system')->copy($file->uri, 'public://', FileSystemInterface::EXISTS_RENAME);
+    $original_uri = \Drupal::service('file_system')->copy($file->uri, 'public://', FileExists::Rename);
 
     // Create a style.
     $style = ImageStyle::create(['name' => 'image_test', 'label' => 'Test']);
@@ -180,14 +183,14 @@ class ImageThemeFunctionTest extends KernelTestBase {
   /**
    * Tests image alt attribute functionality.
    */
-  public function testImageAltFunctionality() {
+  public function testImageAltFunctionality(): void {
     /** @var \Drupal\Core\Render\RendererInterface $renderer */
     $renderer = $this->container->get('renderer');
 
     // Test using alt directly with alt attribute.
     $image_with_alt_property = [
       '#theme' => 'image',
-      '#uri' => '/core/themes/bartik/logo.svg',
+      '#uri' => '/core/themes/olivero/logo.svg',
       '#alt' => 'Regular alt',
       '#title' => 'Test title',
       '#width' => '50%',
@@ -202,7 +205,7 @@ class ImageThemeFunctionTest extends KernelTestBase {
     // Test using alt attribute inside attributes.
     $image_with_alt_attribute_alt_attribute = [
       '#theme' => 'image',
-      '#uri' => '/core/themes/bartik/logo.svg',
+      '#uri' => '/core/themes/olivero/logo.svg',
       '#width' => '50%',
       '#height' => '50%',
       '#attributes' => [
@@ -220,7 +223,7 @@ class ImageThemeFunctionTest extends KernelTestBase {
     // Test using alt attribute as property and inside attributes.
     $image_with_alt_attribute_both = [
       '#theme' => 'image',
-      '#uri' => '/core/themes/bartik/logo.svg',
+      '#uri' => '/core/themes/olivero/logo.svg',
       '#width' => '50%',
       '#height' => '50%',
       '#alt' => 'Kitten sustainable',

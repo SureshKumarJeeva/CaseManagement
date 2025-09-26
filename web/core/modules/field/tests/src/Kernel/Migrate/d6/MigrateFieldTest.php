@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\field\Kernel\Migrate\d6;
 
 use Drupal\field\Entity\FieldStorageConfig;
@@ -23,7 +25,7 @@ class MigrateFieldTest extends MigrateDrupal6TestBase {
   /**
    * Tests the Drupal 6 field to Drupal 8 migration.
    */
-  public function testFields() {
+  public function testFields(): void {
     // Text field.
     /** @var \Drupal\field\Entity\FieldStorageConfig $field_storage */
     $field_storage = FieldStorageConfig::load('node.field_test');
@@ -98,6 +100,12 @@ class MigrateFieldTest extends MigrateDrupal6TestBase {
 
     // Test a node reference field.
     $field_storage = FieldStorageConfig::load('node.field_company');
+    $this->assertInstanceOf(FieldStorageConfig::class, $field_storage);
+    $this->assertSame('entity_reference', $field_storage->getType());
+    $this->assertSame('node', $field_storage->getSetting('target_type'));
+
+    // Test a second node reference field.
+    $field_storage = FieldStorageConfig::load('node.field_company_4');
     $this->assertInstanceOf(FieldStorageConfig::class, $field_storage);
     $this->assertSame('entity_reference', $field_storage->getType());
     $this->assertSame('node', $field_storage->getSetting('target_type'));

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Kernel\Common;
 
 use Drupal\Component\Render\FormattableMarkup;
@@ -19,10 +21,11 @@ class FormElementsRenderTest extends KernelTestBase {
   protected static $modules = ['common_test', 'system'];
 
   /**
-   * Tests rendering form elements without passing through
-   * \Drupal::formBuilder()->doBuildForm().
+   * Tests rendering form elements without using doBuildForm().
+   *
+   * @see \Drupal\Core\Form\FormBuilderInterface::doBuildForm()
    */
-  public function testDrupalRenderFormElements() {
+  public function testDrupalRenderFormElements(): void {
     // Define a series of form elements.
     $element = [
       '#type' => 'button',

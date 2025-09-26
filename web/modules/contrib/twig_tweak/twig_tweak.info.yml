@@ -2,7 +2,7 @@ name: Twig Tweak
 type: module
 description: Provides some extra Twig functions and filters.
 core: 8.x
-core_version_requirement: ^8 || ^9
+core_version_requirement: ^8 || ^9 || ^10
 dependencies:
   - drupal:system (>=8.7)
 

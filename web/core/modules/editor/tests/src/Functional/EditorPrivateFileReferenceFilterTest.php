@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\editor\Functional;
 
 use Drupal\file\Entity\File;
@@ -16,19 +18,15 @@ use Drupal\user\RoleInterface;
 class EditorPrivateFileReferenceFilterTest extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
-    // Needed for the config: this is the only module in core that utilizes the
-    // functionality in editor.module to be tested, and depends on that.
-    'ckeditor',
+    'editor_test',
     // Depends on filter.module (indirectly).
     'node',
     // Pulls in the config we're using during testing which create a text format
     // - with the filter_html_image_secure filter DISABLED,
-    // - with the editor set to CKEditor,
+    // - with the editor set to Unicorn editor,
     // - with drupalimage.image_upload.scheme set to 'private',
     // - with drupalimage.image_upload.directory set to ''.
     'editor_private_test',
@@ -42,7 +40,7 @@ class EditorPrivateFileReferenceFilterTest extends BrowserTestBase {
   /**
    * Tests the editor file reference filter with private files.
    */
-  public function testEditorPrivateFileReferenceFilter() {
+  public function testEditorPrivateFileReferenceFilter(): void {
     $author = $this->drupalCreateUser();
     $this->drupalLogin($author);
 

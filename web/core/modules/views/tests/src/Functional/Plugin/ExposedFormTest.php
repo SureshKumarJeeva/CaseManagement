@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\views\Functional\Plugin;
 
 use Drupal\Component\Utility\Html;
@@ -9,11 +11,13 @@ use Drupal\Tests\views\Functional\ViewTestBase;
 use Drupal\views\ViewExecutable;
 use Drupal\views\Views;
 use Drupal\views\Entity\View;
+use Drupal\views\Plugin\views\filter\FilterPluginBase;
 
 /**
  * Tests exposed forms functionality.
  *
  * @group views
+ * @group #slow
  */
 class ExposedFormTest extends ViewTestBase {
 
@@ -24,19 +28,17 @@ class ExposedFormTest extends ViewTestBase {
    *
    * @var array
    */
-  public static $testViews = ['test_exposed_form_buttons', 'test_exposed_block', 'test_exposed_form_sort_items_per_page', 'test_exposed_form_pager'];
+  public static $testViews = ['test_exposed_form_buttons', 'test_exposed_block', 'test_exposed_form_sort_items_per_page', 'test_exposed_form_pager', 'test_remember_selected'];
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['node', 'views_ui', 'block', 'entity_test'];
 
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'starterkit_theme';
 
   /**
    * Nodes to test.
@@ -45,6 +47,9 @@ class ExposedFormTest extends ViewTestBase {
    */
   protected $nodes = [];
 
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp($import_test_views = TRUE, $modules = ['views_test_config']): void {
     parent::setUp($import_test_views, $modules);
 
@@ -64,7 +69,7 @@ class ExposedFormTest extends ViewTestBase {
   /**
    * Tests the submit button.
    */
-  public function testSubmitButton() {
+  public function testSubmitButton(): void {
     // Test the submit button value defaults to 'Apply'.
     $this->drupalGet('test_exposed_form_buttons');
     $this->assertSession()->statusCodeEquals(200);
@@ -100,7 +105,7 @@ class ExposedFormTest extends ViewTestBase {
   /**
    * Tests the exposed form with a non-standard identifier.
    */
-  public function testExposedIdentifier() {
+  public function testExposedIdentifier(): void {
     // Alter the identifier of the filter to a random string.
     $view = Views::getView('test_exposed_form_buttons');
     $view->setDisplay();
@@ -158,12 +163,43 @@ class ExposedFormTest extends ViewTestBase {
       'page_1' => ['This identifier has illegal characters.'],
     ];
     $this->assertEquals($expected, $errors);
+
+    foreach (FilterPluginBase::RESTRICTED_IDENTIFIERS as $restricted_identifier) {
+      $view = Views::getView('test_exposed_form_buttons');
+      $view->setDisplay();
+      $view->displayHandlers->get('default')->overrideOption('filters', [
+        'type' => [
+          'exposed' => TRUE,
+          'field' => 'type',
+          'id' => 'type',
+          'table' => 'node_field_data',
+          'plugin_id' => 'in_operator',
+          'entity_type' => 'node',
+          'entity_field' => 'type',
+          'expose' => [
+            'identifier' => $restricted_identifier,
+            'label' => 'Content: Type',
+            'operator_id' => 'type_op',
+            'reduce' => FALSE,
+            'description' => 'Exposed overridden description',
+          ],
+        ],
+      ]);
+      $this->executeView($view);
+
+      $errors = $view->validate();
+      $expected = [
+        'default' => ['This identifier is not allowed.'],
+        'page_1' => ['This identifier is not allowed.'],
+      ];
+      $this->assertEquals($expected, $errors);
+    }
   }
 
   /**
    * Tests whether the reset button works on an exposed form.
    */
-  public function testResetButton() {
+  public function testResetButton(): void {
     // Test the button is hidden when there is no exposed input.
     $this->drupalGet('test_exposed_form_buttons');
     $this->assertSession()->fieldNotExists('edit-reset');
@@ -173,10 +209,13 @@ class ExposedFormTest extends ViewTestBase {
     $this->assertSession()->fieldValueEquals('edit-type', 'article');
 
     // Test the reset works.
-    $this->drupalGet('test_exposed_form_buttons', ['query' => ['op' => 'Reset']]);
+    $this->submitForm([], 'Reset');
+    $this->assertSession()->addressEquals('test_exposed_form_buttons');
     $this->assertSession()->statusCodeEquals(200);
     // Test the type has been reset.
     $this->assertSession()->fieldValueEquals('edit-type', 'All');
+    // Test that the reset button didn't start a session.
+    $this->assertEquals(FALSE, (bool) $this->getSession()->getCookie($this->getSessionName()));
 
     // Test the button is hidden after reset.
     $this->assertSession()->fieldNotExists('edit-reset');
@@ -211,7 +250,7 @@ class ExposedFormTest extends ViewTestBase {
    *
    * @dataProvider providerTestExposedBlock
    */
-  public function testExposedBlock($display) {
+  public function testExposedBlock($display): void {
     $view = Views::getView('test_exposed_block');
     $view->setDisplay($display);
     $block = $this->drupalPlaceBlock('views_exposed_filter_block:test_exposed_block-' . $display);
@@ -231,7 +270,7 @@ class ExposedFormTest extends ViewTestBase {
     $block->getPlugin()->setConfigurationValue('views_label', '<strong>Custom</strong> title<script>alert("hacked!");</script>');
     $block->save();
 
-    // Test that the custom block label is found.
+    // Test that the content block label is found.
     $this->drupalGet('test_exposed_block');
     $this->assertSession()->responseContains('<strong>Custom</strong> titlealert("hacked!");');
 
@@ -248,9 +287,7 @@ class ExposedFormTest extends ViewTestBase {
     $this->assertSession()->pageTextMatchesCount(1, '/' . $view->getTitle() . '/');
 
     // Test there is an exposed form in a block.
-    $xpath = $this->assertSession()->buildXPathQuery('//div[@id=:id]/form/@id', [':id' => Html::getUniqueId('block-' . $block->id())]);
-    $result = $this->xpath($xpath);
-    $this->assertCount(1, $result);
+    $this->assertSession()->elementsCount('xpath', '//div[@id="' . Html::getUniqueId('block-' . $block->id()) . '"]/form/@id', 1);
 
     // Test there is not an exposed form in the view page content area.
     $xpath = $this->assertSession()->buildXPathQuery('//div[@class="view-content"]/form/@id', [
@@ -259,8 +296,9 @@ class ExposedFormTest extends ViewTestBase {
     $this->assertSession()->elementNotExists('xpath', $xpath);
 
     // Test there is only one views exposed form on the page.
-    $elements = $this->xpath('//form[@id=:id]', [':id' => $this->getExpectedExposedFormId($view)]);
-    $this->assertCount(1, $elements, 'One exposed form block found.');
+    $xpath = '//form[@id="' . $this->getExpectedExposedFormId($view) . '"]';
+    $this->assertSession()->elementsCount('xpath', $xpath, 1);
+    $element = $this->assertSession()->elementExists('xpath', $xpath);
 
     // Test that the correct option is selected after form submission.
     $this->assertCacheContext('url');
@@ -271,13 +309,13 @@ class ExposedFormTest extends ViewTestBase {
       'page' => ['page'],
     ];
     foreach ($arguments as $argument => $bundles) {
-      $elements[0]->find('css', 'select')->selectOption($argument);
-      $elements[0]->findButton('Apply')->click();
+      $element->find('css', 'select')->selectOption($argument);
+      $element->findButton('Apply')->click();
       $this->assertCacheContext('url');
       $this->assertTrue($this->assertSession()->optionExists('Content: Type', $argument)->isSelected());
       $this->assertNodesExist($bundles);
     }
-    $elements[0]->findButton('Reset')->click();
+    $element->findButton('Reset')->click();
     $this->assertNodesExist($arguments['All']);
   }
 
@@ -287,7 +325,7 @@ class ExposedFormTest extends ViewTestBase {
    * @return array
    *   Array of display names to test.
    */
-  public function providerTestExposedBlock() {
+  public static function providerTestExposedBlock() {
     return [
       'page_display' => ['page_1'],
       'block_display' => ['block_1'],
@@ -297,7 +335,17 @@ class ExposedFormTest extends ViewTestBase {
   /**
    * Tests the input required exposed form type.
    */
-  public function testInputRequired() {
+  public function testExposedForm(): void {
+    $this->testFormErrorWithExposedForm();
+    $this->testInputRequired();
+    $this->testTextInputRequired();
+    $this->testRememberSelected();
+  }
+
+  /**
+   * Tests the input required exposed form type.
+   */
+  protected function testInputRequired(): void {
     $view = View::load('test_exposed_form_buttons');
     $display = &$view->getDisplay('default');
     $display['display_options']['exposed_form']['type'] = 'input_required';
@@ -320,7 +368,7 @@ class ExposedFormTest extends ViewTestBase {
   /**
    * Tests the "on demand text" for the input required exposed form type.
    */
-  public function testTextInputRequired() {
+  protected function testTextInputRequired(): void {
     $view = Views::getView('test_exposed_form_buttons');
     $display = &$view->storage->getDisplay('default');
     $display['display_options']['exposed_form']['type'] = 'input_required';
@@ -345,7 +393,7 @@ class ExposedFormTest extends ViewTestBase {
   /**
    * Tests exposed forms with exposed sort and items per page.
    */
-  public function testExposedSortAndItemsPerPage() {
+  public function testExposedSortAndItemsPerPage(): void {
     for ($i = 0; $i < 50; $i++) {
       $entity = EntityTest::create([]);
       $entity->save();
@@ -443,7 +491,7 @@ class ExposedFormTest extends ViewTestBase {
   /**
    * Tests a view which is rendered after a form with a validation error.
    */
-  public function testFormErrorWithExposedForm() {
+  protected function testFormErrorWithExposedForm(): void {
     $this->drupalGet('views_test_data_error_form_page');
     $this->assertSession()->statusCodeEquals(200);
     $form = $this->cssSelect('form.views-exposed-form');
@@ -464,7 +512,7 @@ class ExposedFormTest extends ViewTestBase {
   /**
    * Tests the exposed form with a pager.
    */
-  public function testExposedFilterPagination() {
+  public function testExposedFilterPagination(): void {
     $this->drupalCreateContentType(['type' => 'post']);
     // Create some random nodes.
     for ($i = 0; $i < 5; $i++) {
@@ -506,6 +554,19 @@ class ExposedFormTest extends ViewTestBase {
         $this->assertSession()->pageTextNotContains($node->label());
       }
     }
+  }
+
+  /**
+   * Tests the "Remember the last selection" functionality.
+   */
+  protected function testRememberSelected(): void {
+    $this->drupalGet('test_remember_selected');
+    $this->getSession()->getPage()->fillField('type', 'page');
+    $this->getSession()->getPage()->pressButton('Apply');
+
+    // Reload the page and ensure the filter is selected.
+    $this->drupalGet('test_remember_selected');
+    $this->assertTrue($this->assertSession()->optionExists('type', 'page')->isSelected());
   }
 
 }

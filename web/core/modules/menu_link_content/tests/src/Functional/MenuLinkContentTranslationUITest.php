@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\menu_link_content\Functional;
 
 use Drupal\Tests\content_translation\Functional\ContentTranslationUITestBase;
@@ -18,9 +20,7 @@ class MenuLinkContentTranslationUITest extends ContentTranslationUITestBase {
   protected $defaultCacheContexts = ['languages:language_interface', 'session', 'theme', 'url.path', 'url.query_args', 'user.permissions', 'user.roles:authenticated'];
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = [
     'language',
@@ -41,6 +41,7 @@ class MenuLinkContentTranslationUITest extends ContentTranslationUITestBase {
     $this->entityTypeId = 'menu_link_content';
     $this->bundle = 'menu_link_content';
     parent::setUp();
+    $this->doSetup();
   }
 
   /**
@@ -71,7 +72,7 @@ class MenuLinkContentTranslationUITest extends ContentTranslationUITestBase {
   /**
    * Ensure that a translate link can be found on the menu edit form.
    */
-  public function testTranslationLinkOnMenuEditForm() {
+  public function testTranslationLinkOnMenuEditForm(): void {
     $this->drupalGet('admin/structure/menu/manage/tools');
     $this->assertSession()->linkNotExists('Translate');
 
@@ -88,22 +89,22 @@ class MenuLinkContentTranslationUITest extends ContentTranslationUITestBase {
   /**
    * Tests that translation page inherits admin status of edit page.
    */
-  public function testTranslationLinkTheme() {
+  public function testTranslationLinkTheme(): void {
     $this->drupalLogin($this->administrator);
     $entityId = $this->createEntity([], 'en');
 
-    // Set up Seven as the admin theme to test.
-    $this->container->get('theme_installer')->install(['seven']);
+    // Set up the default admin theme to test.
+    $this->container->get('theme_installer')->install(['claro']);
     $edit = [];
-    $edit['admin_theme'] = 'seven';
+    $edit['admin_theme'] = 'claro';
     $this->drupalGet('admin/appearance');
     $this->submitForm($edit, 'Save configuration');
     // Check that edit uses the admin theme.
     $this->drupalGet('admin/structure/menu/item/' . $entityId . '/edit');
-    $this->assertSession()->responseContains('core/themes/seven/css/base/elements.css');
+    $this->assertSession()->responseContains('core/themes/claro/css/base/elements.css');
     // Check that translation uses admin theme as well.
     $this->drupalGet('admin/structure/menu/item/' . $entityId . '/edit/translations');
-    $this->assertSession()->responseContains('core/themes/seven/css/base/elements.css');
+    $this->assertSession()->responseContains('core/themes/claro/css/base/elements.css');
   }
 
   /**

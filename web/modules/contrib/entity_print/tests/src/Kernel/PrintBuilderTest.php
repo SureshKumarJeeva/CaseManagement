@@ -17,7 +17,7 @@ class PrintBuilderTest extends KernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'system',
     'user',
     'node',
@@ -60,7 +60,7 @@ class PrintBuilderTest extends KernelTestBase {
   /**
    * Provides a data provider for testOutputtedFilename().
    */
-  public function outputtedFileDataProvider() {
+  public static function outputtedFileDataProvider() {
     return [
       'PDF file' => ['testprintengine', 'myfile.pdf'],
       'Word doc file' => ['test_word_print_engine', 'myfile.docx'],
@@ -73,6 +73,9 @@ class PrintBuilderTest extends KernelTestBase {
    * @covers ::deliverPrintable
    */
   public function testNoEntities() {
+    $this->expectException(\InvalidArgumentException::class);
+    $this->expectExceptionMessage('You must pass at least 1 entity');
+
     $print_engine = $this->container->get('plugin.manager.entity_print.print_engine')->createInstance('testprintengine');
     $this->expectException(\InvalidArgumentException::class);
     $this->expectExceptionMessage('You must pass at least 1 entity');
@@ -118,7 +121,7 @@ class PrintBuilderTest extends KernelTestBase {
 
     // Print builder generates a filename for us.
     $uri = $builder->savePrintable([$node], $print_engine);
-    $this->assertRegExp('#public://(.*)\.pdf#', $uri);
+    $this->assertMatchesRegularExpression('#public://(.*)\.pdf#', $uri);
 
     $filename = $this->randomMachineName() . 'pdf';
     $uri = $builder->savePrintable([$node], $print_engine, 'public', $filename);

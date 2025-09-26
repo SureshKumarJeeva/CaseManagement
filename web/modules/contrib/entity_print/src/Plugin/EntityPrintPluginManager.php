@@ -158,8 +158,11 @@ class EntityPrintPluginManager extends DefaultPluginManager implements EntityPri
       $entity = $storage->create(['id' => $plugin_id]);
     }
     $configuration = $entity->getSettings();
-    $event = new GenericEvent(PrintEvents::CONFIGURATION_ALTER, ['configuration' => $configuration, 'config' => $entity]);
-    $this->dispatcher->dispatch(PrintEvents::CONFIGURATION_ALTER, $event);
+    $event = new GenericEvent(PrintEvents::CONFIGURATION_ALTER, [
+      'configuration' => $configuration,
+      'config' => $entity,
+    ]);
+    $this->dispatcher->dispatch($event, PrintEvents::CONFIGURATION_ALTER);
     $configuration = $event->getArgument('configuration');
 
     return $configuration;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\FunctionalTests\Installer;
 
 /**
@@ -41,8 +43,7 @@ class InstallerTranslationQueryTest extends InstallerTestBase {
     $this->translations['Save and continue'] = 'Save and continue de';
 
     // Check the language direction.
-    $direction = current($this->xpath('/@dir'))->getText();
-    $this->assertEquals('ltr', $direction);
+    $this->assertSession()->elementTextEquals('xpath', '/@dir', 'ltr');
   }
 
   /**
@@ -56,7 +57,7 @@ class InstallerTranslationQueryTest extends InstallerTestBase {
   /**
    * Verifies the expected behaviors of the installation result.
    */
-  public function testInstaller() {
+  public function testInstaller(): void {
     $this->assertSession()->addressEquals('user/1');
     $this->assertSession()->statusCodeEquals(200);
 
@@ -75,14 +76,14 @@ class InstallerTranslationQueryTest extends InstallerTestBase {
    * @return string
    *   Contents for the test .po file.
    */
-  protected function getPo($langcode) {
-    return <<<ENDPO
+  protected function getPo($langcode): string {
+    return <<<PO
 msgid ""
 msgstr ""
 
 msgid "Save and continue"
 msgstr "Save and continue $langcode"
-ENDPO;
+PO;
   }
 
 }

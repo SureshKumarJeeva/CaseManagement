@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\node\Functional;
 
 use Drupal\comment\Tests\CommentTestTrait;
@@ -11,7 +13,7 @@ use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\node\Entity\NodeType;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\taxonomy\Entity\Vocabulary;
-use Drupal\Tests\field\Traits\EntityReferenceTestTrait;
+use Drupal\Tests\field\Traits\EntityReferenceFieldCreationTrait;
 use Drupal\Tests\TestFileCreationTrait;
 use Drupal\user\RoleInterface;
 
@@ -22,7 +24,7 @@ use Drupal\user\RoleInterface;
  */
 class PagePreviewTest extends NodeTestBase {
 
-  use EntityReferenceTestTrait;
+  use EntityReferenceFieldCreationTrait;
   use CommentTestTrait;
   use TestFileCreationTrait {
     getTestFiles as drupalGetTestFiles;
@@ -48,15 +50,8 @@ class PagePreviewTest extends NodeTestBase {
    * The theme to install as the default for testing.
    *
    * @var string
-   *
-   * @todo The fact that PagePreviewTest::testPagePreview() makes assertions
-   *   related to the node type being used for a body class makes Stark a bad
-   *   fit as a base theme. Change the default theme to Starterkit once it is
-   *   stable.
-   *
-   * @see https://www.drupal.org/project/drupal/issues/3274077
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'starterkit_theme';
 
   /**
    * The name of the created field.
@@ -65,6 +60,16 @@ class PagePreviewTest extends NodeTestBase {
    */
   protected $fieldName;
 
+  /**
+   * A term.
+   *
+   * @var \Drupal\taxonomy\Entity\Term
+   */
+  protected Term $term;
+
+  /**
+   * {@inheritdoc}
+   */
   protected function setUp(): void {
     parent::setUp();
     $this->addDefaultCommentField('node', 'page');
@@ -86,13 +91,11 @@ class PagePreviewTest extends NodeTestBase {
     ]);
     $vocabulary->save();
 
-    $this->vocabulary = $vocabulary;
-
     // Add a term to the vocabulary.
     $term = Term::create([
       'name' => $this->randomMachineName(),
       'description' => $this->randomMachineName(),
-      'vid' => $this->vocabulary->id(),
+      'vid' => $vocabulary->id(),
       'langcode' => LanguageInterface::LANGCODE_NOT_SPECIFIED,
     ]);
     $term->save();
@@ -119,10 +122,10 @@ class PagePreviewTest extends NodeTestBase {
     $field_config->save();
 
     // Create a field.
-    $this->fieldName = mb_strtolower($this->randomMachineName());
+    $this->fieldName = $this->randomMachineName();
     $handler_settings = [
       'target_bundles' => [
-        $this->vocabulary->id() => $this->vocabulary->id(),
+        $vocabulary->id() => $vocabulary->id(),
       ],
       'auto_create' => TRUE,
     ];
@@ -192,7 +195,7 @@ class PagePreviewTest extends NodeTestBase {
   /**
    * Checks the node preview functionality.
    */
-  public function testPagePreview() {
+  public function testPagePreview(): void {
     $title_key = 'title[0][value]';
     $body_key = 'body[0][value]';
     $term_key = $this->fieldName . '[target_id]';
@@ -221,8 +224,7 @@ class PagePreviewTest extends NodeTestBase {
     $this->assertSession()->linkExists('Back to content editing');
 
     // Check that we see the class of the node type on the body element.
-    $body_class_element = $this->xpath("//body[contains(@class, 'page-node-type-page')]");
-    $this->assertNotEmpty($body_class_element, 'Node type body class found.');
+    $this->assertSession()->elementExists('xpath', "//body[contains(@class, 'page-node-type-page')]");
 
     // Get the UUID.
     $url = parse_url($this->getUrl());
@@ -284,17 +286,17 @@ class PagePreviewTest extends NodeTestBase {
     // Check with two new terms on the edit form, additionally to the existing
     // one.
     $edit = [];
-    $newterm1 = $this->randomMachineName(8);
-    $newterm2 = $this->randomMachineName(8);
-    $edit[$term_key] = $this->term->getName() . ', ' . $newterm1 . ', ' . $newterm2;
+    $new_term1 = $this->randomMachineName(8);
+    $new_term2 = $this->randomMachineName(8);
+    $edit[$term_key] = $this->term->getName() . ', ' . $new_term1 . ', ' . $new_term2;
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->submitForm($edit, 'Preview');
-    $this->assertSession()->responseContains('>' . $newterm1 . '<');
-    $this->assertSession()->responseContains('>' . $newterm2 . '<');
+    $this->assertSession()->responseContains('>' . $new_term1 . '<');
+    $this->assertSession()->responseContains('>' . $new_term2 . '<');
     // The first term should be displayed as link, the others not.
     $this->assertSession()->linkExists($this->term->getName());
-    $this->assertSession()->linkNotExists($newterm1);
-    $this->assertSession()->linkNotExists($newterm2);
+    $this->assertSession()->linkNotExists($new_term1);
+    $this->assertSession()->linkNotExists($new_term2);
 
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->submitForm($edit, 'Save');
@@ -302,17 +304,17 @@ class PagePreviewTest extends NodeTestBase {
     // Check with one more new term, keeping old terms, removing the existing
     // one.
     $edit = [];
-    $newterm3 = $this->randomMachineName(8);
-    $edit[$term_key] = $newterm1 . ', ' . $newterm3 . ', ' . $newterm2;
+    $new_term3 = $this->randomMachineName(8);
+    $edit[$term_key] = $new_term1 . ', ' . $new_term3 . ', ' . $new_term2;
     $this->drupalGet('node/' . $node->id() . '/edit');
     $this->submitForm($edit, 'Preview');
-    $this->assertSession()->responseContains('>' . $newterm1 . '<');
-    $this->assertSession()->responseContains('>' . $newterm2 . '<');
-    $this->assertSession()->responseContains('>' . $newterm3 . '<');
+    $this->assertSession()->responseContains('>' . $new_term1 . '<');
+    $this->assertSession()->responseContains('>' . $new_term2 . '<');
+    $this->assertSession()->responseContains('>' . $new_term3 . '<');
     $this->assertSession()->pageTextNotContains($this->term->getName());
-    $this->assertSession()->linkExists($newterm1);
-    $this->assertSession()->linkExists($newterm2);
-    $this->assertSession()->linkNotExists($newterm3);
+    $this->assertSession()->linkExists($new_term1);
+    $this->assertSession()->linkExists($new_term2);
+    $this->assertSession()->linkNotExists($new_term3);
 
     // Check that editing an existing node after it has been previewed and not
     // saved doesn't remember the previous changes.
@@ -447,7 +449,7 @@ class PagePreviewTest extends NodeTestBase {
   /**
    * Checks the node preview functionality, when using revisions.
    */
-  public function testPagePreviewWithRevisions() {
+  public function testPagePreviewWithRevisions(): void {
     $title_key = 'title[0][value]';
     $body_key = 'body[0][value]';
     $term_key = $this->fieldName . '[target_id]';
@@ -503,7 +505,7 @@ class PagePreviewTest extends NodeTestBase {
   /**
    * Checks the node preview accessible for simultaneous node editing.
    */
-  public function testSimultaneousPreview() {
+  public function testSimultaneousPreview(): void {
     $title_key = 'title[0][value]';
     $node = $this->drupalCreateNode([]);
 
@@ -527,7 +529,7 @@ class PagePreviewTest extends NodeTestBase {
   /**
    * Tests node preview with dynamic_page_cache and anonymous users.
    */
-  public function testPagePreviewCache() {
+  public function testPagePreviewCache(): void {
     \Drupal::service('module_installer')->uninstall(['node_test']);
     $this->drupalLogout();
     $title_key = 'title[0][value]';

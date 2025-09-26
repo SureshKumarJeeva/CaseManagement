@@ -8,9 +8,9 @@ id: basic_page
 label: 'Basic Page'
 type: 'canonical_entities:node'
 pattern: '[node:title]'
-selection_criteria:
-  e79589bf-493b-43f9-8fef-d8f4eb33cbd6:
-    id: node_type
+conditions_config:
+  entity_bundle:node:
+    id: entity_bundle:node
     bundles:
       basic_page: basic_page
     negate: false

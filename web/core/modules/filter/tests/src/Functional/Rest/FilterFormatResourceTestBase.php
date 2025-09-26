@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\filter\Functional\Rest;
 
 use Drupal\filter\Entity\FilterFormat;
@@ -83,6 +85,7 @@ abstract class FilterFormatResourceTestBase extends ConfigEntityResourceTestBase
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
 }

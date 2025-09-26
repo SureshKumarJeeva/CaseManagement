@@ -17,7 +17,7 @@ function entity_print_views_data_alter(array &$data) {
         'field' => [
           'title' => t('Print link'),
           'help' => t('Provide a link to print the entity'),
-          'id' => 'entity_print_views_link',
+          'id' => 'entity_print_link',
         ],
       ];
     }

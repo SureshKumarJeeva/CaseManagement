@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\jsonapi\Functional;
 
 use Drupal\ckeditor5\Plugin\CKEditor5Plugin\Heading;
@@ -78,7 +80,7 @@ class EditorTest extends ConfigEntityResourceTestBase {
     ]);
     $camelids
       ->setImageUploadSettings([
-        'status' => FALSE,
+        'status' => TRUE,
         'scheme' => 'public',
         'directory' => 'inline-images',
         'max_size' => '',
@@ -126,10 +128,10 @@ class EditorTest extends ConfigEntityResourceTestBase {
           ],
           'editor' => 'ckeditor5',
           'image_upload' => [
-            'status' => FALSE,
+            'status' => TRUE,
             'scheme' => 'public',
             'directory' => 'inline-images',
-            'max_size' => '',
+            'max_size' => NULL,
             'max_dimensions' => [
               'width' => NULL,
               'height' => NULL,
@@ -156,12 +158,13 @@ class EditorTest extends ConfigEntityResourceTestBase {
    */
   protected function getPostDocument() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**
    * {@inheritdoc}
    */
-  protected function getExpectedUnauthorizedAccessMessage($method) {
+  protected function getExpectedUnauthorizedAccessMessage($method): string {
     return "The 'administer filters' permission is required.";
   }
 
@@ -189,7 +192,7 @@ class EditorTest extends ConfigEntityResourceTestBase {
     ]);
 
     $entity->setImageUploadSettings([
-      'status' => FALSE,
+      'status' => TRUE,
       'scheme' => 'public',
       'directory' => 'inline-images',
       'max_size' => '',

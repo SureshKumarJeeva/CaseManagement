@@ -2,9 +2,9 @@
 
 namespace Drupal\Tests\entity_usage\FunctionalJavascript;
 
+use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\node\Entity\Node;
-use Drupal\Tests\entity_usage\Traits\EntityUsageLastEntityQueryTrait;
 use Drupal\user\Entity\Role;
 
 /**
@@ -29,7 +29,7 @@ class ListControllerTest extends EntityUsageJavascriptTestBase {
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Grant the logged-in user permission to see the statistics page.
@@ -153,7 +153,9 @@ class ListControllerTest extends EntityUsageJavascriptTestBase {
     // When all usages are shown on their default revisions, we don't see the
     // extra column.
     $assert_session->pageTextNotContains('Used in');
-    $assert_session->pageTextNotContains('Translations or previous revisions');
+    $assert_session->pageTextNotContains('Old revision(s)');
+    $assert_session->pageTextNotContains('Pending revision(s) / Draft(s)');
+    $assert_session->pageTextNotContains('Default:');
 
     // If some sources reference our entity in a previous revision, an
     // additional column is shown.
@@ -165,7 +167,7 @@ class ListControllerTest extends EntityUsageJavascriptTestBase {
     $second_row_used_in = $this->xpath('//table/tbody/tr[1]/td[6]')[0];
     $this->assertEquals('Default', $second_row_used_in->getText());
     $second_row_used_in = $this->xpath('//table/tbody/tr[2]/td[6]')[0];
-    $this->assertEquals('Translations or previous revisions', $second_row_used_in->getText());
+    $this->assertEquals('Old revision(s)', $second_row_used_in->getText());
 
     // Make sure we only have 2 rows (so no previous revision shows up).
     $this->assertEquals(2, count($this->xpath('//table/tbody/tr')));
@@ -189,6 +191,7 @@ class ListControllerTest extends EntityUsageJavascriptTestBase {
     // Set our content type as translatable.
     $this->drupalGet('/admin/config/regional/content-language');
     $page->checkField('entity_types[node]');
+    $assert_session->elementExists('css', '#edit-settings-node')->click();
     $page->checkField('settings[node][eu_test_ct][translatable]');
     $page->pressButton('Save configuration');
     $session->wait(500);
@@ -211,10 +214,10 @@ class ListControllerTest extends EntityUsageJavascriptTestBase {
     // Usage now should be the same as before.
     $this->drupalGet("/admin/content/entity-usage/node/{$node1->id()}");
     $assert_session->pageTextContains('Used in');
-    $second_row_used_in = $this->xpath('//table/tbody/tr[1]/td[6]')[0];
-    $this->assertEquals('Default', $second_row_used_in->getText());
+    $first_row_used_in = $this->xpath('//table/tbody/tr[1]/td[6]')[0];
+    $this->assertEquals('Default', $first_row_used_in->getText());
     $second_row_used_in = $this->xpath('//table/tbody/tr[2]/td[6]')[0];
-    $this->assertEquals('Translations or previous revisions', $second_row_used_in->getText());
+    $this->assertEquals('Default: ES. Old revision(s)', $second_row_used_in->getText());
     $this->assertEquals(2, count($this->xpath('//table/tbody/tr')));
 
     // Verify that it's possible to control the number of items per page.

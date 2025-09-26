@@ -22,14 +22,17 @@ class TwigSandboxPolicy implements SecurityPolicyInterface {
    *
    * @var array
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $allowed_methods;
 
   /**
-   * An array of allowed method prefixes -- any method starting with one of
-   * these prefixes will be allowed.
+   * Allowed method prefixes.
+   *
+   * Any method starting with one of these prefixes will be allowed.
    *
    * @var array
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $allowed_prefixes;
 
   /**
@@ -37,6 +40,7 @@ class TwigSandboxPolicy implements SecurityPolicyInterface {
    *
    * @var array
    */
+  // phpcs:ignore Drupal.NamingConventions.ValidVariableName.LowerCamelName
   protected $allowed_classes;
 
   /**
@@ -53,15 +57,7 @@ class TwigSandboxPolicy implements SecurityPolicyInterface {
     // Flip the array so we can check using isset().
     $this->allowed_classes = array_flip($allowed_classes);
 
-    $allowed_methods = Settings::get('twig_sandbox_allowed_methods', [
-      // Only allow idempotent methods.
-      'id',
-      'label',
-      'bundle',
-      'get',
-      '__toString',
-      'toString',
-    ]);
+    $allowed_methods = static::getMethodsAllowedOnAllObjects();
     // Flip the array so we can check using isset().
     $this->allowed_methods = array_flip($allowed_methods);
 
@@ -75,37 +71,55 @@ class TwigSandboxPolicy implements SecurityPolicyInterface {
   /**
    * {@inheritdoc}
    */
-  public function checkSecurity($tags, $filters, $functions) {}
+  public function checkSecurity($tags, $filters, $functions): void {}
 
   /**
    * {@inheritdoc}
    */
-  public function checkPropertyAllowed($obj, $property) {}
+  public function checkPropertyAllowed($obj, $property): void {}
 
   /**
    * {@inheritdoc}
    */
-  public function checkMethodAllowed($obj, $method) {
+  public function checkMethodAllowed($obj, $method): void {
     foreach ($this->allowed_classes as $class => $key) {
       if ($obj instanceof $class) {
-        return TRUE;
+        return;
       }
     }
 
     // Return quickly for an exact match of the method name.
     if (isset($this->allowed_methods[$method])) {
-      return TRUE;
+      return;
     }
 
     // If the method name starts with an allowed prefix, allow it. Note:
     // strpos() is between 3x and 7x faster than preg_match() in this case.
     foreach ($this->allowed_prefixes as $prefix) {
-      if (strpos($method, $prefix) === 0) {
-        return TRUE;
+      if (str_starts_with($method, $prefix)) {
+        return;
       }
     }
 
     throw new SecurityError(sprintf('Calling "%s" method on a "%s" object is not allowed.', $method, get_class($obj)));
+  }
+
+  /**
+   * Gets the list of allowed methods on all objects.
+   *
+   * @return string[]
+   *   The list of allowed methods on all objects.
+   */
+  public static function getMethodsAllowedOnAllObjects(): array {
+    return Settings::get('twig_sandbox_allowed_methods', [
+      // Only allow idempotent methods.
+      'id',
+      'label',
+      'bundle',
+      'get',
+      '__toString',
+      'toString',
+    ]);
   }
 
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\responsive_image\Functional\Rest;
 
 use Drupal\responsive_image\Entity\ResponsiveImageStyle;
@@ -117,6 +119,7 @@ abstract class ResponsiveImageStyleResourceTestBase extends ConfigEntityResource
    */
   protected function getNormalizedPostEntity() {
     // @todo Update in https://www.drupal.org/node/2300677.
+    return [];
   }
 
   /**

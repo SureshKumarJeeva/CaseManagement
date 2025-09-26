@@ -1,0 +1,141 @@
+<?php
+
+/**
+ * @file
+ * Contains simple_multistep.module.
+ */
+
+use Drupal\Core\Entity\EntityFormInterface;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\field_group\FormatterHelper;
+use Drupal\simple_multistep\MultistepController;
+use Drupal\simple_multistep\MultistepControllerInterface;
+
+/**
+ * Implements hook_module_implements_alter().
+ */
+function simple_multistep_module_implements_alter(&$implementations, $hook) {
+  // Perform form_alter after field_group.
+  if ($hook === 'form_alter') {
+    $group = $implementations['simple_multistep'];
+    unset($implementations['simple_multistep']);
+    $implementations['simple_multistep'] = $group;
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function simple_multistep_form_alter(array &$form, FormStateInterface $form_state) {
+  // Check if form using form group multistep field.
+  if (_check_form_multistep($form)) {
+    /** @var \Drupal\simple_multistep\MultistepController $multiStep */
+    if ($multiStep = $form_state->get('multistep_controller')) {
+      $multiStep->updateStepInfo();
+    }
+    else {
+      simple_multistep_register_controller($form, $form_state);
+      $multiStep = new $form['#multistep_controller']($form, $form_state);
+    }
+
+    $multiStep->rebuildForm($form);
+
+    $form_state->set('multistep_controller', $multiStep);
+
+    // Attach style library.
+    $form['#attached']['library'][] = 'simple_multistep/simple_multistep';
+  }
+}
+
+/**
+ * Register custom controller from modules.
+ */
+function simple_multistep_register_controller(array &$form, FormStateInterface $form_state): void {
+  // Set default controller.
+  $form['#multistep_controller'] = MultistepController::class;
+  // Alter the controller from hook.
+  \Drupal::moduleHandler()->alter('simple_multistep_controller', $form, $form_state);
+  // Set custom controller form others modules.
+  $class_controller = $form['#multistep_controller'];
+  // Set main and required parent class.
+  $controller_interface = MultistepControllerInterface::class;
+  if (!is_subclass_of($class_controller, $controller_interface)) {
+    throw new \RuntimeException("$class_controller must implements $controller_interface");
+  }
+}
+
+/**
+ * Submit handler for next button.
+ */
+function simple_multistep_register_next_step(array &$form, FormStateInterface $form_state) {
+  /** @var \Drupal\simple_multistep\MultistepController $multiStep */
+  $multiStep = $form_state->get('multistep_controller');
+
+  $entity_form = $form_state->getFormObject();
+  if ($entity_form instanceof EntityFormInterface) {
+    $entity_updated = $entity_form->buildEntity($form, $form_state);
+    $entity_form->setEntity($entity_updated);
+  }
+
+  $multiStep->increaseStep();
+  $form_state->set('multistep_controller', $multiStep);
+  $form_state->setRebuild();
+}
+
+/**
+ * Submit handler for back button.
+ */
+function simple_multistep_register_back(array &$form, FormStateInterface $form_state) {
+  /** @var \Drupal\simple_multistep\MultistepController $multiStep */
+  $multiStep = $form_state->get('multistep_controller');
+
+  // If current_step more than 0.
+  if ($multiStep->getCurrentStep()) {
+    $multiStep->reduceStep();
+    $form_state->set('multistep_controller', $multiStep);
+    $form_state->setRebuild();
+  }
+}
+
+/**
+ * Check if valid multi step form.
+ *
+ * @param array $form
+ *   Form array.
+ *
+ * @return bool
+ *   TRUE if form multi step.
+ */
+function _check_form_multistep(array $form): bool {
+  if (empty($form['#fieldgroups'])) {
+    return FALSE;
+  }
+
+  foreach ($form['#fieldgroups'] as $fieldgroup) {
+    if (is_object($fieldgroup) && $fieldgroup->format_type === 'form_step') {
+      return TRUE;
+    }
+  }
+
+  return FALSE;
+}
+
+/**
+ * Implements hook_inline_entity_form_entity_form_alter().
+ */
+function simple_multistep_inline_entity_form_entity_form_alter(array &$entity_form, FormStateInterface $form_state) {
+
+  // Attach the fieldgroups to current entity form.
+  $context = [
+    'entity_type' => $entity_form['#entity']->getEntityTypeId(),
+    'bundle' => $entity_form['#entity']->bundle(),
+    'entity' => $entity_form['#entity'],
+    'display_context' => 'form',
+    'mode' => $entity_form['#form_mode'] ?? 'default',
+  ];
+
+  field_group_attach_groups($entity_form, $context);
+  FormatterHelper::formProcess($entity_form, $form_state);
+
+  simple_multistep_form_alter($entity_form, $form_state);
+}

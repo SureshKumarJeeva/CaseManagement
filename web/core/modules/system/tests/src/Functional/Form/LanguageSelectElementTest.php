@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Drupal\Tests\system\Functional\Form;
 
 use Drupal\Component\Serialization\Json;
@@ -8,17 +10,14 @@ use Drupal\language\Entity\ConfigurableLanguage;
 use Drupal\Tests\BrowserTestBase;
 
 /**
- * Tests that the language select form element prints and submits the right
- * options.
+ * Tests the language selection form element.
  *
  * @group Form
  */
 class LanguageSelectElementTest extends BrowserTestBase {
 
   /**
-   * Modules to enable.
-   *
-   * @var array
+   * {@inheritdoc}
    */
   protected static $modules = ['form_test', 'language'];
 
@@ -30,7 +29,7 @@ class LanguageSelectElementTest extends BrowserTestBase {
   /**
    * Tests that the options printed by the language select element are correct.
    */
-  public function testLanguageSelectElementOptions() {
+  public function testLanguageSelectElementOptions(): void {
     // Add some languages.
     ConfigurableLanguage::create([
       'id' => 'aaa',
@@ -47,10 +46,10 @@ class LanguageSelectElementTest extends BrowserTestBase {
     $this->drupalGet('form-test/language_select');
     // Check that the language fields were rendered on the page.
     $ids = [
-        'edit-languages-all' => LanguageInterface::STATE_ALL,
-        'edit-languages-configurable' => LanguageInterface::STATE_CONFIGURABLE,
-        'edit-languages-locked' => LanguageInterface::STATE_LOCKED,
-        'edit-languages-config-and-locked' => LanguageInterface::STATE_CONFIGURABLE | LanguageInterface::STATE_LOCKED,
+      'edit-languages-all' => LanguageInterface::STATE_ALL,
+      'edit-languages-configurable' => LanguageInterface::STATE_CONFIGURABLE,
+      'edit-languages-locked' => LanguageInterface::STATE_LOCKED,
+      'edit-languages-config-and-locked' => LanguageInterface::STATE_CONFIGURABLE | LanguageInterface::STATE_LOCKED,
     ];
     foreach ($ids as $id => $flags) {
       $this->assertSession()->fieldExists($id);
@@ -73,7 +72,7 @@ class LanguageSelectElementTest extends BrowserTestBase {
    *
    * This happens when the language module is disabled.
    */
-  public function testHiddenLanguageSelectElement() {
+  public function testHiddenLanguageSelectElement(): void {
     // Disable the language module, so that the language select field will not
     // be rendered.
     $this->container->get('module_installer')->uninstall(['language']);
