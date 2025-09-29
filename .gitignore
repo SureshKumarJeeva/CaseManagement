@@ -11,6 +11,7 @@
 /sites/*/private
 
 # Ignore sensitive information
+/web/phpinfo.php
 /web/sites/*/settings.local.php
 .env.example
 test-pass.php
