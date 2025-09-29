@@ -1,57 +1,32 @@
 <?php
 
-/**
- * @file
- * Rebuilds all Drupal caches even when Drupal itself does not work.
- *
- * Needs a token query argument which can be calculated using the
- * scripts/rebuild_token_calculator.sh script.
- *
- * @see drupal_rebuild()
- */
-
-use Drupal\Component\Utility\Crypt;
 use Drupal\Core\DrupalKernel;
-use Drupal\Core\Site\Settings;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Drupal\Core\Database\Database;
 
-// Change the directory to the Drupal root.
-chdir('..');
+$autoloader = require_once __DIR__ . '/vendor/autoload.php';
 
-$autoloader = require_once __DIR__ . '/../autoload.php';
-require_once __DIR__ . '/includes/utility.inc';
+$site_path = __DIR__ . '/web/sites/default';
 
+// The app root is your Drupal root (where index.php lives, e.g., 'web')
+$app_root = __DIR__ . '/web';
+
+// Create kernel
+$kernel = new DrupalKernel('prod', $autoloader, TRUE, $app_root);
+
+$kernel->setSitePath($site_path);
+// Create a request
 $request = Request::createFromGlobals();
-// Manually resemble early bootstrap of DrupalKernel::boot().
-require_once __DIR__ . '/includes/bootstrap.inc';
-DrupalKernel::bootEnvironment();
 
-try {
-  Settings::initialize(dirname(__DIR__), DrupalKernel::findSitePath($request), $autoloader);
-}
-catch (HttpExceptionInterface $e) {
-  $response = new Response('', $e->getStatusCode());
-  $response->prepare($request)->send();
-  exit;
-}
+// Boot the kernel
+$kernel->boot();
+// Initialize database via the service container
+$container = $kernel->getContainer();
+$database = $container->get('database');
 
-if (Settings::get('rebuild_access', FALSE) ||
-  ($request->query->get('token') && $request->query->get('timestamp') &&
-    ((REQUEST_TIME - $request->query->get('timestamp')) < 300) &&
-    hash_equals(Crypt::hmacBase64($request->query->get('timestamp'), Settings::get('hash_salt')), $request->query->get('token'))
-  )) {
-  // Clear user cache for all major platforms.
-  $user_caches = [
-    'apcu_clear_cache',
-    'wincache_ucache_clear',
-    'xcache_clear_cache',
-  ];
-  array_map('call_user_func', array_filter($user_caches, 'is_callable'));
+echo $database->getConnection()->getProvider();
+// Force the active DB connection
+//Database::getConnection()->setActiveConnection('default');
 
-  drupal_rebuild($autoloader, $request);
-  \Drupal::messenger()->addStatus('Cache rebuild complete.');
-}
-$base_path = dirname(dirname($request->getBaseUrl()));
-header('Location: ' . $request->getSchemeAndHttpHost() . $base_path);
+// Show the provider
+//echo Database::getConnection()->getProvider();

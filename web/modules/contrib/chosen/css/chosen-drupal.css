@@ -19,7 +19,7 @@
 .chosen-container {
   display: inline-block !important;
 }
-.container-inline div.chosen-container div:not('.chosen-drop') {
+.container-inline div.chosen-container div:not(.chosen-drop) {
   display: block;
 }
 
@@ -37,4 +37,8 @@
   content: "";
   display: block;
   clear: both;
+}
+
+.chosen-container:has(+ .chosen-helper-btn) {
+  margin-right: var(--space-s, 0.75rem);
 }

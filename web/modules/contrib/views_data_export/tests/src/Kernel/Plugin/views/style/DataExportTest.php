@@ -23,20 +23,19 @@ class DataExportTest extends ViewsKernelTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'views_data_export',
     'csv_serialization',
     'entity_test',
     'serialization',
     'rest',
     'views_data_export_test',
-    'xls_serialization',
   ];
 
   /**
    * {@inheritdoc}
    */
-  protected function setUp($import_test_views = TRUE) {
+  protected function setUp($import_test_views = TRUE, $modules = ['views_test_config']):void {
     parent::setUp($import_test_views);
 
     ViewTestData::createTestViews(get_class($this), ['views_data_export_test']);

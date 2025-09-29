@@ -20,14 +20,14 @@ class ChosenFormTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = ['chosen', 'chosen_test'];
+  protected static $modules = ['chosen', 'chosen_test'];
 
   /**
    * Test the form page.
    */
   public function testFormPage() {
     $this->drupalGet('chosen-test');
-    $this->assertText('Select');
+    $this->assertSession()->pageTextContains('Select');
     $this->assertSession()->elementExists('css', 'select#edit-select.chosen-enable');
   }
 

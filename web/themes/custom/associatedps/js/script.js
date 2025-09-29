@@ -1,8 +1,8 @@
-(function ($, Drupal) {
+(function ($, Drupal, once) {
 
   Drupal.behaviors.Default = {
     attach: function (context, settings) {
-      $('body', context).once('body').each(function () {
+      once('my-unique-id', 'body', context).forEach(function () {
 
         // Stop the throbbing.
 
@@ -432,7 +432,7 @@
 
            /* existingAddress($addressSelectedKey);
             $('.draggable .field--name-field-party-to-serve-addresses select').trigger('change');
-*/
+            */
             // Label overrides.
 
             $('input[data-drupal-selector=edit-field-client-form-inline-entity-form-actions-ief-add-save]').val('Save');
@@ -1212,4 +1212,4 @@
     }
   }
 
-})(jQuery, Drupal);
+})(jQuery, Drupal, once);

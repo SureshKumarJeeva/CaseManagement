@@ -2,13 +2,13 @@
 
 namespace Drupal\csv_serialization\Encoder;
 
-use Drupal\Component\Serialization\Exception\InvalidDataTypeException;
-use Drupal\Component\Utility\Html;
-use League\Csv\ByteSequence;
-use League\Csv\Reader;
-use League\Csv\Writer;
 use Symfony\Component\Serializer\Encoder\DecoderInterface;
 use Symfony\Component\Serializer\Encoder\EncoderInterface;
+use League\Csv\Writer;
+use League\Csv\Reader;
+use Drupal\Component\Utility\Html;
+use Drupal\Component\Serialization\Exception\InvalidDataTypeException;
+use League\Csv\ByteSequence;
 
 /**
  * Adds CSV encoder support for the Serialization API.
@@ -103,14 +103,14 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
   /**
    * {@inheritdoc}
    */
-  public function supportsEncoding($format) {
+  public function supportsEncoding(string $format):bool {
     return $format == static::$format;
   }
 
   /**
    * {@inheritdoc}
    */
-  public function supportsDecoding($format) {
+  public function supportsDecoding(string $format):bool {
     return $format == static::$format;
   }
 
@@ -119,7 +119,7 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
    *
    * Uses HTML-safe strings, with several characters escaped.
    */
-  public function encode($data, $format, array $context = []) {
+  public function encode($data, string $format, array $context = []):string {
     switch (gettype($data)) {
       case "array":
         break;
@@ -134,10 +134,7 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
         break;
     }
 
-    if (!empty($context['csv_settings'])) {
-      $this->setSettings($context['csv_settings']);
-    }
-    elseif (!empty($context['views_style_plugin']->options['csv_settings'])) {
+    if (!empty($context['views_style_plugin']->options['csv_settings'])) {
       $this->setSettings($context['views_style_plugin']->options['csv_settings']);
     }
 
@@ -167,7 +164,7 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
           $csv->insertOne($row);
         }
       }
-      $output = $csv->toString();
+      $output = $csv->getContent();
 
       return trim($output);
     }
@@ -287,11 +284,14 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
   /**
    * {@inheritdoc}
    *
+   * @return mixed
+   *   The decoded data.
+   *
    * @throws \League\Csv\Exception
    * @throws \League\Csv\Exception
    * @throws \League\Csv\Exception
    */
-  public function decode($data, $format, array $context = []) {
+  public function decode($data, string $format, array $context = []) {
     $csv = Reader::createFromString($data);
     $csv->setDelimiter($this->delimiter);
     $csv->setEnclosure($this->enclosure);
@@ -380,14 +380,16 @@ class CsvEncoder implements EncoderInterface, DecoderInterface {
    */
   public function setSettings(array $settings) {
     // Replace tab character with one that will be properly interpreted.
-    $this->delimiter = isset($settings['delimiter']) ? str_replace('\t', "\t", $settings['delimiter']) : $this->delimiter;
-    $this->enclosure = $settings['enclosure'] ?? $this->enclosure;
-    $this->escapeChar = $settings['escape_char'] ?? $this->escapeChar;
-    $this->useUtf8Bom = isset($settings['encoding']) ? ($settings['encoding'] === 'utf8' && !empty($settings['utf8_bom'])) : $this->useUtf8Bom;
-    $this->newline = $settings['new_line'] ?? $this->newline;
-    $this->stripTags = $settings['strip_tags'] ?? $this->stripTags;
-    $this->trimValues = $settings['trim'] ?? $this->trimValues;
-    $this->outputHeader = $settings['output_header'] ?? $this->outputHeader;
+    $this->delimiter = str_replace('\t', "\t", $settings['delimiter']);
+    $this->enclosure = $settings['enclosure'];
+    $this->escapeChar = $settings['escape_char'];
+    $this->useUtf8Bom = ($settings['encoding'] === 'utf8' && !empty($settings['utf8_bom']));
+    $this->newline = $settings['new_line'] ?? NULL;
+    $this->stripTags = $settings['strip_tags'];
+    $this->trimValues = $settings['trim'];
+    if (array_key_exists('output_header', $settings)) {
+      $this->outputHeader = $settings['output_header'];
+    }
   }
 
 }

@@ -28,12 +28,12 @@ class MultivalueTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['chosen', 'options', 'node'];
+  protected static $modules = ['chosen', 'options', 'node'];
 
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  public function setUp(): void {
     parent::setUp();
 
     // Enable chosen for all multiselect fields.

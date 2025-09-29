@@ -12,6 +12,7 @@ global-scripts:
     js/script.js: {}
   dependencies:
     - core/jquery
-    - core/jquery.once
+    - core/once
+  #  - core/jquery.once
     - core/drupal.dialog.ajax
     - core/drupal.ajax

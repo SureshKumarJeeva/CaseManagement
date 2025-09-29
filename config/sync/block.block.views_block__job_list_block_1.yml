@@ -24,8 +24,8 @@ settings:
   items_per_page: none
   context_mapping: {  }
 visibility:
-  node_type:
-    id: node_type
+  entity_bundle:node:
+    id: entity_bundle:node
     bundles:
       client: client
     negate: false
