@@ -1,7 +1,7 @@
 name: Drupal Composer
 
 on:
-  push:
+  pull_request:
     branches: [ "master" ]
     
 permissions:
@@ -53,6 +53,7 @@ jobs:
           ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }} << 'EOF'
             cd /var/www/clients/client0/web16/web
             composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
+            vendor/bin/drush theme:enable claro
             vendor/bin/drush updb -y
             vendor/bin/drush cr
           EOF
