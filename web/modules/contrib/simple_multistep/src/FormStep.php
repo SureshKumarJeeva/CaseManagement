@@ -87,8 +87,13 @@ class FormStep {
   /**
    * Increase step number.
    */
-  public function increaseStep() {
-    $this->currentStep++;
+  public function increaseStep($step = '') {
+    if (!empty($step)) {
+      $this->currentStep = $this->currentStep + $step;
+    }
+    else {
+      $this->currentStep++;
+    }
   }
 
   /**

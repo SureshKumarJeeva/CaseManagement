@@ -70,6 +70,29 @@ class FormButton extends FormStep {
   }
 
   /**
+   * Show save button.
+   *
+   * @param array $form
+   *   Reference to form array.
+   */
+  private function showSaveButton(array &$form) {
+  
+      if (count($this->steps) - 1 != $this->currentStep) {
+        if ($this->currentStep == 0) {
+          $form['actions']['submit']['#access'] = TRUE;
+        }
+        else {
+          $form['actions']['submit']['#access'] = TRUE;
+          $form['actions']['submit']['#submit'][] = 'simple_multistep_after_save_next_step';
+        }
+      }
+      // On last step hide next button and show save button.
+      else {
+        $form['actions']['submit']['#access'] = TRUE;
+      }
+    }
+  
+  /**
    * Render form button.
    *
    * @param array $form
@@ -78,6 +101,7 @@ class FormButton extends FormStep {
   public function render(array &$form) {
     $this->showBackButton($form);
     $this->showNextButton($form);
+    $this->showSaveButton($form);
   }
 
 }
