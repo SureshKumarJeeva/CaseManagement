@@ -53,6 +53,8 @@ jobs:
           ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }} << 'EOF'
             cd /var/www/clients/client0/web16/web
             composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
+            drush updb -y
+            drush cr
           EOF
 #            sudo chown -R www-data:www-data /var/www/clients/client0/web16/web
  #           EOF
