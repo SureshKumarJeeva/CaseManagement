@@ -48,3 +48,5 @@ test-pass.php
 #/update.php
 #/web.config
 /-----default files of wamp server-------
+web/sites/default/settings.php-server
+.htaccess_Stallioni_server
