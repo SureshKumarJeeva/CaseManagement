@@ -52,10 +52,15 @@ jobs:
           ssh -o StrictHostKeyChecking=no \
           ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }} << 'EOF'
             cd /var/www/clients/client0/web16/web
+            echo "log1"
             composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
+            echo "log2"
             vendor/bin/drush theme:enable claro
+            echo "log3"
             vendor/bin/drush updb -y
+            echo "log4"
             vendor/bin/drush cr
+            echo "log5"
           EOF
 #            sudo chown -R www-data:www-data /var/www/clients/client0/web16/web
  #           EOF
