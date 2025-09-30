@@ -46,12 +46,12 @@ jobs:
           -e "ssh -o StrictHostKeyChecking=no" \
           ./ ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }}:/var/www/clients/client0/web16/web 
           
-    - name: Run post-deploy commands
-      run: |
-          sshpass -p "${{ secrets.STALLIONI_PASS }}" \
-          ssh -o StrictHostKeyChecking=no \
-          ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }} << 'EOF'
-          EOF
+  #  - name: Run post-deploy commands
+  #    run: |
+  #        sshpass -p "${{ secrets.STALLIONI_PASS }}" \
+   #       ssh -o StrictHostKeyChecking=no \
+  #        ${{ vars.STALLIONI_USERNAME }}@${{ vars.STALLIONI_HOST }} << 'EOF'
+  #        EOF
   #          cd /var/www/clients/client0/web16/web
   #          echo "log1"
   #          composer install --prefer-dist --no-progress --no-dev --optimize-autoloader --no-interaction
