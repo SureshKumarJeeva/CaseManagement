@@ -1,7 +1,7 @@
 name: Drupal Composer
 
 on:
-  push:
+  pull:
     branches: [ "master" ]
     
 permissions:
