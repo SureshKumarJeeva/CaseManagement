@@ -26,7 +26,6 @@
         "drupal/address": "^2.0.4",
         "drupal/admin_toolbar": "^3.6.2",
         "drupal/adminimal_admin_toolbar": "^2.0.0",
-        "drupal/adminimal_theme": "^1.7",
         "drupal/better_exposed_filters": "^7.0",
         "drupal/chosen": "^5.0.2",
         "drupal/chosen_field": "^4.0",
