@@ -21,9 +21,9 @@ default_value_callback: ''
 settings:
   handler: 'default:paragraph'
   handler_settings:
-    negate: 0
     target_bundles:
       job_fees: job_fees
+    negate: 0
     target_bundles_drag_drop:
       address:
         weight: 11
@@ -44,8 +44,8 @@ settings:
         weight: 16
         enabled: false
       job_fees:
-        enabled: true
         weight: 17
+        enabled: true
       party:
         weight: 18
         enabled: false

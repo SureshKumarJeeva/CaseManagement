@@ -119,7 +119,13 @@ class AliasUniquifier implements AliasUniquifierInterface {
       $source,
       $langcode,
     ];
-    $implementations = $this->moduleHandler->getImplementations('pathauto_is_alias_reserved');
+    $implementations = [];
+    $this->moduleHandler->invokeAllWith(
+      'pathauto_is_alias_reserved',
+      function (callable $hook, string $module) use (&$implementations) {
+        $implementations[] = $module;
+      }
+    );
     foreach ($implementations as $module) {
 
       $result = $this->moduleHandler->invoke($module, 'pathauto_is_alias_reserved', $args);

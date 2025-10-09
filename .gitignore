@@ -16,7 +16,7 @@
 test-pass.php
 
 # Ignore Drupal's file directory
-#/web/sites/*/files/                   
+/web/sites/default/files
 #- uncommnet this line after successful setup at Azure
 
 # Ignore SimpleTest multi-site environment.
@@ -30,7 +30,7 @@ test-pass.php
 
 #web/.htaccess
 #web/sites/default/default.settings.php
-#web/sites/default/settings*.php
+web/sites/default/settings*.php
 #web/sites/development.services.yml
 #web/sites/example.settings.local.php
 #web/web.config
@@ -50,3 +50,5 @@ test-pass.php
 /-----default files of wamp server-------
 web/sites/default/settings.php-server
 .htaccess_Stallioni_server
+backup_6-10-2025_1.sql
+web/script/update_entities_safe.php

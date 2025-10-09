@@ -21,9 +21,9 @@ default_value_callback: ''
 settings:
   handler: 'default:paragraph'
   handler_settings:
-    negate: 0
     target_bundles:
       party_other: party_other
+    negate: 0
     target_bundles_drag_drop:
       address:
         weight: -19
@@ -47,8 +47,8 @@ settings:
         weight: -13
         enabled: false
       party_other:
-        enabled: true
         weight: -11
+        enabled: true
       party_side_two_:
         weight: -12
         enabled: false

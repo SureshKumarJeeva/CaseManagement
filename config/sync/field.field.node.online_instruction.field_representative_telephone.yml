@@ -11,7 +11,7 @@ id: node.online_instruction.field_representative_telephone
 field_name: field_representative_telephone
 entity_type: node
 bundle: online_instruction
-label: 'Client''s Representative Telephone'
+label: "Client's Representative Telephone"
 description: ''
 required: true
 translatable: false

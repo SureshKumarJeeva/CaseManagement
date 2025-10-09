@@ -22,105 +22,12 @@ base_table: node_field_data
 base_field: nid
 display:
   default:
-    display_plugin: default
     id: default
     display_title: Master
+    display_plugin: default
     position: 0
     display_options:
-      access:
-        type: role
-        options:
-          role:
-            administrator: administrator
-            editor: editor
-      cache:
-        type: tag
-        options: {  }
-      query:
-        type: views_query
-        options:
-          disable_sql_rewrite: false
-          distinct: false
-          replica: false
-          query_comment: ''
-          query_tags: {  }
-      exposed_form:
-        type: basic
-        options:
-          submit_button: Apply
-          reset_button: false
-          reset_button_label: Reset
-          exposed_sorts_label: 'Sort by'
-          expose_sort_order: true
-          sort_asc_label: Asc
-          sort_desc_label: Desc
-      pager:
-        type: mini
-        options:
-          items_per_page: 10
-          offset: 0
-          id: 0
-          total_pages: null
-          expose:
-            items_per_page: false
-            items_per_page_label: 'Items per page'
-            items_per_page_options: '5, 10, 25, 50'
-            items_per_page_options_all: false
-            items_per_page_options_all_label: '- All -'
-            offset: false
-            offset_label: Offset
-          tags:
-            previous: ‹‹
-            next: ››
-      style:
-        type: table
-        options:
-          grouping: {  }
-          row_class: ''
-          default_row_class: true
-          override: true
-          sticky: true
-          caption: ''
-          summary: ''
-          description: ''
-          columns:
-            title: title
-            field_court_name: field_court_name
-            field_notice_period: field_notice_period
-            field_affidavit_template: field_affidavit_template
-          info:
-            title:
-              sortable: true
-              default_sort_order: asc
-              align: ''
-              separator: ''
-              empty_column: false
-              responsive: ''
-            field_court_name:
-              sortable: true
-              default_sort_order: asc
-              align: ''
-              separator: ''
-              empty_column: false
-              responsive: ''
-            field_notice_period:
-              sortable: true
-              default_sort_order: asc
-              align: ''
-              separator: ''
-              empty_column: false
-              responsive: ''
-            field_affidavit_template:
-              sortable: true
-              default_sort_order: asc
-              align: ''
-              separator: ''
-              empty_column: false
-              responsive: ''
-          default: '-1'
-          empty_table: false
-      row:
-        type: fields
+      title: Documents
       fields:
         title:
           id: title
@@ -129,6 +36,9 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
+          entity_type: node
+          entity_field: title
+          plugin_id: field
           label: 'Document Name'
           exclude: false
           alter:
@@ -184,9 +94,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          entity_type: node
-          entity_field: title
-          plugin_id: field
         field_court_name:
           id: field_court_name
           table: node__field_court_name
@@ -194,6 +101,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
+          plugin_id: field
           label: 'Court Name'
           exclude: false
           alter:
@@ -249,7 +157,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          plugin_id: field
         field_notice_period:
           id: field_notice_period
           table: node__field_notice_period
@@ -257,6 +164,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
+          plugin_id: field
           label: 'Notice Period'
           exclude: false
           alter:
@@ -313,7 +221,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          plugin_id: field
         field_affidavit_template:
           id: field_affidavit_template
           table: node__field_affidavit_template
@@ -321,6 +228,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
+          plugin_id: field
           label: 'Affidavit Template'
           exclude: false
           alter:
@@ -376,7 +284,6 @@ display:
           multi_type: separator
           separator: ', '
           field_api_classes: false
-          plugin_id: field
         operations:
           id: operations
           table: node
@@ -384,6 +291,8 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
+          entity_type: node
+          plugin_id: entity_operations
           label: Operations
           exclude: false
           alter:
@@ -426,31 +335,85 @@ display:
           empty_zero: false
           hide_alter_empty: true
           destination: false
+      pager:
+        type: mini
+        options:
+          offset: 0
+          pagination_heading_level: h4
+          items_per_page: 10
+          total_pages: null
+          id: 0
+          tags:
+            next: ››
+            previous: ‹‹
+          expose:
+            items_per_page: false
+            items_per_page_label: 'Items per page'
+            items_per_page_options: '5, 10, 25, 50'
+            items_per_page_options_all: false
+            items_per_page_options_all_label: '- All -'
+            offset: false
+            offset_label: Offset
+      exposed_form:
+        type: basic
+        options:
+          submit_button: Apply
+          reset_button: false
+          reset_button_label: Reset
+          exposed_sorts_label: 'Sort by'
+          expose_sort_order: true
+          sort_asc_label: Asc
+          sort_desc_label: Desc
+      access:
+        type: role
+        options:
+          role:
+            administrator: administrator
+            editor: editor
+      cache:
+        type: tag
+        options: {  }
+      empty: {  }
+      sorts:
+        changed:
+          id: changed
+          table: node_field_data
+          field: changed
+          relationship: none
+          group_type: group
+          admin_label: ''
           entity_type: node
-          plugin_id: entity_operations
+          entity_field: changed
+          plugin_id: date
+          order: DESC
+          expose:
+            label: ''
+          exposed: false
+          granularity: second
+      arguments: {  }
       filters:
         status:
-          value: '1'
+          id: status
           table: node_field_data
           field: status
-          plugin_id: boolean
           entity_type: node
           entity_field: status
-          id: status
+          plugin_id: boolean
+          value: '1'
+          group: 1
           expose:
             operator: ''
             operator_limit_selection: false
             operator_list: {  }
-          group: 1
         type:
           id: type
           table: node_field_data
           field: type
-          value:
-            document: document
           entity_type: node
           entity_field: type
           plugin_id: bundle
+          value:
+            document: document
           expose:
             operator_limit_selection: false
             operator_list: {  }
@@ -461,6 +424,7 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
+          plugin_id: combine
           operator: contains
           value: ''
           group: 1
@@ -502,24 +466,65 @@ display:
             field_court_name: field_court_name
             field_notice_period: field_notice_period
             field_affidavit_template: field_affidavit_template
-          plugin_id: combine
-      sorts:
-        changed:
-          id: changed
-          table: node_field_data
-          field: changed
-          relationship: none
-          group_type: group
-          admin_label: ''
-          order: DESC
-          exposed: false
-          expose:
-            label: ''
-          granularity: second
-          entity_type: node
-          entity_field: changed
-          plugin_id: date
-      title: Documents
+      style:
+        type: table
+        options:
+          grouping: {  }
+          row_class: ''
+          default_row_class: true
+          columns:
+            title: title
+            field_court_name: field_court_name
+            field_notice_period: field_notice_period
+            field_affidavit_template: field_affidavit_template
+          default: '-1'
+          info:
+            title:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_court_name:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_notice_period:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+            field_affidavit_template:
+              sortable: true
+              default_sort_order: asc
+              align: ''
+              separator: ''
+              empty_column: false
+              responsive: ''
+          override: true
+          sticky: true
+          summary: ''
+          empty_table: false
+          caption: ''
+          description: ''
+      row:
+        type: fields
+      query:
+        type: views_query
+        options:
+          query_comment: ''
+          disable_sql_rewrite: false
+          distinct: false
+          replica: false
+          query_tags: {  }
+      relationships: {  }
+      use_ajax: true
       header:
         area:
           id: area
@@ -528,18 +533,14 @@ display:
           relationship: none
           group_type: group
           admin_label: ''
+          plugin_id: text
           empty: true
-          tokenize: false
           content:
             value: '<a href="/node/add/document" class="button button-action button--primary button--large" data-drupal-link-system-path="node/add/document">Create New Document</a>'
             format: full_html
-          plugin_id: text
+          tokenize: false
       footer: {  }
-      empty: {  }
-      relationships: {  }
-      arguments: {  }
       display_extenders: {  }
-      use_ajax: true
     cache_metadata:
       max-age: -1
       contexts:
@@ -554,23 +555,23 @@ display:
         - 'config:field.storage.node.field_court_name'
         - 'config:field.storage.node.field_notice_period'
   document_list:
-    display_plugin: page
     id: document_list
     display_title: 'Document List'
+    display_plugin: page
     position: 1
     display_options:
+      display_description: ''
       display_extenders: {  }
       path: documents
-      display_description: ''
       menu:
         type: normal
         title: Documents
         description: ''
-        expanded: true
-        parent: 'menu_link_content:97fc2f3d-cb1b-400f-bfd0-7ef0fbae0b95'
         weight: 1
-        context: '0'
+        expanded: true
         menu_name: main
+        parent: 'menu_link_content:97fc2f3d-cb1b-400f-bfd0-7ef0fbae0b95'
+        context: '0'
     cache_metadata:
       max-age: -1
       contexts:

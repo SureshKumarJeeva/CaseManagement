@@ -6,6 +6,7 @@ dependencies:
     - field.field.node.document.field_affidavit_template
     - field.field.node.document.field_court_name
     - field.field.node.document.field_notice_period
+    - field.field.node.document.layout_builder__layout
     - node.type.document
   module:
     - path
@@ -21,32 +22,32 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_affidavit_template:
+    type: entity_reference_autocomplete
     weight: 124
+    region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
-      match_limit: 10
     third_party_settings: {  }
-    type: entity_reference_autocomplete
-    region: content
   field_court_name:
+    type: entity_reference_autocomplete
     weight: 123
+    region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
-      match_limit: 10
     third_party_settings: {  }
-    type: entity_reference_autocomplete
-    region: content
   field_notice_period:
+    type: number
     weight: 122
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: number
-    region: content
   path:
     type: path
     weight: 30
@@ -55,24 +56,24 @@ content:
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    settings:
-      display_label: true
     weight: 15
     region: content
+    settings:
+      display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    settings:
-      display_label: true
     weight: 120
     region: content
+    settings:
+      display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    settings:
-      display_label: true
     weight: 16
     region: content
+    settings:
+      display_label: true
     third_party_settings: {  }
   title:
     type: string_textfield
@@ -85,11 +86,12 @@ content:
   uid:
     type: entity_reference_autocomplete
     weight: 5
+    region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
-      match_limit: 10
-    region: content
     third_party_settings: {  }
-hidden: {  }
+hidden:
+  layout_builder__layout: true

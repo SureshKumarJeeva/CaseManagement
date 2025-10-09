@@ -11,18 +11,13 @@ use CommerceGuys\Addressing\AbstractEnum;
  */
 final class PostalCodeType extends AbstractEnum
 {
-    const EIR = 'eircode';
-    const PIN = 'pin';
-    const POSTAL = 'postal';
-    const ZIP = 'zip';
+    public const EIR = 'eircode';
+    public const PIN = 'pin';
+    public const POSTAL = 'postal';
+    public const ZIP = 'zip';
 
-    /**
-     * Gets the default value.
-     *
-     * @return string The default value.
-     */
-    public static function getDefault()
+    public static function getDefault(): string
     {
-        return static::POSTAL;
+        return PostalCodeType::POSTAL;
     }
 }

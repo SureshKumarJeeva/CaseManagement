@@ -22,10 +22,10 @@ default_value_callback: ''
 settings:
   handler: 'default:paragraph'
   handler_settings:
-    negate: 0
     target_bundles:
       cover_letter: cover_letter
       from_library: from_library
+    negate: 0
     target_bundles_drag_drop:
       address:
         weight: 9
@@ -37,14 +37,14 @@ settings:
         weight: 11
         enabled: false
       cover_letter:
-        enabled: true
         weight: 12
+        enabled: true
       document:
         weight: 13
         enabled: false
       from_library:
-        enabled: true
         weight: 14
+        enabled: true
       party:
         weight: 15
         enabled: false

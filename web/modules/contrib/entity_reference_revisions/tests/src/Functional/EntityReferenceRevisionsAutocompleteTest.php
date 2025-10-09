@@ -22,7 +22,7 @@ class EntityReferenceRevisionsAutocompleteTest extends BrowserTestBase {
    *
    * @var array
    */
-  public static $modules = array(
+  protected static $modules = array(
     'block_content',
     'node',
     'field',
@@ -38,7 +38,7 @@ class EntityReferenceRevisionsAutocompleteTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected function setUp() {
+  protected function setUp(): void {
     parent::setUp();
     // Create article content type.
     $this->drupalCreateContentType(array('type' => 'article', 'name' => 'Article'));
@@ -53,7 +53,7 @@ class EntityReferenceRevisionsAutocompleteTest extends BrowserTestBase {
    * referenced entity and of the entity the field is attached to are different.
    */
   public function testEntityReferenceRevisionsAutocompleteProcessing() {
-    $admin_user = $this->drupalCreateUser(array(
+    $admin_permissions = array(
       'administer site configuration',
       'administer nodes',
       'administer blocks',
@@ -63,7 +63,12 @@ class EntityReferenceRevisionsAutocompleteTest extends BrowserTestBase {
       'administer node display',
       'administer node form display',
       'edit any article content',
-    ));
+    );
+    if (version_compare(\Drupal::VERSION, '10.1', '>=')) {
+      $admin_permissions[] = 'administer block types';
+      $admin_permissions[] = 'administer block content';
+    }
+    $admin_user = $this->drupalCreateUser($admin_permissions);
     $this->drupalLogin($admin_user);
 
     // Create a custom block content bundle.
@@ -99,8 +104,8 @@ class EntityReferenceRevisionsAutocompleteTest extends BrowserTestBase {
     );
     $this->drupalGet('node/add/article');
     $this->submitForm($edit, 'Save');
-    $this->assertText($title);
-    $this->assertText(Html::escape($block_content));
+    $this->assertSession()->pageTextContains($title);
+    $this->assertSession()->responseContains(Html::escape($block_content));
 
     // Check if the block content is not deleted since there is no composite
     // relationship.
@@ -146,9 +151,10 @@ class EntityReferenceRevisionsAutocompleteTest extends BrowserTestBase {
       'id' => $machine_name,
       'revision' => TRUE,
     );
-    $this->drupalGet('admin/structure/block/block-content/types/add');
+    $block_link = version_compare(\Drupal::VERSION, "10", ">=") ? 'admin/structure/block-content/add': 'admin/structure/block/block-content/types/add';
+    $this->drupalGet($block_link);
     $this->submitForm($edit, 'Save');
-    $this->assertText($label);
+    $this->assertSession()->pageTextContains($label);
   }
 
 }

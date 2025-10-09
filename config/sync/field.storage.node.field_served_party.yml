@@ -21,6 +21,9 @@ settings:
     -
       value: 'Pran Pali'
       label: 'Pran Pali'
+    -
+      value: 'asdlj asdlfj'
+      label: 'asdlj asdlfj'
   allowed_values_function: ''
 module: options
 locked: false

@@ -6,6 +6,7 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Html;
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Field\Attribute\FieldWidget;
 use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldFilteredMarkup;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -13,6 +14,7 @@ use Drupal\Core\Field\WidgetBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\StringTranslation\TranslatableMarkup;
 use Drupal\field_group\FormatterHelper;
 use Drupal\paragraphs\ParagraphInterface;
 use Symfony\Component\Validator\ConstraintViolationInterface;
@@ -33,6 +35,12 @@ use Drupal\paragraphs\Plugin\EntityReferenceSelection\ParagraphSelection;
  *   }
  * )
  */
+#[FieldWidget(
+  id: 'entity_reference_paragraphs',
+  label: new TranslatableMarkup('Paragraphs Legacy'),
+  description: new TranslatableMarkup('The legacy paragraphs inline form widget.'),
+  field_types: ['entity_reference_revisions']
+ )]
 class InlineParagraphsWidget extends WidgetBase {
 
   /**
@@ -298,8 +306,7 @@ class InlineParagraphsWidget extends WidgetBase {
     if ($paragraphs_entity) {
       // Detect if we are translating.
       $this->initIsTranslating($form_state, $host);
-      $langcode = $form_state->get('langcode');
-
+      $langcode = $this->getCurrentLangcode($form_state, $items);
       if (!$this->isTranslating) {
         // Set the langcode if we are not translating.
         $langcode_key = $paragraphs_entity->getEntityType()->getKey('langcode');
@@ -929,6 +936,14 @@ class InlineParagraphsWidget extends WidgetBase {
 
     $host = $items->getEntity();
     $this->initIsTranslating($form_state, $host);
+    if (!$form_state->has('langcode')) {
+      // Entity forms usually have the langcode set, but it's not guaranteed.
+      // Any form object can embed entities with their field widgets.
+      // At this point, without knowing the langcode from the form state,
+      // it's not certain which language is chosen. Remember the host entity,
+      // to get the langcode at a stage when the chosen value is more certain.
+      $elements['#host'] = $host;
+    }
 
     if (($this->realItemCount < $cardinality || $cardinality == FieldStorageDefinitionInterface::CARDINALITY_UNLIMITED) && !$form_state->isProgrammed() && !$this->isTranslating) {
       $elements['add_more'] = $this->buildAddActions();
@@ -1127,11 +1142,15 @@ class InlineParagraphsWidget extends WidgetBase {
    * is only accessibly through the form state.
    *
    * @param \Drupal\Core\Form\FormStateInterface $form_state
+   *   The form state.
    * @param \Drupal\Core\Field\FieldItemListInterface $items
+   *   The field item list.
+   *
    * @return string
+   *   The language code.
    */
   protected function getCurrentLangcode(FormStateInterface $form_state, FieldItemListInterface $items) {
-    return $form_state->get('langcode') ?: $items->getEntity()->language()->getId();
+    return $form_state->has('langcode') ? $form_state->get('langcode') : $items->getEntity()->language()->getId();
   }
 
   /**
@@ -1303,7 +1322,7 @@ class InlineParagraphsWidget extends WidgetBase {
   public function massageFormValues(array $values, array $form, FormStateInterface $form_state) {
     $field_name = $this->fieldDefinition->getName();
     $widget_state = static::getWidgetState($form['#parents'], $field_name, $form_state);
-    $element = NestedArray::getValue($form_state->getCompleteForm(), $widget_state['array_parents']);
+    $element = NestedArray::getValue($form_state->getCompleteForm(), $widget_state['array_parents'] ?? []);
 
     foreach ($values as &$item) {
       if (isset($widget_state['paragraphs'][$item['_original_delta']]['entity'])
@@ -1318,14 +1337,20 @@ class InlineParagraphsWidget extends WidgetBase {
         // A content entity form saves without any rebuild. It needs to set the
         // language to update it in case of language change.
         $langcode_key = $paragraphs_entity->getEntityType()->getKey('langcode');
-        if ($paragraphs_entity->get($langcode_key)->value != $form_state->get('langcode')) {
+        $langcode = $form_state->get('langcode');
+        if (!isset($langcode) && isset($element['#host'])) {
+          // Use the host entity as a last resort to determine the langcode.
+          // @see self::formMultipleElements
+          $langcode = $element['#host']->language()->getId();
+        }
+        if ($paragraphs_entity->get($langcode_key)->value != $langcode) {
           // If a translation in the given language already exists, switch to
           // that. If there is none yet, update the language.
-          if ($paragraphs_entity->hasTranslation($form_state->get('langcode'))) {
-            $paragraphs_entity = $paragraphs_entity->getTranslation($form_state->get('langcode'));
+          if ($paragraphs_entity->hasTranslation($langcode)) {
+            $paragraphs_entity = $paragraphs_entity->getTranslation($langcode);
           }
           else {
-            $paragraphs_entity->set($langcode_key, $form_state->get('langcode'));
+            $paragraphs_entity->set($langcode_key, $langcode);
           }
         }
 
@@ -1380,7 +1405,8 @@ class InlineParagraphsWidget extends WidgetBase {
       // Adding a language through the ContentTranslationController.
       $this->isTranslating = TRUE;
     }
-    if ($host->hasTranslation($form_state->get('langcode')) && $host->getTranslation($form_state->get('langcode'))->get($default_langcode_key)->value == 0) {
+    $langcode = $form_state->get('langcode');
+    if (isset($langcode) && $host->hasTranslation($langcode) && $host->getTranslation($langcode)->get($default_langcode_key)->value == 0) {
       // Editing a translation.
       $this->isTranslating = TRUE;
     }

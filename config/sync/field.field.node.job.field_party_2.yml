@@ -21,9 +21,9 @@ default_value_callback: ''
 settings:
   handler: 'default:paragraph'
   handler_settings:
-    negate: 0
     target_bundles:
       party_side_two_: party_side_two_
+    negate: 0
     target_bundles_drag_drop:
       address:
         weight: 6
@@ -53,6 +53,6 @@ settings:
         weight: 19
         enabled: false
       party_side_two_:
-        enabled: true
         weight: 5
+        enabled: true
 field_type: entity_reference_revisions

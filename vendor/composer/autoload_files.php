@@ -28,6 +28,8 @@ return array(
     '9c67151ae59aff4788964ce8eb2a0f43' => $vendorDir . '/clue/stream-filter/src/functions_include.php',
     '0d59ee240a4cd96ddbb4ff164fccea4d' => $vendorDir . '/symfony/polyfill-php73/bootstrap.php',
     '8cff32064859f4559445b89279f3199c' => $vendorDir . '/php-http/message/src/filters.php',
+    '9d2b9fc6db0f153a0a149fefb182415e' => $vendorDir . '/symfony/polyfill-php84/bootstrap.php',
+    '9e4824c5afbdc1482b6025ce3d4dfde8' => $vendorDir . '/league/csv/src/functions_include.php',
     '47e1160838b5e5a10346ac4084b58c23' => $vendorDir . '/laravel/prompts/src/helpers.php',
     '801c31d8ed748cfa537fa45402288c95' => $vendorDir . '/psy/psysh/src/functions.php',
     '07d7f1a47144818725fd8d91a907ac57' => $vendorDir . '/laminas/laminas-diactoros/src/functions/create_uploaded_file.php',

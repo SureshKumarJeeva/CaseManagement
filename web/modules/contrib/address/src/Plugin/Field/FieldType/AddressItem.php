@@ -5,7 +5,9 @@ namespace Drupal\address\Plugin\Field\FieldType;
 use CommerceGuys\Addressing\AddressFormat\AddressField;
 use CommerceGuys\Addressing\AddressFormat\FieldOverride;
 use CommerceGuys\Addressing\AddressFormat\FieldOverrides;
+use CommerceGuys\Addressing\Subdivision\SubdivisionUpdater;
 use Drupal\address\AddressInterface;
+use Drupal\address\FieldHelper;
 use Drupal\address\LabelHelper;
 use Drupal\Core\Field\FieldItemBase;
 use Drupal\Core\Field\FieldStorageDefinitionInterface;
@@ -20,10 +22,68 @@ use Drupal\Core\TypedData\DataDefinition;
  *   id = "address",
  *   label = @Translation("Address"),
  *   description = @Translation("An entity field containing a postal address"),
- *   category = @Translation("Address"),
+ *   category = "address",
  *   default_widget = "address_default",
  *   default_formatter = "address_default",
- *   list_class = "\Drupal\address\Plugin\Field\FieldType\AddressFieldItemList"
+ *   list_class = "\Drupal\address\Plugin\Field\FieldType\AddressFieldItemList",
+ *   column_groups = {
+ *     "langcode" = {
+ *       "label" = @Translation("Langcode"),
+ *       "translatable" = TRUE
+ *     },
+ *     "country_code" = {
+ *       "label" = @Translation("Country code"),
+ *       "translatable" = TRUE
+ *     },
+ *     "administrative_area" = {
+ *       "label" = @Translation("Administrative area"),
+ *       "translatable" = TRUE
+ *     },
+ *     "locality" = {
+ *       "label" = @Translation("Locality"),
+ *       "translatable" = TRUE
+ *     },
+ *     "dependent_locality" = {
+ *       "label" = @Translation("Dependent locality"),
+ *       "translatable" = TRUE
+ *     },
+ *     "postal_code" = {
+ *       "label" = @Translation("Postal code"),
+ *       "translatable" = TRUE
+ *     },
+ *     "sorting_code" = {
+ *       "label" = @Translation("Sorting code"),
+ *       "translatable" = TRUE
+ *     },
+ *     "address_line1" = {
+ *       "label" = @Translation("Address line 1"),
+ *       "translatable" = TRUE
+ *     },
+ *     "address_line2" = {
+ *       "label" = @Translation("Address line 2"),
+ *       "translatable" = TRUE
+ *     },
+ *     "address_line3" = {
+ *       "label" = @Translation("Address line 3"),
+ *       "translatable" = TRUE
+ *     },
+ *     "organization" = {
+ *       "label" = @Translation("Organization"),
+ *       "translatable" = TRUE
+ *     },
+ *     "given_name" = {
+ *       "label" = @Translation("Given name"),
+ *       "translatable" = TRUE
+ *     },
+ *     "additional_name" = {
+ *       "label" = @Translation("Additional name"),
+ *       "translatable" = TRUE
+ *     },
+ *     "family_name" = {
+ *       "label" = @Translation("Family name"),
+ *       "translatable" = TRUE
+ *     },
+ *   },
  * )
  */
 class AddressItem extends FieldItemBase implements AddressInterface {
@@ -72,6 +132,10 @@ class AddressItem extends FieldItemBase implements AddressInterface {
           'type' => 'varchar',
           'length' => 255,
         ],
+        'address_line3' => [
+          'type' => 'varchar',
+          'length' => 255,
+        ],
         'organization' => [
           'type' => 'varchar',
           'length' => 255,
@@ -96,7 +160,7 @@ class AddressItem extends FieldItemBase implements AddressInterface {
    * {@inheritdoc}
    */
   public static function mainPropertyName() {
-    return NULL;
+    return 'country_code';
   }
 
   /**
@@ -122,6 +186,8 @@ class AddressItem extends FieldItemBase implements AddressInterface {
       ->setLabel(t('The first line of the address block'));
     $properties['address_line2'] = DataDefinition::create('string')
       ->setLabel(t('The second line of the address block'));
+    $properties['address_line3'] = DataDefinition::create('string')
+      ->setLabel(t('The third line of the address block'));
     $properties['organization'] = DataDefinition::create('string')
       ->setLabel(t('The organization'));
     $properties['given_name'] = DataDefinition::create('string')
@@ -137,9 +203,24 @@ class AddressItem extends FieldItemBase implements AddressInterface {
   /**
    * {@inheritdoc}
    */
+  public function getProperties($include_computed = FALSE) {
+    $properties = parent::getProperties($include_computed);
+    $parsed_overrides = new FieldOverrides($this->getFieldOverrides());
+    $hidden_properties = array_map(static function ($name) {
+      return FieldHelper::getPropertyName($name);
+    }, $parsed_overrides->getHiddenFields());
+    foreach ($hidden_properties as $hidden_property) {
+      unset($properties[$hidden_property]);
+    }
+    return $properties;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public static function defaultFieldSettings() {
     return self::defaultCountrySettings() + [
-      'langcode_override' => '',
+      'langcode_override' => NULL,
       'field_overrides' => [],
       // Replaced by field_overrides.
       'fields' => [],
@@ -185,7 +266,7 @@ class AddressItem extends FieldItemBase implements AddressInterface {
     ];
     $field_overrides = $this->getFieldOverrides();
     foreach (LabelHelper::getGenericFieldLabels() as $field_name => $label) {
-      $override = isset($field_overrides[$field_name]) ? $field_overrides[$field_name] : '';
+      $override = $field_overrides[$field_name] ?? '';
 
       $element['field_overrides'][$field_name] = [
         'field_label' => [
@@ -265,7 +346,7 @@ class AddressItem extends FieldItemBase implements AddressInterface {
    *   in case the language is always known (e.g. a field storing the "english
    *   address" on a chinese article).
    *
-   * The langcode property is intepreted by getLocale(), and in case it's NULL,
+   * The langcode property is interpreted by getLocale(), and in case it's NULL,
    * the field langcode is returned instead (indicating a non-multilingual site
    * or a translatable parent entity).
    *
@@ -276,7 +357,7 @@ class AddressItem extends FieldItemBase implements AddressInterface {
     $this->langcode = NULL;
     $language_manager = \Drupal::languageManager();
     if (!$language_manager->isMultilingual()) {
-      return;
+      return NULL;
     }
 
     if ($override = $this->getSetting('langcode_override')) {
@@ -313,6 +394,29 @@ class AddressItem extends FieldItemBase implements AddressInterface {
   /**
    * {@inheritdoc}
    */
+  public function setValue($values, $notify = TRUE) {
+    if (isset($values['langcode']) && $values['langcode'] === '') {
+      $values['langcode'] = NULL;
+    }
+    // If a subdivision ID has changed, allow it to be remapped.
+    // Primarily covers the 8.x-1.x => 2.0.x updates, where subdivisions
+    // started being keyed by ISO code where available.
+    if (isset($values['country_code'])) {
+      if (isset($values['administrative_area'])) {
+        $values['administrative_area'] = SubdivisionUpdater::updateValue($values['country_code'], $values['administrative_area']);
+      }
+      // Andorra is the only country with remapped localities.
+      if ($values['country_code'] == 'AD' && isset($values['locality'])) {
+        $values['locality'] = SubdivisionUpdater::updateValue($values['country_code'], $values['locality']);
+      }
+    }
+
+    parent::setValue($values, $notify);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
   public function isEmpty() {
     $value = $this->country_code;
     return $value === NULL || $value === '';
@@ -321,7 +425,7 @@ class AddressItem extends FieldItemBase implements AddressInterface {
   /**
    * {@inheritdoc}
    */
-  public function getLocale() {
+  public function getLocale(): string {
     $langcode = $this->langcode;
     if (!$langcode) {
       // If no langcode was stored, fallback to the field langcode.
@@ -335,85 +439,92 @@ class AddressItem extends FieldItemBase implements AddressInterface {
   /**
    * {@inheritdoc}
    */
-  public function getCountryCode() {
-    return $this->country_code;
+  public function getCountryCode(): string {
+    return $this->country_code ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getAdministrativeArea() {
-    return $this->administrative_area;
+  public function getAdministrativeArea(): string {
+    return $this->administrative_area ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getLocality() {
-    return $this->locality;
+  public function getLocality(): string {
+    return $this->locality ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getDependentLocality() {
-    return $this->dependent_locality;
+  public function getDependentLocality(): string {
+    return $this->dependent_locality ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getPostalCode() {
-    return $this->postal_code;
+  public function getPostalCode(): string {
+    return $this->postal_code ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getSortingCode() {
-    return $this->sorting_code;
+  public function getSortingCode(): string {
+    return $this->sorting_code ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getAddressLine1() {
-    return $this->address_line1;
+  public function getAddressLine1(): string {
+    return $this->address_line1 ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getAddressLine2() {
-    return $this->address_line2;
+  public function getAddressLine2(): string {
+    return $this->address_line2 ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getOrganization() {
-    return $this->organization;
+  public function getAddressLine3(): string {
+    return $this->address_line3 ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getGivenName() {
-    return $this->given_name;
+  public function getOrganization(): string {
+    return $this->organization ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getAdditionalName() {
-    return $this->additional_name;
+  public function getGivenName(): string {
+    return $this->given_name ?? '';
   }
 
   /**
    * {@inheritdoc}
    */
-  public function getFamilyName() {
-    return $this->family_name;
+  public function getAdditionalName(): string {
+    return $this->additional_name ?? '';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFamilyName(): string {
+    return $this->family_name ?? '';
   }
 
 }

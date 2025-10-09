@@ -16,17 +16,20 @@ mode: summary
 content:
   label:
     type: string
-    weight: 0
     label: hidden
-    region: content
     settings:
       link_to_entity: false
     third_party_settings: {  }
-  paragraphs:
-    label: hidden
-    type: paragraph_summary
     weight: 0
     region: content
+  paragraphs:
+    type: paragraph_summary
+    label: hidden
     settings: {  }
     third_party_settings: {  }
-hidden: {  }
+    weight: 0
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true

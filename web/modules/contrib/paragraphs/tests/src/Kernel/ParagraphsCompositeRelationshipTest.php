@@ -25,7 +25,7 @@ class ParagraphsCompositeRelationshipTest extends KernelTestBase {
    *
    * @var array
    */
-  public static $modules = array(
+  protected static $modules = array(
     'paragraphs',
     'node',
     'user',
@@ -291,7 +291,7 @@ class ParagraphsCompositeRelationshipTest extends KernelTestBase {
     $this->assertParagraphField($nested_paragraph_children, $paragraph4_nested_parent->id(), $paragraph4_nested_parent->getEntityTypeId(), 'nested_paragraph_field');
 
     // Add the german language.
-    ConfigurableLanguage::create(['id' => 'de'])->save();
+    ConfigurableLanguage::createFromLangcode('de')->save();
 
     // Create a new paragraph and add a german translation.
     $paragraph = Paragraph::create([

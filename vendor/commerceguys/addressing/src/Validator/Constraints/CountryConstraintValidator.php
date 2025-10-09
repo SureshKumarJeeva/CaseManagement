@@ -10,19 +10,9 @@ use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 
 class CountryConstraintValidator extends ConstraintValidator
 {
-    /**
-     * The country repository.
-     *
-     * @var CountryRepositoryInterface
-     */
-    protected $countryRepository;
+    protected CountryRepositoryInterface $countryRepository;
 
-    /**
-     * Creates a CountryValidator instance.
-     *
-     * @param CountryRepositoryInterface $countryRepository
-     */
-    public function __construct(CountryRepositoryInterface $countryRepository = null)
+    public function __construct(?CountryRepositoryInterface $countryRepository = null)
     {
         $this->countryRepository = $countryRepository ?: new CountryRepository();
     }
@@ -30,7 +20,7 @@ class CountryConstraintValidator extends ConstraintValidator
     /**
      * {@inheritdoc}
      */
-    public function validate($value, Constraint $constraint)
+    public function validate($value, Constraint $constraint): void
     {
         if ($value === null || $value === '') {
             return;

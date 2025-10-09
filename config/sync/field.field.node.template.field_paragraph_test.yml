@@ -1,0 +1,76 @@
+uuid: f2de66ba-1cbd-4a40-80f8-dd1601d7f5f2
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_paragraph_test
+    - node.type.template
+    - paragraphs.paragraphs_type.address
+    - paragraphs.paragraphs_type.addresses
+    - paragraphs.paragraphs_type.affidavit
+    - paragraphs.paragraphs_type.attendance_note
+    - paragraphs.paragraphs_type.job_fees
+    - paragraphs.paragraphs_type.party
+    - paragraphs.paragraphs_type.test_paragraph
+  module:
+    - entity_reference_revisions
+id: node.template.field_paragraph_test
+field_name: field_paragraph_test
+entity_type: node
+bundle: template
+label: Paragraph-test
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    target_bundles:
+      address: address
+      addresses: addresses
+      affidavit: affidavit
+      attendance_note: attendance_note
+      job_fees: job_fees
+      party: party
+      test_paragraph: test_paragraph
+    negate: 0
+    target_bundles_drag_drop:
+      address:
+        weight: 13
+        enabled: true
+      addresses:
+        weight: 14
+        enabled: true
+      affidavit:
+        weight: 15
+        enabled: true
+      attendance_note:
+        weight: 16
+        enabled: true
+      cover_letter:
+        weight: 17
+        enabled: false
+      document:
+        weight: 18
+        enabled: false
+      from_library:
+        weight: 19
+        enabled: false
+      job_fees:
+        weight: 20
+        enabled: true
+      party:
+        weight: 21
+        enabled: true
+      party_other:
+        weight: 22
+        enabled: false
+      party_side_two_:
+        weight: 23
+        enabled: false
+      test_paragraph:
+        weight: 24
+        enabled: true
+field_type: entity_reference_revisions

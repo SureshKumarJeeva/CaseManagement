@@ -26,31 +26,31 @@ third_party_settings:
         - field_employee_full_name
         - field_address_attendance
         - field_notes
+      label: 'Attendance Note'
       parent_name: ''
+      region: content
       weight: 0
       format_type: fieldset
-      region: content
       format_settings:
-        id: ''
         classes: ''
+        id: ''
         description: ''
-      label: 'Attendance Note'
 id: paragraph.attendance_note.default
 targetEntityType: paragraph
 bundle: attendance_note
 mode: default
 content:
   field_address_attendance:
-    weight: 5
+    type: address_default
     label: inline
     settings: {  }
     third_party_settings:
       field_formatter_class:
         class: attendance-address-rendered-entity
-    type: address_default
+    weight: 5
     region: content
   field_date_time:
-    weight: 3
+    type: datetime_default
     label: inline
     settings:
       timezone_override: ''
@@ -58,26 +58,26 @@ content:
     third_party_settings:
       field_formatter_class:
         class: ''
-    type: datetime_default
+    weight: 3
     region: content
   field_employee_full_name:
-    weight: 4
+    type: string
     label: inline
     settings:
       link_to_entity: false
     third_party_settings:
       field_formatter_class:
         class: attendance-employee-ref
-    type: string
+    weight: 4
     region: content
   field_notes:
-    weight: 6
+    type: basic_string
     label: inline
     settings: {  }
     third_party_settings:
       field_formatter_class:
         class: attendance-notes-textarea
-    type: basic_string
+    weight: 6
     region: content
 hidden:
   entity_print_view_epub: true

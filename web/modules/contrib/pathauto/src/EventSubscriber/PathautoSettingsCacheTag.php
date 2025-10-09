@@ -4,9 +4,9 @@ namespace Drupal\pathauto\EventSubscriber;
 
 use Drupal\Core\Config\ConfigCrudEvent;
 use Drupal\Core\Config\ConfigEvents;
-use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
 use Drupal\pathauto\AliasTypeManager;
+use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
 /**
  * A subscriber to clear fielddefinition cache when saving pathauto settings.
@@ -60,7 +60,7 @@ class PathautoSettingsCacheTag implements EventSubscriberInterface {
   /**
    * {@inheritdoc}
    */
-  public static function getSubscribedEvents() {
+  public static function getSubscribedEvents(): array {
     $events[ConfigEvents::SAVE][] = ['onSave'];
     return $events;
   }

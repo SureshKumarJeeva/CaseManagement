@@ -21,16 +21,16 @@ default_value_callback: ''
 settings:
   handler: 'default:paragraph'
   handler_settings:
-    negate: 0
     target_bundles:
       addresses: addresses
+    negate: 0
     target_bundles_drag_drop:
       address:
         weight: 6
         enabled: false
       addresses:
-        enabled: true
         weight: 13
+        enabled: true
       affidavit:
         weight: 12
         enabled: false

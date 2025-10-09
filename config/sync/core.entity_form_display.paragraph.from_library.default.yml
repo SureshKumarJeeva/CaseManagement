@@ -15,11 +15,11 @@ bundle: from_library
 mode: default
 content:
   field_reusable_paragraph:
+    type: chosen_select
     weight: 0
+    region: content
     settings: {  }
     third_party_settings: {  }
-    type: chosen_select
-    region: content
 hidden:
   created: true
   status: true

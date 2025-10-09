@@ -1,7 +1,16 @@
 uuid: ea6b029d-1525-4d40-a0c7-e852e9717f03
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  config:
+    - filter.format.basic_html
+    - filter.format.full_html
+    - node.type.online_instruction
+  module:
+    - field_permissions
+    - file
+    - filter
+    - node
 id: client
 label: Client
 weight: 6
@@ -24,7 +33,6 @@ permissions:
   - 'view field_job_fees'
   - 'view field_name_to_server_value'
   - 'view field_notes'
-  - 'view field_served_party'
   - 'view field_telephone'
   - 'view own field_agreed_discount'
   - 'view own field_client'
@@ -39,5 +47,4 @@ permissions:
   - 'view own field_job_fees'
   - 'view own field_name_to_server_value'
   - 'view own field_notes'
-  - 'view own field_served_party'
   - 'view own field_telephone'

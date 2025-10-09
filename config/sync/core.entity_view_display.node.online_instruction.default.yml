@@ -29,116 +29,116 @@ bundle: online_instruction
 mode: default
 content:
   field_additional_information:
-    weight: 112
+    type: basic_string
     label: above
     settings: {  }
     third_party_settings: {  }
-    type: basic_string
+    weight: 112
     region: content
   field_address_of_served:
-    weight: 106
+    type: address_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    type: address_default
+    weight: 106
     region: content
   field_client_s_job_reference:
-    weight: 101
+    type: string
     label: above
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    type: string
+    weight: 101
     region: content
   field_first_name:
-    weight: 104
+    type: string
     label: above
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    type: string
+    weight: 104
     region: content
   field_last_date_for_service:
-    weight: 109
+    type: datetime_default
     label: above
     settings:
-      format_type: medium
       timezone_override: ''
+      format_type: medium
     third_party_settings: {  }
-    type: datetime_default
+    weight: 109
     region: content
   field_last_name:
-    weight: 105
+    type: string
     label: above
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    type: string
+    weight: 105
     region: content
   field_next_day:
-    weight: 111
+    type: boolean
     label: above
     settings:
       format: default
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    type: boolean
+    weight: 111
     region: content
   field_representative_name:
-    weight: 102
+    type: string
     label: above
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    type: string
+    weight: 102
     region: content
   field_representative_telephone:
-    weight: 103
+    type: telephone_link
     label: above
     settings:
       title: ''
     third_party_settings: {  }
-    type: telephone_link
+    weight: 103
     region: content
   field_same_day:
-    weight: 110
+    type: boolean
     label: above
     settings:
       format: default
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    type: boolean
+    weight: 110
     region: content
   field_telephone_of_served:
-    weight: 107
+    type: telephone_link
     label: above
     settings:
       title: ''
     third_party_settings: {  }
-    type: telephone_link
+    weight: 107
     region: content
   field_upload_documents:
-    weight: 113
+    type: file_table
     label: above
     settings:
       use_description_as_link_text: true
     third_party_settings: {  }
-    type: file_table
+    weight: 113
     region: content
   field_work_details_of_served:
-    weight: 108
+    type: basic_string
     label: above
     settings: {  }
     third_party_settings: {  }
-    type: basic_string
+    weight: 108
     region: content
   links:
-    weight: 100
-    region: content
     settings: {  }
     third_party_settings: {  }
+    weight: 100
+    region: content
 hidden:
   entity_print_view_epub: true
   entity_print_view_pdf: true

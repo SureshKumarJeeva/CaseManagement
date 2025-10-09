@@ -16,26 +16,26 @@ bundle: email_preview
 mode: default
 content:
   body:
-    label: inline
     type: text_default
-    weight: 1
+    label: inline
     settings: {  }
     third_party_settings: {  }
+    weight: 1
     region: content
   field_client_email:
-    weight: 2
+    type: basic_string
     label: inline
     settings: {  }
     third_party_settings: {  }
-    type: basic_string
+    weight: 2
     region: content
   field_email_subject:
-    weight: 0
+    type: string
     label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    type: string
+    weight: 0
     region: content
 hidden:
   entity_print_view_epub: true

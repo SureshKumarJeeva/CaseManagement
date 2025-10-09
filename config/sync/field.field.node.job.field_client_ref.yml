@@ -9,7 +9,7 @@ id: node.job.field_client_ref
 field_name: field_client_ref
 entity_type: node
 bundle: job
-label: 'Client''s Job Reference'
+label: "Client's Job Reference"
 description: ''
 required: false
 translatable: true

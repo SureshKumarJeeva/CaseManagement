@@ -7,115 +7,49 @@ namespace CommerceGuys\Addressing\AddressFormat;
  */
 class AddressFormat
 {
-    /**
-     * The country code.
-     *
-     * @var string
-     */
-    protected $countryCode;
+    protected string $countryCode;
 
-    /**
-     * The locale.
-     *
-     * @var string
-     */
-    protected $locale;
+    protected ?string $locale = null;
 
-    /**
-     * The format string.
-     *
-     * @var string
-     */
-    protected $format;
+    protected string $format;
 
-    /**
-     * The local format string.
-     *
-     * @var string
-     */
-    protected $localFormat;
+    protected ?string $localFormat = null;
 
-    /**
-     * The used fields.
-     *
-     * @var array
-     */
-    protected $usedFields = [];
+    protected array $usedFields = [];
 
     /**
      * The used fields, grouped by line.
-     *
-     * @var array
      */
-    protected $groupedFields = [];
+    protected array $groupedFields = [];
 
-    /**
-     * The required fields.
-     *
-     * @var array
-     */
-    protected $requiredFields = [];
+    protected mixed $requiredFields = [];
 
     /**
      * The fields that need to be uppercased.
-     *
-     * @var string
      */
-    protected $uppercaseFields = [];
+    protected array $uppercaseFields = [];
 
-    /**
-     * The administrative area type.
-     *
-     * @var string
-     */
-    protected $administrativeAreaType;
+    protected array $defaultValues = [];
 
-    /**
-     * The locality type.
-     *
-     * @var string
-     */
-    protected $localityType;
+    protected ?string $administrativeAreaType = null;
 
-    /**
-     * The dependent locality type.
-     *
-     * @var string
-     */
-    protected $dependentLocalityType;
+    protected ?string $localityType = null;
 
-    /**
-     * The postal code type.
-     *
-     * @var string
-     */
-    protected $postalCodeType;
+    protected ?string $dependentLocalityType = null;
 
-    /**
-     * The postal code pattern.
-     *
-     * @var string
-     */
-    protected $postalCodePattern;
+    protected ?string $postalCodeType = null;
 
-    /**
-     * The postal code prefix.
-     *
-     * @var string
-     */
-    protected $postalCodePrefix;
+    protected ?string $postalCodePattern = null;
+
+    protected ?string $postalCodePrefix = null;
 
     /**
      * The subdivision depth.
-     *
-     * @var int
      */
-    protected $subdivisionDepth;
+    protected int $subdivisionDepth;
 
     /**
-     * Creates a new AddressFormat instance.
-     *
-     * @param array $definition The definition array.
+     * @throws \ReflectionException
      */
     public function __construct(array $definition)
     {
@@ -125,25 +59,23 @@ class AddressFormat
                 throw new \InvalidArgumentException(sprintf('Missing required property %s.', $requiredProperty));
             }
         }
-        // Add defaults for properties that are allowed to be empty.
-        $definition += [
-            'locale' => null,
-            'local_format' => null,
-            'required_fields' => [],
-            'uppercase_fields' => [],
-            'postal_code_pattern' => null,
-            'postal_code_prefix' => null,
-            'subdivision_depth' => 0,
-        ];
-        AddressField::assertAllExist($definition['required_fields']);
-        AddressField::assertAllExist($definition['uppercase_fields']);
         $this->countryCode = $definition['country_code'];
-        $this->locale = $definition['locale'];
+        $this->locale = $definition['locale'] ?? null;
         $this->format = $definition['format'];
-        $this->localFormat = $definition['local_format'];
-        $this->requiredFields = $definition['required_fields'];
-        $this->uppercaseFields = $definition['uppercase_fields'];
-        $this->subdivisionDepth = $definition['subdivision_depth'];
+        $this->localFormat = $definition['local_format'] ?? null;
+        if (isset($definition['required_fields'])) {
+            AddressField::assertAllExist($definition['required_fields']);
+            $this->requiredFields = $definition['required_fields'];
+        }
+        if (isset($definition['default_values'])) {
+            AddressField::assertAllExist(array_keys($definition['default_values']));
+            $this->defaultValues = $definition['default_values'];
+        }
+        if (isset($definition['uppercase_fields'])) {
+            AddressField::assertAllExist($definition['uppercase_fields']);
+            $this->uppercaseFields = $definition['uppercase_fields'];
+        }
+        $this->subdivisionDepth = $definition['subdivision_depth'] ?? 0;
 
         $usedFields = $this->getUsedFields();
         if (in_array(AddressField::ADMINISTRATIVE_AREA, $usedFields)) {
@@ -169,8 +101,8 @@ class AddressFormat
                 PostalCodeType::assertExists($definition['postal_code_type']);
                 $this->postalCodeType = $definition['postal_code_type'];
             }
-            $this->postalCodePattern = $definition['postal_code_pattern'];
-            $this->postalCodePrefix = $definition['postal_code_prefix'];
+            $this->postalCodePattern = $definition['postal_code_pattern'] ?? null;
+            $this->postalCodePrefix = $definition['postal_code_prefix'] ?? null;
         }
     }
 
@@ -182,7 +114,7 @@ class AddressFormat
      *
      * @return string The two-letter country code.
      */
-    public function getCountryCode()
+    public function getCountryCode(): string
     {
         return $this->countryCode;
     }
@@ -194,7 +126,7 @@ class AddressFormat
      *
      * @return string|null The locale, if defined.
      */
-    public function getLocale()
+    public function getLocale(): ?string
     {
         return $this->locale;
     }
@@ -210,12 +142,13 @@ class AddressFormat
      * %organization
      * %addressLine1
      * %addressLine2
+     * %addressLine3
      * %locality %administrativeArea %postalCode
      * </code>
      *
      * @return string The format string.
      */
-    public function getFormat()
+    public function getFormat(): string
     {
         return $this->format;
     }
@@ -230,7 +163,7 @@ class AddressFormat
      *
      * @return string|null The local format string, if defined.
      */
-    public function getLocalFormat()
+    public function getLocalFormat(): ?string
     {
         return $this->localFormat;
     }
@@ -239,13 +172,14 @@ class AddressFormat
      * Gets the list of used fields.
      *
      * @return array An array of address fields.
+     * @throws \ReflectionException
      */
-    public function getUsedFields()
+    public function getUsedFields(): array
     {
         if (empty($this->usedFields)) {
             $this->usedFields = [];
             foreach (AddressField::getAll() as $field) {
-                if (strpos($this->format, '%' . $field) !== false) {
+                if (str_contains($this->format, '%' . $field)) {
                     $this->usedFields[] = $field;
                 }
             }
@@ -257,9 +191,9 @@ class AddressFormat
     /**
      * Gets the list of used subdivision fields.
      *
-     * @return array An array of address fields.
+     * @throws \ReflectionException
      */
-    public function getUsedSubdivisionFields()
+    public function getUsedSubdivisionFields(): array
     {
         $fields = [
             AddressField::ADMINISTRATIVE_AREA,
@@ -268,17 +202,15 @@ class AddressFormat
         ];
         // Remove fields not used by the format, and reset the keys.
         $fields = array_intersect($fields, $this->getUsedFields());
-        $fields = array_values($fields);
-
-        return $fields;
+        return array_values($fields);
     }
 
     /**
      * Gets the list of required fields.
      *
-     * @return array An array of address fields.
+     * @return AddressField[]
      */
-    public function getRequiredFields()
+    public function getRequiredFields(): array
     {
         return $this->requiredFields;
     }
@@ -286,11 +218,21 @@ class AddressFormat
     /**
      * Gets the list of fields that need to be uppercased.
      *
-     * @return array An array of address fields.
+     * @return AddressField[]
      */
-    public function getUppercaseFields()
+    public function getUppercaseFields(): array
     {
         return $this->uppercaseFields;
+    }
+
+    /**
+     * Gets the default values.
+     *
+     * @return array The default values, keyed by field name.
+     */
+    public function getDefaultValues(): array
+    {
+        return $this->defaultValues;
     }
 
     /**
@@ -301,7 +243,7 @@ class AddressFormat
      * @return string|null The administrative area type, or null if the
      *                     administrative area field isn't used.
      */
-    public function getAdministrativeAreaType()
+    public function getAdministrativeAreaType(): ?string
     {
         return $this->administrativeAreaType;
     }
@@ -314,7 +256,7 @@ class AddressFormat
      * @return string|null The locality type, or null if the locality field
      *                     isn't used.
      */
-    public function getLocalityType()
+    public function getLocalityType(): ?string
     {
         return $this->localityType;
     }
@@ -327,7 +269,7 @@ class AddressFormat
      * @return string|null The dependent locality type, or null if the
      *                     dependent locality field isn't used.
      */
-    public function getDependentLocalityType()
+    public function getDependentLocalityType(): ?string
     {
         return $this->dependentLocalityType;
     }
@@ -340,7 +282,7 @@ class AddressFormat
      * @return string|null The postal code type, or null if the postal code
      *                     field isn't used.
      */
-    public function getPostalCodeType()
+    public function getPostalCodeType(): ?string
     {
         return $this->postalCodeType;
     }
@@ -354,7 +296,7 @@ class AddressFormat
      *
      * @return string|null The postal code pattern.
      */
-    public function getPostalCodePattern()
+    public function getPostalCodePattern(): ?string
     {
         return $this->postalCodePattern;
     }
@@ -367,7 +309,7 @@ class AddressFormat
      *
      * @return string|null The postal code prefix.
      */
-    public function getPostalCodePrefix()
+    public function getPostalCodePrefix(): ?string
     {
         return $this->postalCodePrefix;
     }
@@ -392,7 +334,7 @@ class AddressFormat
      *             2: administrative areas, localities.
      *             3: administrative areas, localities, dependent localities.
      */
-    public function getSubdivisionDepth()
+    public function getSubdivisionDepth(): int
     {
         return $this->subdivisionDepth;
     }

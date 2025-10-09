@@ -1,4 +1,4 @@
-admin: associatedps
-default: associatedps
 _core:
   default_config_hash: fOjer9hADYYnbCJVZMFZIIM1azTFWyg84ZkFDHfAbUg
+admin: associatedps
+default: associatedps

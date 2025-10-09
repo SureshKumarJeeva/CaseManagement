@@ -2,12 +2,11 @@
 
 namespace Drupal\Tests\pathauto\Functional;
 
-use Drupal\pathauto\Entity\PathautoPattern;
+use Drupal\Component\Render\FormattableMarkup;
 use Drupal\node\Entity\Node;
+use Drupal\pathauto\Entity\PathautoPattern;
 use Drupal\pathauto\PathautoState;
 use Drupal\Tests\BrowserTestBase;
-use Drupal\Component\Render\FormattableMarkup;
-
 
 /**
  * Tests pathauto node UI integration.
@@ -21,7 +20,7 @@ class PathautoNodeWebTest extends BrowserTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'stable';
+  protected $defaultTheme = 'stark';
 
   /**
    * Modules to enable.
@@ -50,6 +49,8 @@ class PathautoNodeWebTest extends BrowserTestBase {
     $permissions = [
       'administer pathauto',
       'administer url aliases',
+      'bulk delete aliases',
+      'bulk update aliases',
       'create url aliases',
       'bypass node access',
       'access content overview',
@@ -127,6 +128,7 @@ class PathautoNodeWebTest extends BrowserTestBase {
     // displayed.
     $ids = \Drupal::entityQuery('pathauto_pattern')
       ->condition('type', 'canonical_entities:node')
+      ->accessCheck(TRUE)
       ->execute();
     foreach (PathautoPattern::loadMultiple($ids) as $pattern) {
       $pattern->delete();
@@ -268,8 +270,7 @@ class PathautoNodeWebTest extends BrowserTestBase {
    */
   public function testCustomAliasWithoutPattern() {
     // First, delete all patterns to be sure that there will be no match.
-    $entity_ids = \Drupal::entityQuery('pathauto_pattern')->execute();
-    $entities = PathautoPattern::loadMultiple($entity_ids);
+    $entities = PathautoPattern::loadMultiple(NULL);
     foreach ($entities as $entity) {
       $entity->delete();
     }
@@ -289,7 +290,11 @@ class PathautoNodeWebTest extends BrowserTestBase {
     $this->assertSession()->statusCodeEquals(200);
 
     // Now create a node through the API.
-    $node = Node::create(['type' => 'article', 'title' => 'Sample article API', 'path' => ['alias' => '/sample-article-api']]);
+    $node = Node::create([
+      'type' => 'article',
+      'title' => 'Sample article API',
+      'path' => ['alias' => '/sample-article-api'],
+    ]);
     $node->save();
 
     // Test the alias.
@@ -362,8 +367,7 @@ class PathautoNodeWebTest extends BrowserTestBase {
     $this->assertSession()->elementExists('css', '#edit-path-0-pathauto');
 
     // Delete all patterns to be sure that there will be no match.
-    $entity_ids = \Drupal::entityQuery('pathauto_pattern')->execute();
-    $entities = PathautoPattern::loadMultiple($entity_ids);
+    $entities = PathautoPattern::loadMultiple(NULL);
     foreach ($entities as $entity) {
       $entity->delete();
     }

@@ -16,28 +16,29 @@ bundle: address
 mode: default
 content:
   field_address:
-    weight: 2
-    settings: {  }
-    third_party_settings: {  }
     type: address_default
+    weight: 2
     region: content
+    settings:
+      wrapper_type: details
+    third_party_settings: {  }
   field_party_to_serve_addresses:
+    type: select_or_other_list
     weight: 0
+    region: content
     settings:
       select_element_type: select_or_other_select
       sort_options: ''
       add_other_value_to_allowed_values: true
     third_party_settings: {  }
-    type: select_or_other_list
-    region: content
   field_selected_address:
+    type: string_textfield
     weight: 1
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
 hidden:
   created: true
   status: true

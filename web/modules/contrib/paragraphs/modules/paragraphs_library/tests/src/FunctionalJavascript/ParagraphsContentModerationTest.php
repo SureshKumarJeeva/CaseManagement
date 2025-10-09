@@ -7,6 +7,7 @@ use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\paragraphs\Entity\ParagraphsType;
 use Drupal\Tests\field_ui\Traits\FieldUiTestTrait;
 use Drupal\Tests\paragraphs\FunctionalJavascript\ParagraphsTestBaseTrait;
+use Drupal\Tests\paragraphs\Traits\ParagraphsCoreVersionUiTestTrait;
 use Drupal\Tests\paragraphs\Traits\ParagraphsLastEntityQueryTrait;
 
 /**
@@ -16,7 +17,7 @@ use Drupal\Tests\paragraphs\Traits\ParagraphsLastEntityQueryTrait;
  */
 class ParagraphsContentModerationTest extends WebDriverTestBase {
 
-  use ParagraphsTestBaseTrait, FieldUiTestTrait, ParagraphsLastEntityQueryTrait;
+  use ParagraphsTestBaseTrait, FieldUiTestTrait, ParagraphsLastEntityQueryTrait, ParagraphsCoreVersionUiTestTrait;
 
   /**
    * A user with permission to bypass access content.
@@ -54,7 +55,7 @@ class ParagraphsContentModerationTest extends WebDriverTestBase {
   /**
    * {@inheritdoc}
    */
-  protected $defaultTheme = 'classy';
+  protected $defaultTheme = 'starterkit_theme';
 
   /**
    * {@inheritdoc}
@@ -113,10 +114,7 @@ class ParagraphsContentModerationTest extends WebDriverTestBase {
       'view all revisions',
     ]);
 
-    $this->drupalPlaceBlock('system_breadcrumb_block');
-    $this->drupalPlaceBlock('local_tasks_block');
-    $this->drupalPlaceBlock('local_actions_block');
-    $this->drupalPlaceBlock('page_title_block');
+    $this->placeDefaultBlocks();
 
     $this->drupalLogin($this->adminUser);
   }
@@ -167,7 +165,6 @@ class ParagraphsContentModerationTest extends WebDriverTestBase {
     $modal = $assert_session->waitForElement('css', '.ui-dialog');
     $this->assertNotNull($modal);
     $session->switchToIFrame('entity_browser_iframe_paragraphs_library_items');
-    $assert_session->assertWaitOnAjaxRequest();
     $assert_session->pageTextContains('Library item 1');
     // Select the first item from the library and accept.
     $first_row_checkbox = $assert_session->elementExists('css', '.view-content tbody tr:nth-child(1) input');
@@ -175,7 +172,6 @@ class ParagraphsContentModerationTest extends WebDriverTestBase {
     $page->pressButton('Select reusable paragraph');
     $session->wait(1000);
     $session->switchToIFrame();
-    $assert_session->assertWaitOnAjaxRequest();
     // Make sure the content moderation control extra field is not rendered in
     // the summary viewmode of the library item.
     $assert_session->elementExists('css', '#edit-field-paragraphs-wrapper .rendered-entity');
@@ -408,11 +404,13 @@ class ParagraphsContentModerationTest extends WebDriverTestBase {
     $nodes = \Drupal::entityTypeManager()->getStorage('node')->getQuery()
       ->allRevisions()
       ->condition($host_node->getEntityType()->getKey('id'), $host_node->id())
+      ->accessCheck(TRUE)
       ->execute();
     $this->assertEquals(7, count($nodes));
     $library_items = \Drupal::entityTypeManager()->getStorage('paragraphs_library_item')->getQuery()
       ->allRevisions()
       ->condition($library_item->getEntityType()->getKey('id'), $library_item->id())
+      ->accessCheck(TRUE)
       ->execute();
     $this->assertEquals(6, count($library_items));
 
@@ -541,7 +539,6 @@ class ParagraphsContentModerationTest extends WebDriverTestBase {
     $modal = $assert_session->waitForElement('css', '.ui-dialog');
     $this->assertNotNull($modal);
     $session->switchToIFrame('entity_browser_iframe_paragraphs_library_items');
-    $assert_session->assertWaitOnAjaxRequest();
     $assert_session->pageTextContains('Child library item');
     $assert_session->pageTextContains('Rich library item');
     $table = $assert_session->elementExists('css', 'table.views-table');

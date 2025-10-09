@@ -18,16 +18,16 @@ plugin: 'views_block:job_list-block_1'
 settings:
   id: 'views_block:job_list-block_1'
   label: ''
-  provider: views
   label_display: visible
+  provider: views
+  context_mapping: {  }
   views_label: ''
   items_per_page: none
-  context_mapping: {  }
 visibility:
-  entity_bundle:node:
-    id: entity_bundle:node
-    bundles:
-      client: client
+  'entity_bundle:node':
+    id: 'entity_bundle:node'
     negate: false
     context_mapping:
       node: '@node.node_route_context:node'
+    bundles:
+      client: client

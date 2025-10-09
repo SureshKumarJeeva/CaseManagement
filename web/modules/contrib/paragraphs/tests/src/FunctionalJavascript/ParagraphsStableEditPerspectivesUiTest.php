@@ -5,6 +5,7 @@ namespace Drupal\Tests\paragraphs\FunctionalJavascript;
 use Drupal\Core\Entity\Entity\EntityFormDisplay;
 use Drupal\FunctionalJavascriptTests\WebDriverTestBase;
 use Drupal\paragraphs\Entity\ParagraphsType;
+use Drupal\Tests\paragraphs\Traits\ParagraphsCoreVersionUiTestTrait;
 
 /**
  * Test paragraphs user interface.
@@ -15,13 +16,14 @@ class ParagraphsStableEditPerspectivesUiTest extends WebDriverTestBase {
 
   use LoginAdminTrait;
   use ParagraphsTestBaseTrait;
+  use ParagraphsCoreVersionUiTestTrait;
 
   /**
    * Modules to enable.
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'node',
     'paragraphs_test',
     'paragraphs',
@@ -42,6 +44,7 @@ class ParagraphsStableEditPerspectivesUiTest extends WebDriverTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
+    $this->placeDefaultBlocks();
   }
 
   /**
@@ -72,7 +75,7 @@ class ParagraphsStableEditPerspectivesUiTest extends WebDriverTestBase {
     $this->assertFalse($style_selector->isVisible());
 
     // Assert scroll position when switching tabs.
-    $this->getSession()->resizeWindow(800, 500);
+    $this->getSession()->resizeWindow(800, 450);
     $this->drupalGet('node/add/testcontent');
     $button = $this->getSession ()->getPage()->findButton('Add TestPlugin');
     $button->press();
@@ -193,21 +196,19 @@ class ParagraphsStableEditPerspectivesUiTest extends WebDriverTestBase {
 
     $this->drupalGet('admin/structure/types/manage/testcontent/fields/add-field');
     $page->selectFieldOption('new_storage_type', 'field_ui:entity_reference_revisions:paragraph');
+    if ($this->coreVersion('10.3')) {
+      $page->pressButton('Continue');
+    }
     $page->fillField('label', 'testparagraphfield');
     $this->assertSession()->waitForElementVisible('css', '#edit-name-machine-name-suffix .link');
     $page->pressButton('Edit');
     $page->fillField('field_name', 'testparagraphfield');
-    $page->pressButton('Save and continue');
-
+    $page->pressButton('Continue');
     $edit = [
-      'settings[target_type]' => 'paragraph',
+      'field_storage[subform][settings][target_type]' => 'paragraph',
     ];
-    $this->submitForm($edit, 'Save field settings');
-    $this->submitForm([], 'Save settings');
-    $this->drupalGet('admin/structure/types/manage/testcontent/form-display');
-    $page->selectFieldOption('fields[field_testparagraphfield][type]', 'paragraphs');
-    $this->assertSession()->assertWaitOnAjaxRequest();
-    $this->submitForm([], 'Save');
+    $this->submitForm($edit, 'Save settings');
+
     $this->drupalGet('node/add/testcontent');
     $style_selector = $page->find('css', '.paragraphs-tabs');
     $this->assertFalse($style_selector->isVisible());

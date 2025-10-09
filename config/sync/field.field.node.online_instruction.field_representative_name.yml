@@ -9,7 +9,7 @@ id: node.online_instruction.field_representative_name
 field_name: field_representative_name
 entity_type: node
 bundle: online_instruction
-label: 'Client''s Representative Name'
+label: "Client's Representative Name"
 description: ''
 required: true
 translatable: false

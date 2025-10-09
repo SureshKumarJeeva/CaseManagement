@@ -1,0 +1,12 @@
+name: 'Paragraphs Features Test'
+type: module
+description: 'Provides Test scaffolds for Paragraphs Features module.'
+package: Testing
+dependencies:
+  - drupal:ckeditor5
+  - paragraphs_features:paragraphs_features
+
+# Information added by Drupal.org packaging script on 2025-06-24
+version: '2.2.0'
+project: 'paragraphs_features'
+datestamp: 1750763758

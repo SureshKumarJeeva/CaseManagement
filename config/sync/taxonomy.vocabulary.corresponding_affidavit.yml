@@ -4,5 +4,6 @@ status: true
 dependencies: {  }
 name: 'Corresponding Affidavit'
 vid: corresponding_affidavit
-description: ''
+description: null
 weight: 0
+new_revision: false

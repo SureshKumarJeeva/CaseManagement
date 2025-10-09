@@ -4,6 +4,7 @@ namespace Drupal\Tests\paragraphs\Functional\Migrate;
 
 use Behat\Mink\Exception\ExpectationException;
 use Drupal\Component\Plugin\Exception\PluginNotFoundException;
+use Drupal\Core\Database\Database;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Site\Settings;
@@ -21,9 +22,8 @@ abstract class MigrateUiParagraphsTestBase extends MigrateUpgradeTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = [
+  protected static $modules = [
     'content_translation',
-    'migrate_drupal_multilingual',
     'migrate_drupal_ui',
     'paragraphs',
     'telephone',
@@ -33,14 +33,14 @@ abstract class MigrateUiParagraphsTestBase extends MigrateUpgradeTestBase {
    * {@inheritdoc}
    */
   protected function getSourceBasePath() {
-    return drupal_get_path('module', 'paragraphs') . '/tests/fixtures';
+    return \Drupal::service('extension.list.module')->getPath('paragraphs') . '/tests/fixtures';
   }
 
   /**
    * {@inheritdoc}
    */
   protected function getSourcePrivateFilesPath() {
-    return drupal_get_path('module', 'paragraphs') . '/tests/fixtures';
+    return \Drupal::service('extension.list.module')->getPath('paragraphs') . '/tests/fixtures';
   }
 
   /**
@@ -393,7 +393,7 @@ abstract class MigrateUiParagraphsTestBase extends MigrateUpgradeTestBase {
   protected function setUp(): void {
     parent::setUp();
 
-    $this->loadFixture(drupal_get_path('module', 'paragraphs') . '/tests/fixtures/drupal7.php');
+    $this->loadFixture(\Drupal::service('extension.list.module')->getPath('paragraphs') . '/tests/fixtures/drupal7.php');
   }
 
   /**
@@ -405,7 +405,7 @@ abstract class MigrateUiParagraphsTestBase extends MigrateUpgradeTestBase {
     $session = $this->assertSession();
     $session->responseContains('Upgrade a site by importing its files and the data from its database into a clean and empty new install of Drupal');
 
-    $this->submitForm([], $this->t('Continue'));
+    $this->submitForm([], 'Continue');
     $session->pageTextContains('Provide credentials for the database of the Drupal site you want to upgrade.');
 
     $driver = $connection_options['driver'];
@@ -415,8 +415,15 @@ abstract class MigrateUiParagraphsTestBase extends MigrateUpgradeTestBase {
 
     // Use the driver connection form to get the correct options out of the
     // database settings. This supports all of the databases we test against.
-    $drivers = drupal_get_database_types();
-    $form = $drivers[$driver]->getFormOptions($connection_options);
+    if (method_exists(Database::class, 'getDriverList')) {
+      $drivers = Database::getDriverList()->getInstallableList();
+      $form = $drivers[$driver]->getInstallTasks()->getFormOptions($connection_options);
+    }
+    else {
+      // @phpstan-ignore-next-line
+      $drivers = drupal_get_database_types();
+      $form = $drivers[$driver]->getFormOptions($connection_options);
+    }
     $connection_options = array_intersect_key($connection_options, $form + $form['advanced_options']);
     $version = $this->getLegacyDrupalVersion($this->sourceDatabase);
     $edit = [
@@ -431,17 +438,17 @@ abstract class MigrateUiParagraphsTestBase extends MigrateUpgradeTestBase {
     }
     $edits = $this->translatePostValues($edit);
 
-    $this->submitForm($edits, $this->t('Review upgrade'));
+    $this->submitForm($edits, 'Review upgrade');
     $session->pageTextNotContains('Resolve all issues below to continue the upgrade.');
 
     // ID conflict form.
-    $session->buttonExists($this->t('I acknowledge I may lose data. Continue anyway.'));
-    $this->submitForm([], $this->t('I acknowledge I may lose data. Continue anyway.'));
+    $session->buttonExists('I acknowledge I may lose data. Continue anyway.');
+    $this->submitForm([], 'I acknowledge I may lose data. Continue anyway.');
     $session->statusCodeEquals(200);
 
     // Perform the upgrade.
-    $this->submitForm([], $this->t('Perform upgrade'));
-    $session->pageTextContains($this->t('Congratulations, you upgraded Drupal!'));
+    $this->submitForm([], 'Perform upgrade');
+    $session->pageTextContains('Congratulations, you upgraded Drupal!');
 
     // Have to reset all the statics after migration to ensure entities are
     // loadable.

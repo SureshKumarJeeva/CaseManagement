@@ -44,7 +44,7 @@ class SettingsForm extends ConfigFormBase {
       $config_email_template = $config->get('email_template');
     }
     $db = Database::getConnection();
-    $query = db_select('node_field_data', 'n');
+    $query = \Drupal::database()->select('node_field_data', 'n');
     $query->fields('n', ['nid', 'title']);
     $query->leftjoin('node__field_category', 'fc', 'fc.entity_id = n.nid');
     $query->fields('fc', ['field_category_value']);

@@ -1,0 +1,17 @@
+uuid: f1f5efb7-e627-4d38-8bbb-60b300443902
+langcode: en
+status: true
+dependencies: {  }
+id: list_all
+label: 'List All'
+groups:
+  fields:
+    label: Fields
+    id: fields
+    weight: '0'
+  media:
+    label: Media
+    id: media
+    weight: '1'
+map:
+  test_paragraph: fields

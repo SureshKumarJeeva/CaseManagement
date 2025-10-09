@@ -14,7 +14,7 @@ class ParagraphsEntityTranslationWithNonTranslatableParagraphs extends Paragraph
    *
    * @var array
    */
-  public static $modules = [
+  protected static $modules = [
     'language',
     'content_translation',
   ];
@@ -48,7 +48,7 @@ class ParagraphsEntityTranslationWithNonTranslatableParagraphs extends Paragraph
       'language_configuration[content_translation]' => TRUE,
     );
     $this->drupalGet('admin/structure/types/manage/article');
-    $this->submitForm($edit, 'Save content type');
+    $this->submitForm($edit, 'Save');
     $this->drupalGet('admin/structure/types/manage/article');
 
     // Ensue the paragraphs field itself isn't translatable - this would be a

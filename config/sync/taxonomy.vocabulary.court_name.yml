@@ -4,5 +4,6 @@ status: true
 dependencies: {  }
 name: 'Court Name'
 vid: court_name
-description: ''
+description: null
 weight: 0
+new_revision: false

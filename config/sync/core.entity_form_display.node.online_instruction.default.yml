@@ -35,144 +35,145 @@ third_party_settings:
         - group_urgent_service_required
         - field_additional_information
         - field_upload_documents
+      label: 'Service Details'
+      region: content
       parent_name: ''
       weight: 4
       format_type: fieldset
-      region: content
       format_settings:
+        classes: online-instruction-service-detail
+        id: ''
         description: ''
         required_fields: true
-        id: ''
-        classes: online-instruction-service-detail
-      label: 'Service Details'
     group_name_of_served:
       children:
         - field_first_name
         - field_last_name
+      label: 'Name of Person/Entity to be Served'
+      region: content
       parent_name: group_service_details
       weight: 11
       format_type: fieldset
-      region: content
       format_settings:
+        classes: online-instruction-name-of-served
+        id: ''
         description: ''
         required_fields: true
-        id: ''
-        classes: online-instruction-name-of-served
-      label: 'Name of Person/Entity to be Served'
     group_urgent_service_required:
       children:
         - field_same_day
         - field_next_day
+      label: 'Urgent Service Required'
+      region: content
       parent_name: group_service_details
       weight: 17
       format_type: fieldset
-      region: content
       format_settings:
+        classes: online-instruction-urgent-service-required
+        id: ''
         description: ''
         required_fields: true
-        id: ''
-        classes: online-instruction-urgent-service-required
-      label: 'Urgent Service Required'
 id: node.online_instruction.default
 targetEntityType: node
 bundle: online_instruction
 mode: default
 content:
   field_additional_information:
+    type: string_textarea
     weight: 18
+    region: content
     settings:
       rows: 5
       placeholder: ''
     third_party_settings: {  }
-    type: string_textarea
-    region: content
   field_address_of_served:
-    weight: 12
-    settings: {  }
-    third_party_settings: {  }
     type: address_default
+    weight: 12
     region: content
+    settings:
+      wrapper_type: details
+    third_party_settings: {  }
   field_client_s_job_reference:
+    type: string_textfield
     weight: 1
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_first_name:
+    type: string_textfield
     weight: 9
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_last_date_for_service:
+    type: datetime_default
     weight: 16
+    region: content
     settings: {  }
     third_party_settings: {  }
-    type: datetime_default
-    region: content
   field_last_name:
+    type: string_textfield
     weight: 10
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_next_day:
+    type: boolean_checkbox
     weight: 18
+    region: content
     settings:
       display_label: true
     third_party_settings: {  }
-    type: boolean_checkbox
-    region: content
   field_representative_name:
+    type: string_textfield
     weight: 2
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_representative_telephone:
+    type: telephone_default
     weight: 3
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: telephone_default
-    region: content
   field_same_day:
+    type: boolean_checkbox
     weight: 17
+    region: content
     settings:
       display_label: true
     third_party_settings: {  }
-    type: boolean_checkbox
-    region: content
   field_telephone_of_served:
+    type: telephone_default
     weight: 13
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: telephone_default
-    region: content
   field_upload_documents:
+    type: file_generic
     weight: 19
+    region: content
     settings:
       progress_indicator: throbber
     third_party_settings: {  }
-    type: file_generic
-    region: content
   field_work_details_of_served:
+    type: string_textarea
     weight: 15
+    region: content
     settings:
       rows: 5
       placeholder: ''
     third_party_settings: {  }
-    type: string_textarea
-    region: content
   title:
     type: string_textfield
     weight: 0

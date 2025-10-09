@@ -19,35 +19,12 @@ class EntityReferenceRevisionsFieldItemList extends EntityReferenceFieldItemList
    * {@inheritdoc}
    */
   public function referencedEntities() {
-    if (empty($this->list)) {
-      return array();
-    }
-
-    // Collect the IDs of existing entities to load, and directly grab the
-    // "autocreate" entities that are already populated in $item->entity.
-    $target_entities = $ids = array();
+    $target_entities = [];
     foreach ($this->list as $delta => $item) {
-      if ($item->hasNewEntity()) {
+      if ($item->entity) {
         $target_entities[$delta] = $item->entity;
       }
-      elseif ($item->target_revision_id !== NULL) {
-        $ids[$delta] = $item->target_revision_id;
-      }
     }
-
-    // Load and add the existing entities.
-    if ($ids) {
-      $target_type = $this->getFieldDefinition()->getSetting('target_type');
-      foreach ($ids as $delta => $target_id) {
-        $entity = \Drupal::entityTypeManager()->getStorage($target_type)->loadRevision($target_id);
-        if ($entity) {
-          $target_entities[$delta] = $entity;
-        }
-      }
-      // Ensure the returned array is ordered by deltas.
-      ksort($target_entities);
-    }
-
     return $target_entities;
   }
 
@@ -69,6 +46,7 @@ class EntityReferenceRevisionsFieldItemList extends EntityReferenceFieldItemList
         $target_type = $definition->getSetting('target_type');
         $entity_ids = \Drupal::entityQuery($target_type)
           ->condition('uuid', $uuids, 'IN')
+          ->accessCheck(TRUE)
           ->execute();
         $entities = \Drupal::entityTypeManager()
           ->getStorage($target_type)
@@ -116,10 +94,12 @@ class EntityReferenceRevisionsFieldItemList extends EntityReferenceFieldItemList
     }
 
     foreach ($default_value as $delta => $properties) {
-      $default_value[$delta] = array(
-        'target_uuid' => $entities[$properties['target_revision_id']]->uuid(),
-        'target_revision_id' => $properties['target_revision_id'],
-      );
+      if (!empty($entities[$properties['target_revision_id']])) {
+        $default_value[$delta] = array(
+          'target_uuid' => $entities[$properties['target_revision_id']]->uuid(),
+          'target_revision_id' => $properties['target_revision_id'],
+        );
+      }
     }
     return $default_value;
   }

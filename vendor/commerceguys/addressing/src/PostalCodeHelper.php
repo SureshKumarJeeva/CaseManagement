@@ -11,13 +11,13 @@ class PostalCodeHelper
      * Checks whether the provided postal code matches the provided rules.
      *
      * @param string $postalCode  The postal code.
-     * @param string $includeRule The rule for included postal codes.
-     * @param string $excludeRule (Optional) The rule for excluded postal codes.
+     * @param ?string $includeRule The rule for included postal codes.
+     * @param ?string $excludeRule (Optional) The rule for excluded postal codes.
      *
      * @return bool True if the provided postal code matches the provided
      *              rules, false otherwise.
      */
-    public static function match($postalCode, $includeRule, $excludeRule = '')
+    public static function match(string $postalCode, ?string $includeRule, ?string $excludeRule = ''): bool
     {
         $matchIncluded = true;
         if ($includeRule) {
@@ -42,9 +42,9 @@ class PostalCodeHelper
      * @return bool True if the provided postal code matches the provided
      *              rules, false otherwise.
      */
-    protected static function matchRule($postalCode, $rule)
+    protected static function matchRule(string $postalCode, string $rule): bool
     {
-        if (substr($rule, 0, 1) == '/' && substr($rule, -1, 1) == '/') {
+        if (str_starts_with($rule, '/') && str_ends_with($rule, '/')) {
             $match = preg_match($rule, $postalCode);
         } else {
             $match = in_array($postalCode, self::buildList($rule));
@@ -58,16 +58,14 @@ class PostalCodeHelper
      *
      * Expands any ranges into full values (e.g. "1:3" becomes "1, 2, 3").
      *
-     * @param string $postalCodes The postal codes.
-     *
      * @return array The list of postal codes.
      */
-    protected static function buildList($postalCodes)
+    protected static function buildList(string $postalCodes): array
     {
         $postalCodeList = [];
         foreach (explode(',', $postalCodes) as $postalCode) {
             $postalCode = trim($postalCode);
-            if (strpos($postalCode, ':') !== false) {
+            if (str_contains($postalCode, ':')) {
                 $postalCodeRange = explode(':', $postalCode);
                 if (is_numeric($postalCodeRange[0]) && is_numeric($postalCodeRange[1])) {
                     $postalCodeRange = range($postalCodeRange[0], $postalCodeRange[1]);

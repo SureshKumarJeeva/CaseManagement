@@ -14,15 +14,18 @@ bundle: basic_page
 mode: default
 content:
   body:
-    label: hidden
     type: text_default
-    weight: 101
+    label: hidden
     settings: {  }
     third_party_settings: {  }
+    weight: 101
     region: content
   links:
-    weight: 100
-    region: content
     settings: {  }
     third_party_settings: {  }
-hidden: {  }
+    weight: 100
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true

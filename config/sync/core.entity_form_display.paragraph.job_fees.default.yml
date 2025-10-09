@@ -19,55 +19,55 @@ third_party_settings:
         - field_agreed_fee
         - field_units
         - field_total
+      label: Fees
+      region: content
       parent_name: ''
       weight: 2
       format_type: fieldset
-      region: content
       format_settings:
-        id: ''
         classes: job-fees-fieldgroup-fees
+        id: ''
         description: ''
         required_fields: true
-      label: Fees
 id: paragraph.job_fees.default
 targetEntityType: paragraph
 bundle: job_fees
 mode: default
 content:
   field_agreed_fee:
+    type: number
     weight: 3
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: number
-    region: content
   field_standard_fee:
+    type: number
     weight: 1
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: number
-    region: content
   field_total:
+    type: number
     weight: 5
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: number
-    region: content
   field_type_of_service:
+    type: chosen_select
     weight: 0
+    region: content
     settings: {  }
     third_party_settings: {  }
-    type: chosen_select
-    region: content
   field_units:
+    type: number
     weight: 4
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: number
-    region: content
 hidden:
   created: true
   status: true

@@ -27,13 +27,14 @@ class FieldHelper {
       AddressField::SORTING_CODE => 'sorting_code',
       AddressField::ADDRESS_LINE1 => 'address_line1',
       AddressField::ADDRESS_LINE2 => 'address_line2',
+      AddressField::ADDRESS_LINE3 => 'address_line3',
       AddressField::ORGANIZATION => 'organization',
       AddressField::GIVEN_NAME => 'given_name',
       AddressField::ADDITIONAL_NAME => 'additional_name',
       AddressField::FAMILY_NAME => 'family_name',
     ];
 
-    return isset($property_mapping[$field]) ? $property_mapping[$field] : NULL;
+    return $property_mapping[$field] ?? NULL;
   }
 
   /**
@@ -56,13 +57,14 @@ class FieldHelper {
       AddressField::SORTING_CODE => 'sorting-code',
       AddressField::ADDRESS_LINE1 => 'address-line1',
       AddressField::ADDRESS_LINE2 => 'address-line2',
+      AddressField::ADDRESS_LINE3 => 'address-line3',
       AddressField::ORGANIZATION => 'organization',
       AddressField::FAMILY_NAME => 'family-name',
       AddressField::ADDITIONAL_NAME => 'additional-name',
       AddressField::GIVEN_NAME => 'given-name',
     ];
 
-    return isset($autocomplete_mapping[$field]) ? $autocomplete_mapping[$field] : NULL;
+    return $autocomplete_mapping[$field] ?? NULL;
   }
 
 }

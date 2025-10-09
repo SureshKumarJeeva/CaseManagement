@@ -7,7 +7,7 @@ dependencies:
   - drupal:image
   - drupal:text
 
-# Information added by Drupal.org packaging script on 2022-07-26
-version: '8.x-3.9'
+# Information added by Drupal.org packaging script on 2024-06-11
+version: '4.1.0'
 project: 'ctools'
-datestamp: 1658864515
+datestamp: 1718144953

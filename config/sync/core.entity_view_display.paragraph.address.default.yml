@@ -16,28 +16,28 @@ third_party_settings:
     group_addresses:
       children:
         - field_address
+      label: Address
       parent_name: ''
+      region: content
       weight: 0
       format_type: fieldset
       format_settings:
-        description: ''
-        id: ''
         classes: ''
-      label: Address
-      region: content
+        id: ''
+        description: ''
 id: paragraph.address.default
 targetEntityType: paragraph
 bundle: address
 mode: default
 content:
   field_address:
-    weight: 1
+    type: address_default
     label: hidden
     settings: {  }
     third_party_settings:
       field_formatter_class:
         class: address
-    type: address_default
+    weight: 1
     region: content
 hidden:
   entity_print_view_epub: true

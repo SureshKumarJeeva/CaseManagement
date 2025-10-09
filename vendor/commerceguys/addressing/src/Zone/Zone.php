@@ -9,32 +9,15 @@ use CommerceGuys\Addressing\AddressInterface;
  */
 class Zone
 {
-    /**
-     * The ID.
-     *
-     * @var string
-     */
-    protected $id;
+    protected string $id;
+
+    protected string $label;
 
     /**
-     * The label.
-     *
-     * @var string
+     * @var ZoneTerritory[]
      */
-    protected $label;
+    protected array $territories;
 
-    /**
-     * The territories.
-     *
-     * @var \CommerceGuys\Addressing\Zone\ZoneTerritory[]
-     */
-    protected $territories;
-
-    /**
-     * Creates a new Zone instance.
-     *
-     * @param array $definition The definition array.
-     */
     public function __construct(array $definition)
     {
         foreach (['id', 'label', 'territories'] as $required_property) {
@@ -43,7 +26,7 @@ class Zone
             }
         }
         if (!is_array($definition['territories'])) {
-            throw new \InvalidArgumentException(sprintf('The property "territories" must be an array.'));
+            throw new \InvalidArgumentException('The property "territories" must be an array.');
         }
 
         $this->id = $definition['id'];
@@ -53,22 +36,12 @@ class Zone
         }
     }
 
-    /**
-     * Gets the ID.
-     *
-     * @return string The ID.
-     */
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
 
-    /**
-     * Gets the label.
-     *
-     * @return string The label.
-     */
-    public function getLabel()
+    public function getLabel(): string
     {
         return $this->label;
     }
@@ -76,21 +49,17 @@ class Zone
     /**
      * Gets the territories.
      *
-     * @return \CommerceGuys\Addressing\Zone\ZoneTerritory[] The territories.
+     * @return ZoneTerritory[] The territories.
      */
-    public function getTerritories()
+    public function getTerritories(): array
     {
         return $this->territories;
     }
 
     /**
      * Checks whether the provided address belongs to the zone.
-     *
-     * @param \CommerceGuys\Addressing\AddressInterface $address The address.
-     *
-     * @return bool True if the provided address belongs to the zone, false otherwise.
      */
-    public function match(AddressInterface $address)
+    public function match(AddressInterface $address): bool
     {
         foreach ($this->territories as $territory) {
             if ($territory->match($address)) {

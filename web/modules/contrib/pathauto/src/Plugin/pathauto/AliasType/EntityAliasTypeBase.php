@@ -10,8 +10,8 @@ use Drupal\Core\KeyValueStore\KeyValueFactoryInterface;
 use Drupal\Core\Language\LanguageManagerInterface;
 use Drupal\Core\Plugin\ContainerFactoryPluginInterface;
 use Drupal\Core\Plugin\Context\Context;
-use Drupal\Core\Plugin\ContextAwarePluginBase;
-use Drupal\Core\Messenger\MessengerTrait;
+use Drupal\Core\Plugin\ContextAwarePluginTrait;
+use Drupal\Core\Plugin\PluginBase;
 use Drupal\pathauto\AliasTypeBatchUpdateInterface;
 use Drupal\pathauto\AliasTypeInterface;
 use Drupal\pathauto\PathautoState;
@@ -25,9 +25,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  *   deriver = "\Drupal\pathauto\Plugin\Deriver\EntityAliasTypeDeriver"
  * )
  */
-class EntityAliasTypeBase extends ContextAwarePluginBase implements AliasTypeInterface, AliasTypeBatchUpdateInterface, ContainerFactoryPluginInterface {
+class EntityAliasTypeBase extends PluginBase implements AliasTypeInterface, AliasTypeBatchUpdateInterface, ContainerFactoryPluginInterface {
 
-  use MessengerTrait;
+  use ContextAwarePluginTrait;
 
   /**
    * The module handler service.
@@ -190,7 +190,10 @@ class EntityAliasTypeBase extends ContextAwarePluginBase implements AliasTypeInt
     $context['sandbox']['count'] += count($ids);
     $context['sandbox']['current'] = !empty($ids) ? max($ids) : 0;
     $context['results']['updates'] += $updates;
-    $context['message'] = $this->t('Updated alias for %label @id.', ['%label' => $entity_type->getLabel(), '@id' => end($ids)]);
+    $context['message'] = $this->t('Updated alias for %label @id.', [
+      '%label' => $entity_type->getLabel(),
+      '@id' => end($ids),
+    ]);
 
     if ($context['sandbox']['count'] != $context['sandbox']['total']) {
       $context['finished'] = $context['sandbox']['count'] / $context['sandbox']['total'];
@@ -281,8 +284,8 @@ class EntityAliasTypeBase extends ContextAwarePluginBase implements AliasTypeInt
 
     if (!empty($options['message'])) {
       $this->messenger->addMessage($this->formatPlural(count($ids), 'Updated 1 %label URL alias.', 'Updated @count %label URL aliases.'), [
-          '%label' => $this->getLabel(),
-        ]);
+        '%label' => $this->getLabel(),
+      ]);
     }
 
     return $updates;

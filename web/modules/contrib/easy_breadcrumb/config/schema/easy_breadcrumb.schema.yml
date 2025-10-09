@@ -49,6 +49,9 @@ easy_breadcrumb.settings:
     use_page_title_as_menu_title_fallback:
       type: boolean
       label: 'Use the page title as a fallback if the menu title is not set'
+    menu_title_preferred_menu:
+      type: string
+      label: 'Preferred menu to use as menu title source'
     remove_repeated_segments:
       type: boolean
       label: 'Remove repeated identical segments'
@@ -98,14 +101,23 @@ easy_breadcrumb.settings:
       type: boolean
       label: 'Limit breadcrumb trail segments'
     segment_display_limit:
-      type: number
+      type: integer
       label: 'Breadcrumb segment count'
+    segment_display_minimum:
+      type: integer
+      label: 'Breadcrumb segment minimum count'
     truncator_mode:
       type: boolean
       label: 'Enable truncation for titles.'
     truncator_length:
-      type: text
+      type: integer
       label: 'Set the limit for truncation.'
     truncator_dots:
       type: boolean
       label: 'Enable dots at the end of truncation.'
+    remove_repeated_segments_text_only:
+      type: boolean
+      label: 'Remove repeated identical segments - only validate on the text'
+    home_segment_validation_skip:
+      type: boolean
+      label: 'Do not check for path, that is duplicate of home page.'

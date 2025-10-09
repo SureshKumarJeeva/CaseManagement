@@ -12,7 +12,7 @@ third_party_settings:
 name: Preview
 type: preview
 description: 'Use Preview for edit or preview document before generating pdf.'
-help: ''
+help: null
 new_revision: false
 preview_mode: 1
 display_submitted: false

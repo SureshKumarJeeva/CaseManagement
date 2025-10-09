@@ -20,7 +20,7 @@ third_party_settings:
 name: Library
 type: library
 description: 'Use Library for create Templates.'
-help: ''
+help: null
 new_revision: true
 preview_mode: 1
 display_submitted: false

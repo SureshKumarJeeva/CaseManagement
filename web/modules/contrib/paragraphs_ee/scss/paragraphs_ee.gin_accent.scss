@@ -1,0 +1,218 @@
+@import "variables";
+@import "mixins";
+
+/**
+ * Gin overrides for paragraphs_ee.
+ */
+[data-once*="ginAccent"] {
+  .paragraphs-features__add-in-between__wrapper {
+    .paragraphs-features__add-in-between__button {
+      &.paragraphs_ee__add-in-between__dialog-button {
+        background-color: var(--gin-color-primary);
+      }
+
+      &:active,
+      &:focus,
+      &:hover {
+        &.paragraphs_ee__add-in-between__dialog-button {
+          background: var(--gin-color-primary);
+        }
+
+        &::before {
+          border-color: var(--gin-color-primary) !important;
+        }
+      }
+    }
+  }
+
+  .paragraphs-ee-add-dialog--categorized {
+    &:not(.ui-dialog-off-canvas) {
+      border: 1px solid var(--gin-border-color) !important;
+    }
+
+    .paragraphs-ee-dialog-wrapper {
+      border-radius: 0 0 var(--gin-border-m) var(--gin-border-m);
+    }
+
+    .ui-dialog-titlebar {
+      color: var(--gin-color-text);
+      background-color: rgba(var(--gin-bg-app-rgb), 0.8);
+
+      .ui-dialog-title {
+        color: var(--gin-color-text);
+      }
+
+      .display-toggle,
+      .ui-icon.ui-icon-closethick {
+        background-color: var(--gin-color-text);
+
+        &:active,
+        &:focus,
+        &:hover,
+        &[aria-pressed="true"] {
+          background-color: var(--gin-color-primary);
+        }
+      }
+
+      .ui-icon.ui-icon-closethick {
+        transform: translate(0, 40%);
+      }
+    }
+  }
+
+  #drupal-off-canvas-wrapper.paragraphs-ee-off-canvas--browser {
+    box-shadow: 0 0 0.25rem -1px rgba(0, 0, 0, 0.3);
+  }
+
+  #drupal-off-canvas-wrapper.paragraphs-ee-off-canvas--browser #drupal-off-canvas.ui-dialog-content,
+  .paragraphs-add-dialog {
+    --off-canvas-link-color: var(--gin-color-text);
+    --color-link-hover: var(--gin-color-primary-hover);
+
+    a,
+    .summary {
+      color: var(--gin-color-text) !important;
+    }
+
+    .item-filter {
+      color: var(--gin-color-text);
+      background-color: var(--gin-bg-input);
+      border: 1px solid var(--gin-border-color-form-element);
+
+      &:active,
+      &:focus,
+      &:hover {
+        box-shadow: 0 0 0 0 var(--color-white),0 0 0 2px var(--gin-color-primary);
+      }
+    }
+
+    .paragraphs-ee-buttons {
+      .category-title {
+        color: var(--gin-color-text) !important;
+      }
+
+      .paragraphs-button--add-more {
+        border-color: var(--gin-border-color-form-element) !important;
+
+        &:active,
+        &:focus,
+        &:hover {
+          border-color: var(--gin-color-primary) !important;
+          box-shadow: 0 0 0 0 var(--color-white),0 0 0 2px var(--gin-color-primary);
+          color: var(--gin-color-primary-hover);
+
+          & .paragraphs-button--icon_overlay::before {
+            background-color: var(--gin-color-primary);
+          }
+        }
+
+      }
+    }
+
+    .paragraphs-ee-category-toggle-label {
+      color: var(--gin-color-text);
+      background-color: var(--gin-bg-input);
+      border: 1px solid var(--gin-border-color-form-element);
+
+      &:active,
+      &:focus,
+      &:hover {
+        box-shadow: 0 0 0 0 var(--color-white),0 0 0 2px var(--gin-color-primary);
+
+        &::before {
+          color: var(--gin-color-primary);
+        }
+      }
+    }
+
+    .paragraphs-ee-category-list-item {
+      &.is-selected a,
+      a:hover,
+      a:active,
+      a:focus {
+        background-color: var(--gin-bg-item-hover);
+        color: var(--gin-color-primary-hover);
+
+        &::before {
+          border-left-color: var(--gin-color-primary-hover);
+        }
+      }
+    }
+  }
+
+  .field--widget-paragraphs .field-multiple-table .draggable {
+    &[class*=paragraph-type--] {
+      padding-bottom: 0;
+      padding-top: 0;
+    }
+
+    .tabledrag-cell-content .drag-and-drop-arrows__arrow {
+      &::after {
+        background-color: var(--gin-color-text-light);
+        padding-left: .25rem;
+      }
+
+      &:active,
+      &:focus,
+      &:hover {
+        color: var(--gin-color-primary-hover);
+
+        &::after {
+          background-color: var(--gin-color-primary-hover);
+        }
+      }
+
+      &:focus::before {
+        box-shadow: 0 0 0 1px var(--gin-color-focus-border), 0 0 0 4px var(--gin-color-focus);
+      }
+    }
+  }
+
+  .paragraphs-tabs-wrapper .field-multiple-table {
+    display: table !important;
+
+    & > tbody {
+      display: table-row-group !important;
+    }
+  }
+}
+
+/**
+ * Dark mode.
+ */
+.gin--dark-mode.js {
+  .paragraphs-features__add-in-between__wrapper {
+    .paragraphs-features__add-in-between__button {
+      background: var(--gin-bg-layer);
+      color: var(--gin-color-text);
+    }
+  }
+
+  .paragraphs-add-dialog {
+    .paragraphs-ee-category-list-item-link {
+      color: var(--gin-color-text);
+    }
+  }
+
+  #drupal-off-canvas-wrapper.paragraphs-ee-off-canvas--browser #drupal-off-canvas.ui-dialog-content,
+  .paragraphs-ee-buttons {
+    .paragraphs-button--add-more {
+      background: transparent;
+      border-color: var(--gin-color-primary) !important;
+      box-shadow: 0 1px 2px var(--gin-color-primary-light);
+      color: var(--gin-color-text);
+    }
+  }
+
+  #drupal-off-canvas-wrapper.paragraphs-ee-off-canvas--browser {
+    --off-canvas-background-color: var(--gin-bg-layer);
+    --color-text: var(--gin-color-text);
+
+    .ui-dialog-titlebar {
+      --off-canvas-title-background-color: rgba(var(--gin-bg-app-rgb), 0.8);
+      --off-canvas-title-text-color: var(--gin-color-text);
+    }
+
+    color: var(--gin-color-text);
+  }
+}

@@ -19,46 +19,46 @@ third_party_settings:
         - field_name
         - field_last_name
         - field_party_type
+      label: 'Party Details (Side One)'
       parent_name: ''
+      region: content
       weight: 0
       format_type: fieldset
       format_settings:
-        description: ''
-        id: ''
         classes: ''
-      label: 'Party Details (Side One)'
-      region: content
+        id: ''
+        description: ''
 id: paragraph.party.default
 targetEntityType: paragraph
 bundle: party
 mode: default
 content:
   field_last_name:
-    weight: 2
+    type: string
     label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    type: string
+    weight: 2
     region: content
   field_name:
-    weight: 1
+    type: string
     label: inline
     settings:
       link_to_entity: false
     third_party_settings:
       field_formatter_class:
         class: party-side-one-name-text
-    type: string
+    weight: 1
     region: content
   field_party_type:
-    weight: 3
+    type: list_default
     label: inline
     settings: {  }
     third_party_settings:
       field_formatter_class:
         class: party-side-one-type-select
-    type: list_default
+    weight: 3
     region: content
 hidden:
   entity_print_view_epub: true

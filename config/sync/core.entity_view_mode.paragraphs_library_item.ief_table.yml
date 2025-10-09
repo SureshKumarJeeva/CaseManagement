@@ -6,5 +6,6 @@ dependencies:
     - paragraphs_library
 id: paragraphs_library_item.ief_table
 label: 'Inline Entity Form Table'
+description: ''
 targetEntityType: paragraphs_library_item
 cache: true

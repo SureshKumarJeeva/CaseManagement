@@ -1,107 +1,158 @@
 {
 	"country_code": "ID",
+	"locale": "id",
 	"subdivisions": {
-		"Aceh": {
-			"iso_code": "ID-AC"
+		"AC": {
+			"name": "Aceh",
+			"local_name": "Aceh"
 		},
-		"Bali": {
-			"iso_code": "ID-BA"
+		"BA": {
+			"name": "Bali",
+			"local_name": "Bali"
 		},
-		"Banten": {
-			"iso_code": "ID-BT"
+		"BT": {
+			"name": "Banten",
+			"local_name": "Banten"
 		},
-		"Bengkulu": {
-			"iso_code": "ID-BE"
+		"BE": {
+			"name": "Bengkulu",
+			"local_name": "Bengkulu"
 		},
-		"Daerah Istimewa Yogyakarta": {
-			"iso_code": "ID-YO"
+		"YO": {
+			"name": "Special Region of Yogyakarta",
+			"local_name": "Daerah Istimewa Yogyakarta"
 		},
-		"DKI Jakarta": {
-			"iso_code": "ID-JK"
+		"JK": {
+			"name": "Jakarta",
+			"local_name": "DKI Jakarta"
 		},
-		"Gorontalo": {
-			"iso_code": "ID-GO"
+		"GO": {
+			"name": "Gorontalo",
+			"local_name": "Gorontalo"
 		},
-		"Jambi": {
-			"iso_code": "ID-JA"
+		"JA": {
+			"name": "Jambi",
+			"local_name": "Jambi"
 		},
-		"Jawa Barat": {
-			"iso_code": "ID-JB"
+		"JB": {
+			"name": "West Java",
+			"local_name": "Jawa Barat"
 		},
-		"Jawa Tengah": {
-			"iso_code": "ID-JT"
+		"JT": {
+			"name": "Central Java",
+			"local_name": "Jawa Tengah"
 		},
-		"Jawa Timur": {
-			"iso_code": "ID-JI"
+		"JI": {
+			"name": "East Java",
+			"local_name": "Jawa Timur"
 		},
-		"Kalimantan Barat": {
-			"iso_code": "ID-KB"
+		"KB": {
+			"name": "West Kalimantan",
+			"local_name": "Kalimantan Barat"
 		},
-		"Kalimantan Selatan": {
-			"iso_code": "ID-KS"
+		"KS": {
+			"name": "South Kalimantan",
+			"local_name": "Kalimantan Selatan"
 		},
-		"Kalimantan Tengah": {
-			"iso_code": "ID-KT"
+		"KT": {
+			"name": "Central Kalimantan",
+			"local_name": "Kalimantan Tengah"
 		},
-		"Kalimantan Timur": {
-			"iso_code": "ID-KI"
+		"KI": {
+			"name": "East Kalimantan",
+			"local_name": "Kalimantan Timur"
 		},
-		"Kalimantan Utara": {
-			"iso_code": "ID-KU"
+		"KU": {
+			"name": "North Kalimantan",
+			"local_name": "Kalimantan Utara"
 		},
-		"Kepulauan Bangka Belitung": {
-			"iso_code": "ID-BB"
+		"BB": {
+			"name": "Bangka Belitung Islands",
+			"local_name": "Kepulauan Bangka Belitung"
 		},
-		"Kepulauan Riau": {
-			"iso_code": "ID-KR"
+		"KR": {
+			"name": "Riau Islands",
+			"local_name": "Kepulauan Riau"
 		},
-		"Lampung": {
-			"iso_code": "ID-LA"
+		"LA": {
+			"name": "Lampung",
+			"local_name": "Lampung"
 		},
-		"Maluku": {
-			"iso_code": "ID-MA"
+		"MA": {
+			"name": "Maluku",
+			"local_name": "Maluku"
 		},
-		"Maluku Utara": {
-			"iso_code": "ID-MU"
+		"MU": {
+			"name": "North Maluku",
+			"local_name": "Maluku Utara"
 		},
-		"Nusa Tenggara Barat": {
-			"iso_code": "ID-NB"
+		"NB": {
+			"name": "West Nusa Tenggara",
+			"local_name": "Nusa Tenggara Barat"
 		},
-		"Nusa Tenggara Timur": {
-			"iso_code": "ID-NT"
+		"NT": {
+			"name": "East Nusa Tenggara",
+			"local_name": "Nusa Tenggara Timur"
 		},
-		"Papua": {
-			"iso_code": "ID-PA"
+		"PA": {
+			"name": "Papua",
+			"local_name": "Papua"
 		},
-		"Papua Barat": {
-			"iso_code": "ID-PB"
+		"PB": {
+			"name": "West Papua",
+			"local_name": "Papua Barat"
 		},
-		"Riau": {
-			"iso_code": "ID-RI"
+		"PD": {
+			"name": "Southwest Papua",
+			"local_name": "Papua Barat Daya"
 		},
-		"Sulawesi Barat": {
-			"iso_code": "ID-SR"
+		"PE": {
+			"name": "Highland Papua",
+			"local_name": "Papua Pengunungan"
 		},
-		"Sulawesi Selatan": {
-			"iso_code": "ID-SN"
+		"PS": {
+			"name": "South Papua",
+			"local_name": "Papua Selatan"
 		},
-		"Sulawesi Tengah": {
-			"iso_code": "ID-ST"
+		"PT": {
+			"name": "Central Papua",
+			"local_name": "Papua Tengah"
 		},
-		"Sulawesi Tenggara": {
-			"iso_code": "ID-SG"
+		"RI": {
+			"name": "Riau",
+			"local_name": "Riau"
 		},
-		"Sulawesi Utara": {
-			"iso_code": "ID-SA"
+		"SR": {
+			"name": "West Sulawesi",
+			"local_name": "Sulawesi Barat"
 		},
-		"Sumatera Barat": {
-			"iso_code": "ID-SB"
+		"SN": {
+			"name": "South Sulawesi",
+			"local_name": "Sulawesi Selatan"
 		},
-		"Sumatera Selatan": {
-			"iso_code": "ID-SS"
+		"ST": {
+			"name": "Central Sulawesi",
+			"local_name": "Sulawesi Tengah"
 		},
-		"Sumatera Utara": {
-			"iso_code": "ID-SU"
+		"SG": {
+			"name": "South East Sulawesi",
+			"local_name": "Sulawesi Tenggara"
+		},
+		"SA": {
+			"name": "North Sulawesi",
+			"local_name": "Sulawesi Utara"
+		},
+		"SB": {
+			"name": "West Sumatra",
+			"local_name": "Sumatera Barat"
+		},
+		"SS": {
+			"name": "South Sumatra",
+			"local_name": "Sumatera Selatan"
+		},
+		"SU": {
+			"name": "North Sumatra",
+			"local_name": "Sumatera Utara"
 		}
 	}
 }

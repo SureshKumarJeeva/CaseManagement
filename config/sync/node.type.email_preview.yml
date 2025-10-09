@@ -12,7 +12,7 @@ third_party_settings:
 name: 'Email Preview'
 type: email_preview
 description: 'Use Email Preview for edit or preview email before it will send to a client.'
-help: ''
+help: null
 new_revision: false
 preview_mode: 1
 display_submitted: false

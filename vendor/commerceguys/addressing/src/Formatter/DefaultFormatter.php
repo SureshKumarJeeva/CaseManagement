@@ -23,28 +23,28 @@ class DefaultFormatter implements FormatterInterface
      *
      * @var AddressFormatRepositoryInterface
      */
-    protected $addressFormatRepository;
+    protected AddressFormatRepositoryInterface $addressFormatRepository;
 
     /**
      * The country repository.
      *
      * @var CountryRepositoryInterface
      */
-    protected $countryRepository;
+    protected CountryRepositoryInterface $countryRepository;
 
     /**
      * The subdivision repository.
      *
      * @var SubdivisionRepositoryInterface
      */
-    protected $subdivisionRepository;
+    protected SubdivisionRepositoryInterface $subdivisionRepository;
 
     /**
      * The default options.
      *
      * @var array
      */
-    protected $defaultOptions = [
+    protected array $defaultOptions = [
         'locale' => 'en',
         'html' => true,
         'html_tag' => 'p',
@@ -70,8 +70,9 @@ class DefaultFormatter implements FormatterInterface
 
     /**
      * {@inheritdoc}
+     * @throws \ReflectionException
      */
-    public function format(AddressInterface $address, array $options = [])
+    public function format(AddressInterface $address, array $options = []): string
     {
         $this->validateOptions($options);
         $options = array_replace($this->defaultOptions, $options);
@@ -112,11 +113,9 @@ class DefaultFormatter implements FormatterInterface
      *
      * Ensures the absence of unknown keys, correct data types and values.
      *
-     * @param array $options The options.
-     *
      * @throws \InvalidArgumentException
      */
-    protected function validateOptions(array $options)
+    protected function validateOptions(array $options): void
     {
         foreach ($options as $option => $value) {
             if (!array_key_exists($option, $this->defaultOptions)) {
@@ -134,13 +133,15 @@ class DefaultFormatter implements FormatterInterface
     /**
      * Builds the view for the given address.
      *
-     * @param AddressInterface $address       The address.
-     * @param AddressFormat    $addressFormat The address format.
-     * @param array            $options       The formatting options.
+     * @param AddressInterface $address The address.
+     * @param AddressFormat $addressFormat The address format.
+     * @param array $options The formatting options.
      *
      * @return array The view.
+     * @throws \ReflectionException
+     * @throws \ReflectionException
      */
-    protected function buildView(AddressInterface $address, AddressFormat $addressFormat, array $options)
+    protected function buildView(AddressInterface $address, AddressFormat $addressFormat, array $options): array
     {
         $countries = $this->countryRepository->getList($options['locale']);
         $values = $this->getValues($address, $addressFormat);
@@ -151,7 +152,7 @@ class DefaultFormatter implements FormatterInterface
             'html' => $options['html'],
             'html_tag' => 'span',
             'html_attributes' => ['class' => 'country'],
-            'value' => isset($countries[$countryCode]) ? $countries[$countryCode] : $countryCode,
+            'value' => $countries[$countryCode] ?? $countryCode,
         ];
         foreach ($addressFormat->getUsedFields() as $field) {
             // The constant is more suitable as a class than the value since
@@ -175,7 +176,7 @@ class DefaultFormatter implements FormatterInterface
      *
      * @return array An array of rendered values with the original keys preserved.
      */
-    protected function renderView(array $view)
+    protected function renderView(array $view): array
     {
         foreach ($view as $key => $element) {
             if (empty($element['value'])) {
@@ -197,18 +198,11 @@ class DefaultFormatter implements FormatterInterface
         return $view;
     }
 
-    /**
-     * Renders the given attributes.
-     *
-     * @param array $attributes The attributes.
-     *
-     * @return string The rendered attributes.
-     */
-    protected function renderAttributes(array $attributes)
+    protected function renderAttributes(array $attributes): string
     {
         foreach ($attributes as $name => $value) {
             if (is_array($value)) {
-                $value = implode(' ', (array) $value);
+                $value = implode(' ', $value);
             }
             $attributes[$name] = $name . '="' . htmlspecialchars($value, ENT_QUOTES, 'UTF-8') . '"';
         }
@@ -217,17 +211,13 @@ class DefaultFormatter implements FormatterInterface
     }
 
     /**
-     * Removes empty lines, leading punctuation, excess whitespace.
-     *
-     * @param string $output The output that needs cleanup.
-     *
-     * @return string The cleaned up output.
+     * Removes empty lines, leading/trailing punctuation, excess whitespace.
      */
-    protected function cleanupOutput($output)
+    protected function cleanupOutput(string $output): string
     {
         $lines = explode("\n", $output);
         foreach ($lines as $index => $line) {
-            $line = trim(preg_replace('/^[-,]+/', '', $line, 1));
+            $line = trim($line, ' -,');
             $line = preg_replace('/\s\s+/', ' ', $line);
             $lines[$index] = $line;
         }
@@ -240,12 +230,10 @@ class DefaultFormatter implements FormatterInterface
     /**
      * Gets the address values used to build the view.
      *
-     * @param AddressInterface $address       The address.
-     * @param AddressFormat    $addressFormat The address format.
-     *
      * @return array The values, keyed by address field.
+     * @throws \ReflectionException
      */
-    protected function getValues(AddressInterface $address, AddressFormat $addressFormat)
+    protected function getValues(AddressInterface $address, AddressFormat $addressFormat): array
     {
         $values = [];
         foreach (AddressField::getAll() as $field) {

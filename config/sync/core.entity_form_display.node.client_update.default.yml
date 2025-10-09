@@ -16,31 +16,31 @@ bundle: client_update
 mode: default
 content:
   field_client_update:
+    type: text_textarea_with_summary
     weight: 2
+    region: content
     settings:
       rows: 9
       summary_rows: 3
       placeholder: ''
       show_summary: false
     third_party_settings: {  }
-    type: text_textarea_with_summary
-    region: content
   field_client_update_on:
+    type: datetime_default
     weight: 3
+    region: content
     settings: {  }
     third_party_settings: {  }
-    type: datetime_default
-    region: content
   field_job_reference:
+    type: entity_reference_autocomplete
     weight: 1
+    region: content
     settings:
       match_operator: CONTAINS
       match_limit: 10
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: entity_reference_autocomplete
-    region: content
   title:
     type: string_textfield
     weight: 0

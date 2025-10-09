@@ -32,27 +32,27 @@ content:
     settings: {  }
     third_party_settings: {  }
   field_address:
-    weight: 2
-    settings:
-      default_country: null
-    third_party_settings: {  }
     type: address_default
+    weight: 2
     region: content
+    settings:
+      wrapper_type: details
+    third_party_settings: {  }
   field_e_mail:
-    weight: 1
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
     type: email_default
+    weight: 1
     region: content
+    settings:
+      placeholder: ''
+      size: 60
+    third_party_settings: {  }
   field_phone:
+    type: telephone_default
     weight: 3
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: telephone_default
-    region: content
   language:
     weight: 5
     region: content
@@ -71,10 +71,10 @@ content:
     third_party_settings: {  }
   user_picture:
     type: image_image
+    weight: 4
+    region: content
     settings:
       progress_indicator: throbber
       preview_image_style: thumbnail
     third_party_settings: {  }
-    weight: 4
-    region: content
 hidden: {  }

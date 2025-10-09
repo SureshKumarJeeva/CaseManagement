@@ -25,74 +25,75 @@ bundle: attendance_note
 mode: default
 content:
   field_address_attendance:
-    weight: 4
-    settings: {  }
-    third_party_settings: {  }
     type: address_default
+    weight: 4
     region: content
+    settings:
+      wrapper_type: details
+    third_party_settings: {  }
   field_by:
+    type: chosen_select
     weight: 0
+    region: content
     settings: {  }
     third_party_settings: {  }
-    type: chosen_select
-    region: content
   field_date_time:
+    type: datetime_default
     weight: 1
+    region: content
     settings: {  }
     third_party_settings:
       datetimehideseconds:
         hide: true
-    type: datetime_default
-    region: content
   field_employee_first_name:
+    type: string_textfield
     weight: 6
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_employee_full_name:
+    type: string_textfield
     weight: 9
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_employee_last_name:
+    type: string_textfield
     weight: 7
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_notes:
+    type: string_textarea
     weight: 5
+    region: content
     settings:
       rows: 5
       placeholder: ''
     third_party_settings: {  }
-    type: string_textarea
-    region: content
   field_party_to_serve_addresses:
+    type: select_or_other_list
     weight: 2
+    region: content
     settings:
       select_element_type: select_or_other_select
       sort_options: ''
       add_other_value_to_allowed_values: true
     third_party_settings: {  }
-    type: select_or_other_list
-    region: content
   field_selected_address:
+    type: string_textfield
     weight: 3
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
 hidden:
   created: true
   status: true

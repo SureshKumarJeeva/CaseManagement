@@ -23,10 +23,10 @@ bundle: client
 mode: teaser
 content:
   links:
-    weight: 100
-    region: content
     settings: {  }
     third_party_settings: {  }
+    weight: 100
+    region: content
 hidden:
   entity_print_view_epub: true
   entity_print_view_pdf: true

@@ -1,3 +1,5 @@
+_core:
+  default_config_hash: R4IF-ClDHXxblLcG0L7MgsLvfBIMAvi_skumNFQwkDc
 module:
   address: 0
   admin_toolbar: 0
@@ -20,6 +22,7 @@ module:
   chosen_field: 0
   chosen_lib: 0
   ckeditor: 0
+  ckeditor5: 0
   comment: 0
   conditional_fields: 0
   contact: 0
@@ -54,7 +57,9 @@ module:
   jquery_ui_datepicker: 0
   jquery_ui_slider: 0
   jquery_ui_touch_punch: 0
+  layout_builder: 0
   layout_discovery: 0
+  layout_paragraphs: 0
   link: 0
   mailgun: 0
   mailsystem: 0
@@ -65,6 +70,8 @@ module:
   node_save_redirect: 0
   options: 0
   page_cache: 0
+  paragraphs_browser: 0
+  paragraphs_features: 0
   paragraphs_library: 0
   path: 0
   path_alias: 0
@@ -94,10 +101,9 @@ module:
   pathauto: 1
   views: 10
   paragraphs: 11
+  paragraphs_ee: 15
   standard: 1000
 theme:
   claro: 0
   associatedps: 0
 profile: standard
-_core:
-  default_config_hash: R4IF-ClDHXxblLcG0L7MgsLvfBIMAvi_skumNFQwkDc

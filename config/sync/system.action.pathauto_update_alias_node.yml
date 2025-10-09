@@ -1,11 +1,14 @@
-uuid: cfff8683-8c78-41f7-a1e1-7851b9015848
+uuid: adc578ae-428b-49ef-8c5a-8012729410ef
 langcode: en
 status: true
 dependencies:
   module:
     - pathauto
+  enforced:
+    module:
+      - node
 _core:
-  default_config_hash: '-SdRoSbsl_FULjbX8mgESZdeoEOjgi7rDhHNdLOJ8n8'
+  default_config_hash: Cr0CsPUSuio4ClP7bOTqHBefJOLtN5KPyKyYj9E4qvQ
 id: pathauto_update_alias_node
 label: 'Update URL alias'
 type: node

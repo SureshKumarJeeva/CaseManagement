@@ -102,7 +102,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
     /* set Full name of user in allocated_to/served_by */
 
-    $query = \Drupal::entityQuery('user');
+    $query = \Drupal::entityQuery('user')->accessCheck(FALSE);
     $uids = $query->execute();
     $options = _associatedps_forms_get_users($uids);
     $form['field_allocated_to']['widget']['#options'] = $options;
@@ -133,7 +133,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
     /* Set Client after save last step. */
     $client_cid = $form['field_client_cid']['widget'][0]['value']['#default_value'];
-    if (!empty($client_cid) && ($form['field_client']['widget']['#default_value'] === [])) {
+    if (!empty($client_cid) && isset($form['field_client']['widget']['#default_value']) && ($form['field_client']['widget']['#default_value'] === [])) {
       $form['field_client']['widget']['#default_value'][] = $client_cid;
     }
 
@@ -279,7 +279,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
   if (($form_id == 'node_client_form') || ($form_id == 'node_client_edit_form')) {
 
     $db = Database::getConnection();
-    $query = db_select('node_field_data', 'n');
+    $query = \Drupal::database()->select('node_field_data', 'n');
     $query->fields('n', ['nid', 'title']);
     $query->leftjoin('node__field_category', 'fc', 'fc.entity_id = n.nid');
     $query->fields('fc', ['field_category_value']);
@@ -343,7 +343,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
   if (($form['#id'] == 'views-exposed-form-job-page-job-list') || ($form['#id'] == 'views-exposed-form-job-page-per-agent-job-page-per-agent') || ($form['#id'] == 'views-exposed-form-job-page-per-user-job-page-per-user')) {
 
     /* Allocated To filter */
-    $query = \Drupal::entityQuery('user');
+    $query = \Drupal::entityQuery('user')->accessCheck(FALSE);
     $uids = $query->execute();
     $users = ['' => '- Any -'];
     foreach ($uids as $uid) {
@@ -366,7 +366,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     }
 
     /* Client Name field filter. */
-    $client_nids = \Drupal::entityQuery('node')->condition('type', 'client')->execute();
+    $client_nids = \Drupal::entityQuery('node')->condition('type', 'client')->accessCheck(FALSE)->execute();
     $client_nodes = Node::loadMultiple($client_nids);
     $client_options = ['' => '- Any -'];
     foreach ($client_nodes as $node) {
@@ -384,7 +384,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     }
 
     /* Party to be served field filter. */
-    $job_nids = \Drupal::entityQuery('node')->condition('type', 'job')->execute();
+    $job_nids = \Drupal::entityQuery('node')->condition('type', 'job')->accessCheck(FALSE)->execute();
     $job_nodes = Node::loadMultiple($job_nids);
     $job_options = ['' => '- Any -'];
     $postal_options = ['' => '- Any -'];
@@ -543,7 +543,7 @@ function associatedps_forms_field_widget_form_alter(&$element, FormStateInterfac
       $node = Node::load($nid);
       if ($nid > 0 && isset($element['subform']['field_by'])) {
 
-        $query = \Drupal::entityQuery('user');
+        $query = \Drupal::entityQuery('user')->accessCheck(FALSE);
         $uids = $query->execute();
         $options = _associatedps_forms_get_users($uids);
         $element['subform']['field_by']['widget']['#options'] = $options;
@@ -777,7 +777,10 @@ function _associatedps_forms_get_users(array $uids) {
     $user = User::load($uid);
     $address = $user->field_address->getValue();
     $address = reset($address);
-    $full_name = $address['given_name'] . ' ' . $address['family_name'];
+    if($address && isset($address['given_name']) && isset($address['family_name']))
+      $full_name = $address['given_name'] . ' ' . $address['family_name'];
+    else
+      $full_name = NULL;
     $options[$uid] = $full_name;
   }
   return $options;

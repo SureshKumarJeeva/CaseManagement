@@ -26,33 +26,33 @@ mode: preview
 content:
   field_document:
     type: entity_reference_entity_view
-    weight: 0
-    region: content
     label: inline
     settings:
-      link: true
       view_mode: default
+      link: true
     third_party_settings: {  }
+    weight: 0
+    region: content
   field_override_notice_period:
     type: number_integer
-    weight: 2
-    region: content
     label: inline
     settings:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
+    weight: 2
+    region: content
   field_primary_document:
-    weight: 1
+    type: boolean
     label: inline
     settings:
       format: yes-no
-      format_custom_true: ''
       format_custom_false: ''
+      format_custom_true: ''
     third_party_settings:
       field_formatter_class:
         class: ''
-    type: boolean
+    weight: 1
     region: content
 hidden:
   entity_print_view_epub: true

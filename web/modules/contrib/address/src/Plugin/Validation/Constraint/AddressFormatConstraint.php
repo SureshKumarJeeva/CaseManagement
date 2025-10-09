@@ -20,20 +20,20 @@ class AddressFormatConstraint extends ExternalAddressFormatConstraint {
    *
    * @var string
    */
-  public $blankMessage = '@name field must be blank.';
+  public string $blankMessage = '@name field must be blank.';
 
   /**
    * Validation message if a field is required.
    *
    * @var string
    */
-  public $notBlankMessage = '@name field is required.';
+  public string $notBlankMessage = '@name field is required.';
 
   /**
    * Validation message if a field has an invalid format.
    *
    * @var string
    */
-  public $invalidMessage = '@name field is not in the right format.';
+  public string $invalidMessage = '@name field is not in the right format.';
 
 }

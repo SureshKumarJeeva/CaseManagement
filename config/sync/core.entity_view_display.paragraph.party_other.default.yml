@@ -16,36 +16,36 @@ third_party_settings:
       children:
         - field_name
         - field_party_type_other
+      label: 'Party Details (Other)'
       parent_name: ''
+      region: content
       weight: 0
       format_type: fieldset
-      region: content
       format_settings:
-        id: ''
         classes: ''
+        id: ''
         description: ''
-      label: 'Party Details (Other)'
 id: paragraph.party_other.default
 targetEntityType: paragraph
 bundle: party_other
 mode: default
 content:
   field_name:
-    weight: 3
+    type: string
     label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    type: string
+    weight: 3
     region: content
   field_party_type_other:
-    weight: 4
+    type: list_default
     label: inline
     settings: {  }
     third_party_settings:
       field_formatter_class:
         class: party-other-type-select
-    type: list_default
+    weight: 4
     region: content
 hidden:
   entity_print_view_epub: true

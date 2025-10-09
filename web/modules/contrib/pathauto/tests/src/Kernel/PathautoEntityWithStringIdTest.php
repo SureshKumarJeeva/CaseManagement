@@ -6,10 +6,10 @@ use Drupal\Component\Serialization\PhpSerialize;
 use Drupal\Component\Utility\Crypt;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\KeyValueStore\KeyValueDatabaseFactory;
-use Drupal\pathauto\PathautoState;
-use Drupal\Tests\pathauto\Functional\PathautoTestHelperTrait;
 use Drupal\KernelTests\KernelTestBase;
+use Drupal\pathauto\PathautoState;
 use Drupal\pathauto_string_id_test\Entity\PathautoStringIdTest;
+use Drupal\Tests\pathauto\Functional\PathautoTestHelperTrait;
 
 /**
  * Tests auto-aliasing of entities that use string IDs.
@@ -61,11 +61,8 @@ class PathautoEntityWithStringIdTest extends KernelTestBase {
    */
   protected function setUp(): void {
     parent::setUp();
-    $this->installSchema('system', ['key_value']);
     $this->installConfig(['system', 'pathauto']);
-    if ($this->container->get('entity_type.manager')->hasDefinition('path_alias')) {
-      $this->installEntitySchema('path_alias');
-    }
+    $this->installEntitySchema('path_alias');
     $this->installEntitySchema('pathauto_string_id_test');
     $this->createPattern('pathauto_string_id_test', '/[pathauto_string_id_test:name]');
     /** @var \Drupal\pathauto\AliasTypeManager $alias_type_manager */
@@ -114,19 +111,19 @@ class PathautoEntityWithStringIdTest extends KernelTestBase {
   public function entityWithStringIdProvider() {
     return [
       'ascii with less or equal 128 chars' => [
-        str_repeat('a', 128), str_repeat('a', 128)
+        str_repeat('a', 128), str_repeat('a', 128),
       ],
       'ascii with over 128 chars' => [
-        str_repeat('a', 191), Crypt::hashBase64(str_repeat('a', 191))
+        str_repeat('a', 191), Crypt::hashBase64(str_repeat('a', 191)),
       ],
       'non-ascii with less or equal 128 chars' => [
-        str_repeat('社', 128), Crypt::hashBase64(str_repeat('社', 128))
+        str_repeat('社', 128), Crypt::hashBase64(str_repeat('社', 128)),
       ],
       'non-ascii with over 128 chars' => [
-        str_repeat('社', 191), Crypt::hashBase64(str_repeat('社', 191))
+        str_repeat('社', 191), Crypt::hashBase64(str_repeat('社', 191)),
       ],
       'simulating an integer id' => [
-        123, '123'
+        123, '123',
       ],
     ];
   }

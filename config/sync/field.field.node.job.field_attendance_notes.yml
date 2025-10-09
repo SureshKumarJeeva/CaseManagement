@@ -21,16 +21,16 @@ default_value_callback: ''
 settings:
   handler: 'default:paragraph'
   handler_settings:
-    negate: 0
     target_bundles:
       attendance_note: attendance_note
+    negate: 0
     target_bundles_drag_drop:
       address:
         weight: 6
         enabled: false
       attendance_note:
-        enabled: true
         weight: 3
+        enabled: true
       party:
         weight: 4
         enabled: false

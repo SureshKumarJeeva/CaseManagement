@@ -31,7 +31,7 @@ class PostalLabelFormatter extends DefaultFormatter implements PostalLabelFormat
      *
      * @var array
      */
-    protected $defaultOptions = [
+    protected array $defaultOptions = [
         'locale' => 'en',
         'html' => false,
         'html_tag' => 'p',
@@ -59,7 +59,7 @@ class PostalLabelFormatter extends DefaultFormatter implements PostalLabelFormat
     /**
      * {@inheritdoc}
      */
-    protected function buildView(AddressInterface $address, AddressFormat $addressFormat, array $options)
+    protected function buildView(AddressInterface $address, AddressFormat $addressFormat, array $options): array
     {
         if (empty($options['origin_country'])) {
             throw new \InvalidArgumentException("The origin_country option can't be empty.");
@@ -70,11 +70,11 @@ class PostalLabelFormatter extends DefaultFormatter implements PostalLabelFormat
         $uppercaseFields = $addressFormat->getUppercaseFields();
         foreach ($uppercaseFields as $uppercaseField) {
             if (isset($view[$uppercaseField])) {
-                $view[$uppercaseField]['value'] = mb_strtoupper($view[$uppercaseField]['value'], 'utf-8');
+                $view[$uppercaseField]['value'] = mb_strtoupper($view[$uppercaseField]['value'] ?? '', 'utf-8');
             }
         }
         // Handle international mailing.
-        if ($address->getCountryCode() != $options['origin_country']) {
+        if ($address->getCountryCode() !== $options['origin_country']) {
             // Prefix the postal code.
             $field = AddressField::POSTAL_CODE;
             if (isset($view[$field])) {

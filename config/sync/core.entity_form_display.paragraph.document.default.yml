@@ -26,15 +26,15 @@ bundle: document
 mode: default
 content:
   field_affidavit_template:
+    type: entity_reference_autocomplete
     weight: 10
+    region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
-      match_limit: 10
     third_party_settings: {  }
-    type: entity_reference_autocomplete
-    region: content
   field_amount:
     type: number
     weight: 5
@@ -43,28 +43,28 @@ content:
       placeholder: ''
     third_party_settings: {  }
   field_court_name:
+    type: entity_reference_autocomplete
     weight: 9
+    region: content
     settings:
       match_operator: CONTAINS
+      match_limit: 10
       size: 60
       placeholder: ''
-      match_limit: 10
     third_party_settings: {  }
-    type: entity_reference_autocomplete
-    region: content
   field_date:
+    type: datetime_default
     weight: 3
+    region: content
     settings: {  }
     third_party_settings: {  }
-    type: datetime_default
-    region: content
   field_doc_notice_period:
+    type: number
     weight: 11
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: number
-    region: content
   field_document:
     type: chosen_select
     weight: 0
@@ -74,28 +74,28 @@ content:
       ief_table_view_mode:
         entity_browser_id: _none
   field_document_title:
+    type: string_textfield
     weight: 7
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_name:
+    type: string_textfield
     weight: 4
+    region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-    type: string_textfield
-    region: content
   field_notice_period:
+    type: number
     weight: 8
+    region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
-    type: number
-    region: content
   field_override_notice_period:
     type: number
     weight: 6

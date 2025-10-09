@@ -22,17 +22,17 @@ default_value_callback: ''
 settings:
   handler: 'default:paragraph'
   handler_settings:
-    negate: 0
     target_bundles:
       affidavit: affidavit
       from_library: from_library
+    negate: 0
     target_bundles_drag_drop:
       address:
         weight: 8
         enabled: false
       affidavit:
-        enabled: true
         weight: 9
+        enabled: true
       attendance_note:
         weight: 10
         enabled: false
@@ -40,8 +40,8 @@ settings:
         weight: 11
         enabled: false
       from_library:
-        enabled: true
         weight: 12
+        enabled: true
       party:
         weight: 13
         enabled: false

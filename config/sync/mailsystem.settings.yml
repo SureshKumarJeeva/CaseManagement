@@ -1,9 +1,9 @@
+_core:
+  default_config_hash: IhwTepsVwtbtbcT5GzQKhCXDCRvbk3MNkWqPiuiZ10s
 theme: current
 defaults:
   sender: swiftmailer
   formatter: swiftmailer
-_core:
-  default_config_hash: IhwTepsVwtbtbcT5GzQKhCXDCRvbk3MNkWqPiuiZ10s
 modules:
   swiftmailer: {  }
   associatedps_email_template: {  }

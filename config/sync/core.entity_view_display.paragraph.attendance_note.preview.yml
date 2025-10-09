@@ -23,13 +23,13 @@ mode: preview
 content:
   field_date_time:
     type: datetime_default
-    weight: 0
-    region: content
     label: hidden
     settings:
-      format_type: medium
       timezone_override: ''
+      format_type: medium
     third_party_settings: {  }
+    weight: 0
+    region: content
 hidden:
   entity_print_view_epub: true
   entity_print_view_pdf: true

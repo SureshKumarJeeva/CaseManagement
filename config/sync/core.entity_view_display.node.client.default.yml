@@ -26,15 +26,15 @@ third_party_settings:
     group_address:
       children:
         - field_client_address
+      label: Address
       parent_name: ''
+      region: content
       weight: 2
       format_type: fieldset
       format_settings:
-        id: ''
         classes: ''
+        id: ''
         description: ''
-      label: Address
-      region: content
 id: node.client.default
 targetEntityType: node
 bundle: client
@@ -42,8 +42,6 @@ mode: default
 content:
   field_agreed_discount:
     type: number_integer
-    weight: 5
-    region: content
     label: inline
     settings:
       thousand_separator: ''
@@ -51,93 +49,95 @@ content:
     third_party_settings:
       field_formatter_class:
         class: client-agreed-discount-number
+    weight: 5
+    region: content
   field_client_address:
-    weight: 2
+    type: address_default
     label: hidden
     settings: {  }
     third_party_settings:
       field_formatter_class:
         class: client-address
-    type: address_default
+    weight: 2
     region: content
   field_client_id:
     type: string
-    weight: 1
-    region: content
     label: inline
     settings:
       link_to_entity: false
     third_party_settings:
       field_formatter_class:
         class: client-id-text
+    weight: 1
+    region: content
   field_email:
     type: email_mailto
-    weight: 4
-    region: content
     label: inline
     settings: {  }
     third_party_settings:
       field_formatter_class:
         class: client-generic-email
+    weight: 4
+    region: content
   field_email_interval:
-    weight: 9
+    type: number_integer
     label: inline
     settings:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    type: number_integer
+    weight: 9
     region: content
   field_email_template:
-    weight: 10
+    type: entity_reference_label
     label: inline
     settings:
       link: true
     third_party_settings: {  }
-    type: entity_reference_label
+    weight: 10
     region: content
   field_notes:
     type: text_default
-    weight: 6
-    region: content
     label: inline
     settings: {  }
     third_party_settings:
       field_formatter_class:
         class: client-notes-textarea
+    weight: 6
+    region: content
   field_send_auto_email:
-    weight: 8
+    type: boolean
     label: inline
     settings:
       format: default
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    type: boolean
+    weight: 8
     region: content
   field_telephone:
     type: telephone_link
-    weight: 3
-    region: content
     label: inline
     settings:
       title: ''
     third_party_settings:
       field_formatter_class:
         class: client-phone
+    weight: 3
+    region: content
   field_user:
-    weight: 0
+    type: entity_reference_label
     label: inline
     settings:
       link: true
     third_party_settings: {  }
-    type: entity_reference_label
+    weight: 0
     region: content
   links:
-    weight: 7
-    region: content
     settings: {  }
     third_party_settings: {  }
+    weight: 7
+    region: content
 hidden:
   entity_print_view_epub: true
   entity_print_view_pdf: true

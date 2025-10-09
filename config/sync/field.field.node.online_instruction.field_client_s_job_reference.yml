@@ -9,7 +9,7 @@ id: node.online_instruction.field_client_s_job_reference
 field_name: field_client_s_job_reference
 entity_type: node
 bundle: online_instruction
-label: 'Client''s Job Reference'
+label: "Client's Job Reference"
 description: ''
 required: true
 translatable: false

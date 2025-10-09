@@ -17,14 +17,14 @@ class FieldCollectionTypeSourceTest extends MigrateSqlSourceTestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['migrate_drupal', 'paragraphs'];
+  protected static $modules = ['migrate_drupal', 'paragraphs'];
 
   /**
    * {@inheritdoc}
    */
-  public function providerSource() {
-    $data = $this->getSourceData();
-    $data[0]['expected_results'] = [
+  public static function providerSource() {
+    $data = static::getSourceData();
+    $data[0]['expected_data'] = [
       [
         'id' => '1',
         'field_name' => 'field_field_collection_field',

@@ -9,51 +9,28 @@ final class Country
 {
     /**
      * The two-letter country code.
-     *
-     * @var string
      */
-    protected $countryCode;
+    protected string $countryCode;
 
-    /**
-     * The country name.
-     *
-     * @var string
-     */
-    protected $name;
+    protected string $name;
 
     /**
      * The three-letter country code.
-     *
-     * @var string
      */
-    protected $threeLetterCode;
+    protected ?string $threeLetterCode = null;
 
     /**
      * The numeric country code.
-     *
-     * @var string
      */
-    protected $numericCode;
+    protected ?string $numericCode = null;
 
-    /**
-     * The currency code.
-     *
-     * @var string
-     */
-    protected $currencyCode;
+    protected ?string $currencyCode = null;
 
     /**
      * The locale (i.e. "en_US").
-     *
-     * @var string
      */
-    protected $locale;
+    protected string $locale;
 
-    /**
-     * Creates a new Country instance.
-     *
-     * @param array $definition The definition array.
-     */
     public function __construct(array $definition)
     {
         foreach (['country_code', 'name', 'locale'] as $requiredProperty) {
@@ -78,20 +55,16 @@ final class Country
 
     /**
      * Gets the string representation of the Country.
-     *
-     * @return string
      */
-    public function __toString()
+    public function __toString(): string
     {
         return $this->countryCode;
     }
 
     /**
      * Gets the two-letter country code.
-     *
-     * @return string
      */
-    public function getCountryCode()
+    public function getCountryCode(): string
     {
         return $this->countryCode;
     }
@@ -100,10 +73,8 @@ final class Country
      * Gets the country name.
      *
      * This value is locale specific.
-     *
-     * @return string
      */
-    public function getName()
+    public function getName(): string
     {
         return $this->name;
     }
@@ -115,10 +86,8 @@ final class Country
      * CLDR lists "Canary Islands" (IC) and "Ceuta and Melilla" (EA)
      * as separate countries, even though they are formally a part of Spain
      * and have no three-letter or numeric ISO codes.
-     *
-     * @return string|null
      */
-    public function getThreeLetterCode()
+    public function getThreeLetterCode(): ?string
     {
         return $this->threeLetterCode;
     }
@@ -135,10 +104,8 @@ final class Country
      * and have no three-letter or numeric ISO codes.
      * "Ascension Island" (AE) also has no numeric code, even though it has a
      * three-letter code.
-     *
-     * @return string|null
      */
-    public function getNumericCode()
+    public function getNumericCode(): ?string
     {
         return $this->numericCode;
     }
@@ -147,10 +114,8 @@ final class Country
      * Gets the currency code.
      *
      * Represents the official currency used in the country, if known.
-     *
-     * @return string|null
      */
-    public function getCurrencyCode()
+    public function getCurrencyCode(): ?string
     {
         return $this->currencyCode;
     }
@@ -163,7 +128,7 @@ final class Country
      *
      * @return string[]
      */
-    public function getTimezones()
+    public function getTimezones(): array
     {
         return \DateTimeZone::listIdentifiers(\DateTimeZone::PER_COUNTRY, $this->countryCode);
     }
@@ -172,10 +137,8 @@ final class Country
      * Gets the locale.
      *
      * The country name is locale specific.
-     *
-     * @return string
      */
-    public function getLocale()
+    public function getLocale(): string
     {
         return $this->locale;
     }

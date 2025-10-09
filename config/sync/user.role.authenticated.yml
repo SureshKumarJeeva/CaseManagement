@@ -1,7 +1,12 @@
 uuid: f38c0c02-1b5d-4810-92cd-b4707cc759cc
 langcode: en
 status: true
-dependencies: {  }
+dependencies:
+  module:
+    - contact
+    - search
+    - shortcut
+    - system
 _core:
   default_config_hash: dJ0L2DNSj5q6XVZAGsuVDpJTh5UeYkIPwKrUOOpr8YI
 id: authenticated

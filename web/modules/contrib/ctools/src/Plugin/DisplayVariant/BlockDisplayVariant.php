@@ -62,6 +62,13 @@ abstract class BlockDisplayVariant extends VariantBase implements ContextAwareVa
   protected $contexts = [];
 
   /**
+   * The condition manager.
+   *
+   * @var \Drupal\Core\Condition\ConditionManager
+   */
+  protected $conditionManager;
+
+  /**
    * Constructs a new BlockDisplayVariant.
    *
    * @param array $configuration
@@ -201,7 +208,7 @@ abstract class BlockDisplayVariant extends VariantBase implements ContextAwareVa
   /**
    * {@inheritdoc}
    */
-  public function __sleep() {
+  public function __sleep(): array {
     $vars = parent::__sleep();
 
     // Gathered contexts objects should not be serialized.

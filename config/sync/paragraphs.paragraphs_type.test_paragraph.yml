@@ -1,0 +1,23 @@
+uuid: bae0e21e-5277-49e8-83fb-3d7cdde3d439
+langcode: en
+status: true
+dependencies:
+  module:
+    - layout_paragraphs
+    - paragraphs_browser
+    - paragraphs_library
+third_party_settings:
+  paragraphs_library:
+    allow_library_conversion: true
+  paragraphs_browser:
+    image_path: 'public://Circus 2.jpeg'
+id: test_paragraph
+label: 'Drag and Dorp components'
+icon_uuid: null
+icon_default: null
+description: 'This is a sample paragraphs type for implementing template builder section'
+behavior_plugins:
+  layout_paragraphs:
+    enabled: true
+    available_layouts:
+      layout_twocol_section: 'Two column'

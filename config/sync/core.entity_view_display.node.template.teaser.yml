@@ -1,0 +1,35 @@
+uuid: 20555899-0962-4079-842f-df19bdefe2fa
+langcode: en
+status: true
+dependencies:
+  config:
+    - core.entity_view_mode.node.teaser
+    - field.field.node.template.body
+    - field.field.node.template.field_paragraph_test
+    - node.type.template
+  module:
+    - text
+    - user
+id: node.template.teaser
+targetEntityType: node
+bundle: template
+mode: teaser
+content:
+  body:
+    type: text_summary_or_trimmed
+    label: hidden
+    settings:
+      trim_length: 600
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_paragraph_test: true

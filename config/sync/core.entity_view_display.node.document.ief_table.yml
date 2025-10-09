@@ -4,7 +4,10 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.node.ief_table
+    - field.field.node.document.field_affidavit_template
+    - field.field.node.document.field_court_name
     - field.field.node.document.field_notice_period
+    - field.field.node.document.layout_builder__layout
     - node.type.document
   module:
     - user
@@ -14,19 +17,25 @@ bundle: document
 mode: ief_table
 content:
   field_notice_period:
-    weight: 1
+    type: number_integer
     label: hidden
     settings:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    type: number_integer
+    weight: 1
     region: content
   label:
-    weight: 0
-    region: content
     settings: {  }
     third_party_settings: {  }
+    weight: 0
+    region: content
 hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true
+  field_affidavit_template: true
+  field_court_name: true
+  layout_builder__layout: true
   links: true
   status: true

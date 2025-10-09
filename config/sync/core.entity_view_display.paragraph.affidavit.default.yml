@@ -14,18 +14,21 @@ bundle: affidavit
 mode: default
 content:
   field_body:
-    weight: 1
+    type: text_default
     label: visually_hidden
     settings: {  }
     third_party_settings: {  }
-    type: text_default
+    weight: 1
     region: content
   field_name:
-    weight: 0
+    type: string
     label: inline
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    type: string
+    weight: 0
     region: content
-hidden: {  }
+hidden:
+  entity_print_view_epub: true
+  entity_print_view_pdf: true
+  entity_print_view_word_docx: true

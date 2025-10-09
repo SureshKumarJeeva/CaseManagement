@@ -6,41 +6,105 @@ dependencies:
     - field.field.node.document.field_affidavit_template
     - field.field.node.document.field_court_name
     - field.field.node.document.field_notice_period
+    - field.field.node.document.layout_builder__layout
     - node.type.document
   module:
+    - layout_builder
+    - layout_discovery
     - user
+third_party_settings:
+  layout_builder:
+    enabled: true
+    allow_custom: true
+    sections:
+      -
+        layout_id: layout_onecol
+        layout_settings:
+          label: ''
+        components:
+          c7d723a3-0465-46ba-b97b-b98293d4ffba:
+            uuid: c7d723a3-0465-46ba-b97b-b98293d4ffba
+            region: content
+            configuration:
+              id: 'field_block:node:document:field_notice_period'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: number_integer
+                label: inline
+                settings:
+                  thousand_separator: ''
+                  prefix_suffix: true
+                third_party_settings: {  }
+            weight: 0
+            additional: {  }
+          5b8d97e7-438c-4eaf-a35d-b15e5668e423:
+            uuid: 5b8d97e7-438c-4eaf-a35d-b15e5668e423
+            region: content
+            configuration:
+              id: 'field_block:node:document:field_court_name'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: entity_reference_label
+                label: inline
+                settings:
+                  link: true
+                third_party_settings: {  }
+            weight: 1
+            additional: {  }
+          b5f64890-ecdc-4ad7-99b3-10fc68154368:
+            uuid: b5f64890-ecdc-4ad7-99b3-10fc68154368
+            region: content
+            configuration:
+              id: 'field_block:node:document:field_affidavit_template'
+              label_display: '0'
+              context_mapping:
+                entity: layout_builder.entity
+              formatter:
+                type: entity_reference_label
+                label: inline
+                settings:
+                  link: true
+                third_party_settings: {  }
+            weight: 2
+            additional: {  }
+        third_party_settings: {  }
 id: node.document.default
 targetEntityType: node
 bundle: document
 mode: default
 content:
   field_affidavit_template:
-    weight: 2
+    type: entity_reference_label
     label: inline
     settings:
       link: true
     third_party_settings: {  }
-    type: entity_reference_label
+    weight: 2
     region: content
   field_court_name:
-    weight: 1
+    type: entity_reference_label
     label: inline
     settings:
       link: true
     third_party_settings: {  }
-    type: entity_reference_label
+    weight: 1
     region: content
   field_notice_period:
-    weight: 0
+    type: number_integer
     label: inline
     settings:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    type: number_integer
+    weight: 0
     region: content
 hidden:
   entity_print_view_epub: true
   entity_print_view_pdf: true
   entity_print_view_word_docx: true
+  layout_builder__layout: true
   links: true
