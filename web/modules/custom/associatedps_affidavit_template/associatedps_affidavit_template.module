@@ -1,0 +1,75 @@
+<?php
+
+use Drupal\associatedps_affidavit_template\Form\TemplateUploadForm;
+use Drupal\node\NodeInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\File\FileSystemInterface;
+use Drupal\Core\Form\FormStateInterface;
+
+/**
+ * @file
+ * Contains associatedps_affidavit_template.module.
+ */
+
+function form_handler(&$form){
+  $form['#attached']['library'][] = 'associatedps_affidavit_template/template-handler';
+  $entity_fields = get_Entity_Fields();
+
+  asort($entity_fields['options']);
+
+  // Render a small UI in the same details section, *below* your upload_form.
+  $form['field_short_codes']['widget']['#options'] = $entity_fields['options'];
+  array_unshift($form['field_short_codes']['widget']['#options'], "--None--");
+
+  // Expose settings to JS. We’ll target the CKEditor inside #template-editor-wrapper.
+  $form['#attached']['drupalSettings']['associatedpsShortcodes'] = [
+      'shortcodeList' => $entity_fields['options'],
+      'shortcodeMap' => $entity_fields['map'],
+      // This is the wrapper you already set on your subform’s editor container.
+      'targetContainerSelector' => '.form-textarea-wrapper',
+  ];
+}
+
+function get_Entity_Fields(){
+  /*Logic to work with shortcodes*/
+  /** @var \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager */
+  $field_manager = \Drupal::service('entity_field.manager');
+
+  $bundles = \Drupal::service('entity_type.bundle.info')->getBundleInfo('node');
+
+  $node_fields = [];
+
+  foreach ($bundles as $bundle => $info) {
+      // Get all field definitions for this bundle (content type).
+      $fields = $field_manager->getFieldDefinitions('node', $bundle);
+      $node_fields[$bundle] = $fields;
+  }
+
+  $options = [];
+  $map = [];
+
+  foreach ($node_fields as $bundle => $fields) {
+      foreach ($fields as $field_name => $definition) {
+      // Skip base fields unless you want to include some (e.g. title).
+      if ($definition->getFieldStorageDefinition()->isBaseField()) {
+          // if ($field_name !== 'title') { continue; }
+          continue;
+      }
+      $label = $definition->getLabel();
+      $options[$field_name] = strtoupper($bundle). '-' . $label . ' (' . $field_name . ')';
+      $map[$field_name] = '[' . $field_name . ']';
+
+      }
+  }
+  return [ 'options'=>$options, 'map'=>$map ];
+}
+
+function associatedps_affidavit_template_form_node_template_edit_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  \Drupal::logger('associatedps_affidavit_template')->notice("Reached associatedps_affidavit_template_form_node_template_edit_form_alter - $form_id");
+  form_handler($form);
+}
+
+function associatedps_affidavit_template_form_node_template_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  \Drupal::logger('associatedps_affidavit_template')->notice("Reached associatedps_affidavit_template_form_node_template_form_alter - $form_id");
+  form_handler($form);
+}

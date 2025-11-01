@@ -1,0 +1,6 @@
+associatedps_affidavit_template.list_templates:
+  title: 'List Templates'
+  description: 'View all templates'
+  route_name: associatedps_affidavit_template.list_templates
+  parent: system.admin_content   # shows under "Content"
+  weight: 20

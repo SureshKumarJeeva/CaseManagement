@@ -1,0 +1,41 @@
+associatedps_affidavit_template.save:
+  path: /associatedps_affidavit_template/save
+  defaults:
+    _controller: Drupal\associatedps_affidavit_template\Controller\ConvertController::save
+  requirements:
+    _permission: 'access content'
+
+
+associatedps_affidavit_template.pdf:
+  path: /associatedps_affidavit_template/pdf
+  defaults:
+    _controller: Drupal\associatedps_affidavit_template\Controller\PdfController::download
+  requirements: 
+    _permission: 'access content'
+
+
+
+associatedps_affidavit_template.upload_form:
+  path: /associatedps_affidavit_template/upload
+  defaults:
+    _form: Drupal\associatedps_affidavit_template\Form\TemplateUploadForm
+    _title: 'Upload and Edit Template'
+  requirements:
+    _permission: 'administer site configuration'
+
+
+associatedps_affidavit_template.convert:
+  path: /associatedps_affidavit_template/convert
+  defaults:
+    _controller: Drupal\associatedps_affidavit_template\Controller\ConvertController::convert
+  requirements:
+    _permission: 'access content'
+
+
+associatedps_affidavit_template.list_templates:
+  path: /admin/content/list-templates
+  defaults:
+    _controller: Drupal\associatedps_affidavit_template\Controller\TemplateListController::listTemplates
+    _title: 'List of Templates'
+  requirements:
+    _permission: 'administer site configuration'

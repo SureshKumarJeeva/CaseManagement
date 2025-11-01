@@ -1,0 +1,11 @@
+template-handler:
+  version: 1.x
+  js:
+    assets/js/template_functions.js: {}
+    assets/js/app_shortcodes.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+    - core/drupalSettings
+    - core/ckeditor5

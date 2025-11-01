@@ -1,0 +1,5 @@
+services:
+  associatedps_affidavit_template.converter:
+    class : Drupal\associatedps_affidavit_template\Service\FileConverter
+  associatedps_affidavit_template.pdf:
+    class: Drupal\associatedps_affidavit_template\Service\PdfGenerator

@@ -1,0 +1,8 @@
+name: AssociatedPS Affidavit Template
+type: module
+description: Affidavit template management - Import, Convert, Edit and Generate 
+package: 'AssociatedPS'
+core_version_requirement: ^9 || ^10
+dependencies:
+  - file
+  - node
