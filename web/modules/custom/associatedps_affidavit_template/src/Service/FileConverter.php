@@ -14,18 +14,35 @@ class FileConverter{
         switch($extension){
             case 'pdf': 
                 \Drupal::logger('template_upload')->info('convertToHtml pdf case: ' . $extension);
-                $parser = new Parser();
-                $pdf = $parser->parseFile($path);
-                $text = nl2br($pdf->getText());
-                \Drupal::logger('template_upload')->info('convertToHtml text: ' . $text);
-                return "<div class='converted-html'>".$text."</div>";
+                $tempDir = sys_get_temp_dir() .DIRECTORY_SEPARATOR. 'pdfhtml_' . uniqid();
+                mkdir($tempDir, 0777, true);
+                \Drupal::logger('template_upload')->info('convertToHtml path: ' . $path);
+                \Drupal::logger('template_upload')->info('convertToHtml tempDir: ' . $tempDir);
+                // Run pdftohtml directly
+                $command = sprintf(
+                    'pdftohtml -s -c -noframes %s %s\output.html',
+                    escapeshellarg($path),
+                    escapeshellarg($tempDir)
+                );
+                \Drupal::logger('template_upload')->info('convertToHtml command: ' . $command);
+                shell_exec($command);
+
+                // Get the generated HTML file (usually output.html)
+                $htmlFile = $tempDir .DIRECTORY_SEPARATOR. 'output.html';
+                $html = file_get_contents($htmlFile);
+
+                $fullHTML = $this->embeddImagestoHTML($html, $path, 'pdf', $tempDir);
+
+                // Fix overlapping lines by adding 1px offset to identical top values
+                $fullHTML = $this->normalizePdfHtml($fullHTML);
+                return $fullHTML;  
             case 'docx':
                 $headerXml = NULL;
                 $footerXml = NULL;
                 $zip = new \ZipArchive();
                 if ($zip->open($path) === TRUE) {
-                    $headerXml = $zip->getFromName('word/header1.xml');
-                    $footerXml = $zip->getFromName('word/footer1.xml');
+                    $headerXml = $zip->getFromName('word'.DIRECTORY_SEPARATOR.'header1.xml');
+                    $footerXml = $zip->getFromName('word'.DIRECTORY_SEPARATOR.'footer1.xml');
                     $zip->close();
                 }
                 if(!empty($headerXml))
@@ -50,8 +67,8 @@ class FileConverter{
         $zip = new \ZipArchive();
         $zip->open($path);
 
-        $headerXml = $zip->getFromName('word/header1.xml');
-        $relsXml = $zip->getFromName('word/_rels/header1.xml.rels');
+        $headerXml = $zip->getFromName('word'.DIRECTORY_SEPARATOR.'header1.xml');
+        $relsXml = $zip->getFromName('word'.DIRECTORY_SEPARATOR.'_rels'.DIRECTORY_SEPARATOR.'header1.xml.rels');
 
         $imageMap = [];
         if ($relsXml) {
@@ -92,7 +109,7 @@ class FileConverter{
                 if ($blip) {
                     $rId = $blip->getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'embed');
                     if (isset($imageMap[$rId])) {
-                        $imageData = $zip->getFromName('word/' . $imageMap[$rId]);
+                        $imageData = $zip->getFromName('word' .DIRECTORY_SEPARATOR. $imageMap[$rId]);
                         $base64 = base64_encode($imageData);
                         $text .= '<img src="data:image/png;base64,' . $base64 . '" />';
                     }
@@ -104,29 +121,24 @@ class FileConverter{
             $html .= '<p>' . $paragraphHtml . '</p>';
         }
         return $html;
-        // $dom = new \DOMDocument();
-        // $dom->loadXML($headerFooterxml);
-        // $texts = $dom->getElementsByTagName('t');
-
-        // $convertedHtml = '';
-        // foreach ($texts as $t) {
-        //     $convertedHtml .= '<p>' . htmlspecialchars($t->nodeValue) . '</p>';
-        // }
     }
 
-    public function embeddImagestoHTML($html, $path){
-        $tempDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR.'docx_extract_' . uniqid();
-        mkdir($tempDir);
+    public function embeddImagestoHTML($html, $path, $file_type = 'docx', $tempDir=""){
+        switch($file_type){
+            case 'docx':
+                $tempDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR.'docx_extract_' . uniqid();
+                mkdir($tempDir);
 
-        $zip = new \ZipArchive();
-        if ($zip->open($path) === TRUE) {
-            // Extract all contents into the temp directory
-            $zip->extractTo($tempDir);
-            $zip->close();
-        } else {
-            throw new \Exception("Unable to open DOCX file as ZIP: {$docxPath}");
-        }
-
+                $zip = new \ZipArchive();
+                if ($zip->open($path) === TRUE) {
+                    // Extract all contents into the temp directory
+                    $zip->extractTo($tempDir);
+                    $zip->close();
+                } else {
+                    throw new \Exception("Unable to open DOCX file as ZIP: {$path}");
+                }
+                break;
+            }
         // Parse and embed images as base64
         $dom = new \DOMDocument();
         libxml_use_internal_errors(true);
@@ -143,7 +155,7 @@ class FileConverter{
             }
             // Find the extracted image path (Pandoc stores them under $tempDir/media)
             $imgPath = $tempDir . DIRECTORY_SEPARATOR . basename($src);
-            if (!file_exists($imgPath)) {
+            if (!file_exists($imgPath) && $file_type == 'docx') {
                 // Try media subfolder
                 $imgPath = $tempDir . DIRECTORY_SEPARATOR.'word'. DIRECTORY_SEPARATOR. 'media' . DIRECTORY_SEPARATOR. basename($src);
             }
@@ -156,5 +168,66 @@ class FileConverter{
 
         $bodyHtml = $dom->saveHTML();
         return $bodyHtml;
+    }
+
+    function normalizePdfHtml($html) {
+        libxml_use_internal_errors(true);
+        $dom = new \DOMDocument();
+        $dom->loadHTML($html);
+        libxml_clear_errors();
+
+        $xpath = new \DOMXPath($dom);
+        $textBlocks = [];
+
+        // Collect absolutely positioned divs/spans
+        foreach ($xpath->query('//div[@style] | //span[@style]') as $node) {
+            $style = $node->getAttribute('style');
+            if (preg_match('/top:(\d+(?:\.\d+)?)px/i', $style, $mTop)) {
+                $top = floatval($mTop[1]);
+                $text = trim($node->textContent);
+                if ($text !== '') {
+                    $textBlocks[] = [
+                        'node' => $node,
+                        'top' => $top,
+                        'text' => $text
+                    ];
+                }
+            }
+        }
+        if (empty($textBlocks)) {
+            return $html; // nothing to normalize
+        }
+
+        // Sort by top position (then by DOM order)
+        usort($textBlocks, function($a, $b) {
+            return $a['top'] <=> $b['top'];
+        });
+
+        $merged = [];
+        $currentTop = null;
+        $buffer = [];
+
+        foreach ($textBlocks as $block) {
+            if ($currentTop === null || abs($block['top'] - $currentTop) <= 2) {
+                $buffer[] = $block['text'];
+                $currentTop = $block['top'];
+            } else {
+                $merged[] = implode(' ', $buffer);
+                $buffer = [$block['text']];
+                $currentTop = $block['top'];
+            }
+        }
+        if (!empty($buffer)) {
+            $merged[] = implode(' ', $buffer);
+        }
+
+        // Build normalized HTML
+        $output = "<div style='font-family:sans-serif; line-height:1.4;'>";
+        foreach ($merged as $line) {
+            $output .= "<div style='white-space:normal;'>" . htmlspecialchars($line) . "</div>";
+        }
+        $output .= "</div>";
+
+        return $output;
     }
 }

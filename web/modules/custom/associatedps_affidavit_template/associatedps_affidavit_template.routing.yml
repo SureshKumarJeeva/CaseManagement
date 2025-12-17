@@ -39,3 +39,27 @@ associatedps_affidavit_template.list_templates:
     _title: 'List of Templates'
   requirements:
     _permission: 'administer site configuration'
+
+associatedps_affidavit_template.list_template_documents:
+  path: /admin/content/list-template-documents
+  defaults:
+    _controller: Drupal\associatedps_affidavit_template\Controller\CustomTemplateDocuments::listTemplateDocuments
+    _title: 'List of Template Documents'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.print_document_template:
+  path: /admin/content/print_document_template/{nid}
+  defaults:
+    _controller: Drupal\associatedps_affidavit_template\Controller\CustomTemplateDocuments::printDocumentTemplate
+    _title: 'Document Template Details'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.save_document_template:
+  path: /admin/content/save_document_template/{nid}
+  defaults:
+    _controller: Drupal\associatedps_affidavit_template\Controller\CustomTemplateDocuments::saveDocumentTemplate
+    _title: 'Document Template Store'
+  requirements:
+    _permission: 'administer site configuration'

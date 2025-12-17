@@ -4,3 +4,10 @@ associatedps_affidavit_template.list_templates:
   route_name: associatedps_affidavit_template.list_templates
   parent: system.admin_content   # shows under "Content"
   weight: 20
+
+associatedps_affidavit_template.list_template_documents:
+  title: 'List Document Templates'
+  description: 'View all templates of a document'
+  route_name: associatedps_affidavit_template.list_template_documents
+  parent: system.admin_content   # shows under "Content"
+  weight: 25

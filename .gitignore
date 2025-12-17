@@ -781,3 +781,7 @@ vendor/smalot/pdfparser/src/Smalot/PdfParser/RawData/FilterHelper.php
 vendor/smalot/pdfparser/src/Smalot/PdfParser/RawData/RawDataParser.php
 vendor/smalot/pdfparser/src/Smalot/PdfParser/XObject/Form.php
 vendor/smalot/pdfparser/src/Smalot/PdfParser/XObject/Image.php
+phpinfo.php
+web/template_410.html
+web/modules/custom/error.log
+vendor/dompdf/dompdf/lib/fonts/Times-Roman.afm.json

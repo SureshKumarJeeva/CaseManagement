@@ -61,7 +61,7 @@
         "drupal/rules": "^4.0",
         "drupal/select_or_other": "^4.2",
         "drupal/seven": "^2.0.0-beta1",
-        "drupal/simple_multistep": "^2.1.0",
+        "drupal/simple_multistep": "2.1.0",
         "drupal/smtp": "^1.4",
         "drupal/twig_field_value": "^2.0.5",
         "drupal/twig_tweak": "^3.4",

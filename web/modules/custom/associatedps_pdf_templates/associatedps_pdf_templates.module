@@ -147,9 +147,10 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
       $type = trim($elements[$out_token]['type']);
       $target_type = trim($elements[$out_token]['target_type']);
       $in_token = trim(substr($token, $pos + 1));
-
+      \Drupal::logger('associatedps_email_template')->notice('Outer Token: @out_token, Inner Token: @in_token, Type: @type, Target Type: @target_type', ['@out_token' => $out_token, '@in_token' => $in_token, '@type' => $type, '@target_type' => $target_type]);
       if ($type == 'entity_reference') {
         $entity_reference_data = $data->$out_token->getValue();
+        \Drupal::logger('associatedps_email_template')->notice('Entity Reference Data: <pre>@entity_reference_data</pre>', ['@entity_reference_data' => print_r($entity_reference_data, TRUE)]);
         if (!empty($entity_reference_data)) {
           $entity_reference_data = reset($entity_reference_data);
           if ($target_type == 'node') {
@@ -180,6 +181,7 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
               else {
                 $value = $node_data->$in_token->value;
               }
+              \Drupal::logger('associatedps_email_template')->notice('Node Inner Token Value: @value', ['@value' => $value]);
             }
           }
         }
@@ -187,6 +189,7 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
       elseif ($type == 'entity_reference_revisions') {
 
         $entity_reference_data = $data->$out_token->getValue();
+        \Drupal::logger('associatedps_email_template')->notice('Entity Reference Revisions Data: <pre>@entity_reference_data</pre>', ['@entity_reference_data' => print_r($entity_reference_data, TRUE)]);
         if (!empty($entity_reference_data)) {
           $values = [];
           foreach ($entity_reference_data as $para_key => $para_value) {
@@ -301,6 +304,7 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
         $type = trim($elements[$token]['type']);
         $target_type = trim($elements[$token]['target_type']);
       }
+      \Drupal::logger('associatedps_email_template')->notice('Token: @token, Type: @type, Target Type: @target_type', ['@token' => $token, '@type' => $type, '@target_type' => $target_type]);
       if ($type == 'entity_reference') {
         $entity_reference_data = $data->$token->getValue();
         if (!empty($entity_reference_data)) {
@@ -485,5 +489,7 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
       }
     }
   }
+  \Drupal::logger('associatedps_email_template')->notice('Final Template Body: <pre>@body</pre>', ['@body' => print_r($template['body'], TRUE)]);
+  \Drupal::logger('associatedps_email_template')->notice('Final Template Subject: @subject  ', ['@subject' => $template['subject']]);
   return $template;
 }

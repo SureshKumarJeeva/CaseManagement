@@ -127,7 +127,7 @@ class EmailTemplateController {
       $moduleExist = $moduleHandler->moduleExists('associatedps_pdf_templates');
       if ($moduleExist) {
         $template_array = _associatedps_pdf_templates_library_data($template_id);
-
+        \Drupal::logger('associatedps_email_template')->notice('Template Array: <pre>@template_array</pre>', ['@template_array' => print_r($template_array, TRUE)]);
         foreach (\Drupal::service('entity_field.manager')->getFieldDefinitions('node', 'job') as $field_name => $field_definition) {
           if (!empty($field_definition->getTargetBundle())) {
             $elements[$field_name]['type'] = $field_definition->getType();
@@ -135,7 +135,7 @@ class EmailTemplateController {
             $elements[$field_name]['target_type'] = $field_definition->getSetting('target_type');
           }
         }
-
+        \Drupal::logger('associatedps_email_template')->notice('Elements: <pre>@elements</pre>', ['@elements' => print_r($elements, TRUE)]);
         // Load the data of job content type.
         $job_list = Node::load($job_id);
         if (!empty($job_list)) {
@@ -145,6 +145,7 @@ class EmailTemplateController {
 
           // Call the function for replace the token.
           $email_template = _associatedps_pdf_templates_replace_value($elements, $job_list, $template_array);
+          \Drupal::logger('associatedps_email_template')->notice('Email Template after token replacement: <pre>@email_template</pre>', ['@email_template' => print_r($email_template, TRUE)]);
           $msg = $email_template['body'];
           $email = $job_list->field_client_s_job_email->value;
           $subject = $email_template['subject'];
@@ -171,10 +172,10 @@ class EmailTemplateController {
                 $job_list->save();
               }
             }
-            drupal_set_message(t('Your mail has been sent.'));
+            \Drupal::messenger()->addMessage(t('Your mail has been sent.'));
           }
           else {
-            drupal_set_message(t('There was a problem sending your message and it was not sent.'), 'error');
+            \Drupal::messenger()->addError(t('There was a problem sending your message and it was not sent.'), 'error');
           }
         }
 

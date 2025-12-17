@@ -20,12 +20,14 @@ function associatedps_email_template_mail($key, &$message, $params) {
       $message['From'] = \Drupal::config('system.site')->get('mail');
       $message['subject'] = t('@title', ['@title' => $params['subject']], $options);
       $message['body'][] = check_markup(($params['message']), 'full_html');
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
       break;
 
     case 'SEND_EMAIL_TO_ADMIN':
       $message['From'] = $params['from'];
       $message['subject'] = t('@title', ['@title' => $params['subject']], $options);
       $message['body'][] = check_markup(($params['message']), 'full_html');
+      $message['headers']['Content-Type'] = 'text/html; charset=UTF-8;';
       break;
   }
 }
