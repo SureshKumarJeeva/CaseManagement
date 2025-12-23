@@ -64,8 +64,8 @@ class CustomTemplateDocuments extends ControllerBase {
                   $operations = [];
 
                   if($template_id){
-                    $print_url = Url::fromRoute('associatedps_affidavit_template.print_document_template', ['nid' => $template_id]);   // adjust route
-                    $save_url = Url::fromRoute('associatedps_affidavit_template.save_document_template', ['nid' => $template_id]);   // adjust route
+                    $print_url = Url::fromRoute('associatedps_affidavit_template.print_document_template', ['id' => $node->id()."-".$template_id], ['attributes' => ['target' => '_blank']]);   // adjust route
+                    $save_url = Url::fromRoute('associatedps_affidavit_template.save_document_template', ['id' => $node->id()."-".$template_id]);   // adjust route
                     $operations[] = [
                                         'data' => [
                                           '#type' => 'operations',
@@ -114,34 +114,47 @@ class CustomTemplateDocuments extends ControllerBase {
   /*
   * Render Form to view the template of a document
   */
-  public function printDocumentTemplate($nid) {
-    $node = Node::load($nid);
-    if (!$node) {
-      return [
-        '#markup' => $this->t('Template not found.'),
-      ];
-    }
-
-    $template_content = $node->get('body')->value ?? $this->t('No content available.');
-
-    return [
-      '#type' => 'markup',
-      '#markup' => $template_content,
-    ];
+  public function printDocumentTemplate($id) {
+    $this->savePrintDocumentTemplate($id, TRUE);
   }
 
   /*
   * Function to save the template of a document
   */
-  public function saveDocumentTemplate($nid) {
-    $node = Node::load($nid);
-    if (!$node) {
+  public function savePrintDocumentTemplate($id, $print=FALSE) {
+    $template_content = "";
+    $elements = [];
+    $job_id = explode("-", $id)[0];
+    $templateid = explode("-", $id)[1];
+
+    $job_list = Node::load($job_id);
+    foreach (\Drupal::service('entity_field.manager')->getFieldDefinitions('node', 'job') as $field_name => $field_definition) {
+      if (!empty($field_definition->getTargetBundle())) {
+        $elements[$field_name]['type'] = $field_definition->getType();
+        $elements[$field_name]['label'] = $field_definition->getLabel();
+        $elements[$field_name]['target_type'] = $field_definition->getSetting('target_type');
+      }
+    }
+
+    $template_node = Node::load($templateid);
+    if (!$template_node) {
       return [
         '#markup' => $this->t('Template not found.'),
       ];
     }
-
-    $template_content = $node->get('body')->value ?? $this->t('No content available.');
+    $template_type = $template_node->bundle();
+    $template_type_label = \Drupal::entityTypeManager()
+      ->getStorage('node_type')
+      ->load($template_type)
+      ->label();
+      //identify if the template is library type or custom template type 
+    if(strtolower($template_type_label) == "library"){
+      $template_array = _associatedps_pdf_templates_library_data($templateid);
+    }
+    else{ // custom template type
+      $template_array = _associatedps_pdf_templates_custom_data($templateid);
+    }
+    $template_content = _associatedps_pdf_templates_replace_value($elements, $job_list, $template_array);
 
     // Configure Dompdf according to your needs
     $options = new Options();
@@ -149,7 +162,7 @@ class CustomTemplateDocuments extends ControllerBase {
     $dompdf = new Dompdf($options);
 
     // Load HTML content
-    $dompdf->loadHtml($template_content);
+    $dompdf->loadHtml($template_content['body']);
 
     // (Optional) Setup the paper size and orientation
     $dompdf->setPaper('A4', 'portrait');
@@ -157,15 +170,18 @@ class CustomTemplateDocuments extends ControllerBase {
     // Render the HTML as PDF
     $dompdf->render();
 
-    // Output the generated PDF to Browser (force download)
-    $dompdf->stream("template_{$nid}.pdf", [
-        "Attachment" => true
-    ]);
-
-    // $response = new \Symfony\Component\HttpFoundation\BinaryFileResponse($filename);
-    // $response->setContentDisposition(\Symfony\Component\HttpFoundation\ResponseHeaderBag::DISPOSITION_ATTACHMENT, $filename);
-
-    // return $response;   
+    if(!$print){
+      // Output the generated PDF to Browser (force download)
+      $dompdf->stream("template_{$job_id}-{$templateid}.pdf", [
+          "Attachment" => true
+      ]);
+    }
+    else{
+      // Force browser to open the generated PDF in a new tab
+      $dompdf->stream("template_{$job_id}-{$templateid}.pdf", [
+          "Attachment" => false
+      ]);
+    }
   }
 
   /*

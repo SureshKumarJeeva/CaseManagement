@@ -785,3 +785,10 @@ phpinfo.php
 web/template_410.html
 web/modules/custom/error.log
 vendor/dompdf/dompdf/lib/fonts/Times-Roman.afm.json
+vendor/dompdf/dompdf/lib/fonts/Courier.afm.json
+vendor/dompdf/dompdf/lib/fonts/Times-Bold.afm.json
+web/modules/custom/admin_menu_fix/admin_menu_fix.info.yml
+web/modules/custom/admin_menu_fix/admin_menu_fix.libraries.yml
+web/modules/custom/admin_menu_fix/admin_menu_fix.module
+web/modules/custom/admin_menu_fix/css/admin-menu-fix.css
+web/modules/custom/admin_menu_fix/js/admin-toolbar-position-fix.js

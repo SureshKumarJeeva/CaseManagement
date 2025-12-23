@@ -13,18 +13,18 @@ use Drupal\Core\Form\FormStateInterface;
 
 function form_handler(&$form){
   $form['#attached']['library'][] = 'associatedps_affidavit_template/template-handler';
-  $entity_fields = get_Entity_Fields();
+  // return;
+  // $entity_fields = get_Entity_Fields();
 
-  asort($entity_fields['options']);
+  // asort($entity_fields['options']);
 
   // Render a small UI in the same details section, *below* your upload_form.
-  $form['field_short_codes']['widget']['#options'] = $entity_fields['options'];
-  array_unshift($form['field_short_codes']['widget']['#options'], "--None--");
+  // $form['field_short_codes']['widget']['#options'] = $entity_fields['options'];
+  // array_unshift($form['field_short_codes']['widget']['#options'], "--None--");
 
   // Expose settings to JS. We’ll target the CKEditor inside #template-editor-wrapper.
   $form['#attached']['drupalSettings']['associatedpsShortcodes'] = [
-      'shortcodeList' => $entity_fields['options'],
-      'shortcodeMap' => $entity_fields['map'],
+      // 'shortcodeMap' => $entity_fields['map'],
       // This is the wrapper you already set on your subform’s editor container.
       'targetContainerSelector' => '.form-textarea-wrapper',
   ];

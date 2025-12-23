@@ -24,13 +24,13 @@
                 select.addEventListener('change', (e) => {
                     console.log("change");
                     e.preventDefault();
-                    const field = select.value;
+                    const field = select.options[select.selectedIndex].text;
                     if (!field || field == 0) {
                         console.log("!field");
                         return;
                     }
 
-                    const code = settings.shortcodeMap?.[field] || `[${field}]`;
+                    const code = settings.shortcodeMap?.[field] || field;
                     console.log("code", code);
                     const container = document.querySelector(settings.targetContainerSelector);
                     if (!container) {

@@ -130,6 +130,33 @@ function _associatedps_pdf_templates_library_data($library_id) {
 }
 
 /**
+ * To get Template body & tokens from Custom Template Node.
+ *
+ * @return: array of Template
+ */
+function _associatedps_pdf_templates_custom_data($library_id) {
+  $body = '';
+  $email_sub = '';
+  if (!empty($library_id)) {
+    $template = Node::load($library_id);
+    $body = $template->get('field_template_editor')->value;
+
+    $field = $template->get('field_short_codes');
+    $allowed_values = $field->getFieldDefinition()->getSetting('allowed_values');
+
+    $labels = [];
+    foreach ($allowed_values as $key => $value) {
+      if(strpos($value, "Select Fields") == false)
+        $labels[] = $value;
+    }
+
+    $template_data['body'] = $body;
+    $template_data['tokens'] = $labels;
+    return $template_data;
+  }
+}
+
+/**
  * Replace token with job list form value in template.
  *
  * @return: array of template body

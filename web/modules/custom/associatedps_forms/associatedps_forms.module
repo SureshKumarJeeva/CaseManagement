@@ -792,6 +792,7 @@ function _associatedps_forms_get_users(array $uids) {
 function associatedps_forms_node_insert(NodeInterface $node) {
   if ($node->getType() === 'online_instruction') {
     $nid = $node->id();
+    \Drupal::logger('associatedps_forms')->notice('Online Instruction node created with NID: @nid', ['@nid' => $nid]);
     EmailTemplateController::createEmailTemplate($nid, 'true');
   }
 }
@@ -802,19 +803,33 @@ function associatedps_forms_node_insert(NodeInterface $node) {
 function associatedps_forms_node_update(NodeInterface $node) {
   if ($node->getType() === 'online_instruction') {
     $nid = $node->id();
+    \Drupal::logger('associatedps_forms')->notice('Online Instruction node updated with NID: @nid', ['@nid' => $nid]);
     EmailTemplateController::createEmailTemplate($nid);
   }
 
   if ($node->getType() === 'job') {
-
+    \drupal::logger('associatedps_forms')->notice('Job node updated with NID: @nid', ['@nid' => $node->id()]);
     /* Send email on change Case Status. */
+    /*get client details*/
     $nid = $node->id();
+    $job_node = Node::load($nid);
+    $client_items = $job_node->get('field_client')[0]->entity;
+    //check if send auto email is enabled for client.
+    if($client_items->get('field_send_auto_email')->value != 1){
+      Drupal::logger('associatedps_forms')->notice('Auto email is disabled for client: @client. So, email will not be sent.', ['@client' => $client_items->id()]);
+      return;
+    }
     $case_status = $node->field_case_status->value;
     $case_status_value = $node->field_case_status_value->value;
     $config = \Drupal::config('associatedps_case_status_template.settings');
     $email_template = $config->get('email_template');
+    \Drupal::logger('associatedps_forms')->notice('Job node case status changed with NID: @nid, @case_status, @case_status_value, @email_template ', ['@nid' => $nid, '@case_status' => $case_status, '@case_status_value' => $case_status_value, '@email_template' => $email_template]);
+    \Drupal::logger('associatedps_forms')->notice('Job node case status changed with NID: @case_status, @case_status_value', ['@case_status_value'=> $case_status_value, '@case_status' => $case_status]);
     if (!empty($case_status) && ($email_template !== '_none')) {
+      \Drupal::logger('associatedps_forms')->notice('inside 1st condition');
       if ($case_status !== 'Ongoing' && $case_status !== $case_status_value) {
+
+        \Drupal::logger('associatedps_forms')->notice('inside 2nd condition Job node case status changed with NID: @nid', ['@nid' => $nid]);
         EmailTemplateController::createEmailTemplate($email_template, $nid, 'job');
       }
     }
