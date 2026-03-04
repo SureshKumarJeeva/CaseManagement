@@ -3,13 +3,16 @@
 #/vendor/                              
 # - uncommnet this line after successful setup at Azure
 #/web/core/
-#/web/modules/contrib/
+/web/modules/contrib
 #/web/themes/contrib/
 #/web/profiles/contrib/
 #/sites/default/default.settings.php
 #/sites/*/files
 #/sites/*/private
-/config/sync
+config/sync
+config/sync-AsOn_15-1-2026_after_Add_Job_struct_Changed_To_tabs
+config/sync-AsOn26-1-2026
+log
 
 # Ignore sensitive information
 #/web/sites/*/settings.local.php
@@ -792,3 +795,980 @@ web/modules/custom/admin_menu_fix/admin_menu_fix.libraries.yml
 web/modules/custom/admin_menu_fix/admin_menu_fix.module
 web/modules/custom/admin_menu_fix/css/admin-menu-fix.css
 web/modules/custom/admin_menu_fix/js/admin-toolbar-position-fix.js
+config/sync - AsOn10-2-2026/.htaccess
+config/sync - AsOn10-2-2026/100-devapp.stallioni.com_backup.vhost
+config/sync - AsOn10-2-2026/adminimal_admin_toolbar.settings.yml
+config/sync - AsOn10-2-2026/associatedps_case_status_template.settings.yml
+config/sync - AsOn10-2-2026/automated_cron.settings.yml
+config/sync - AsOn10-2-2026/block_content.type.basic.yml
+config/sync - AsOn10-2-2026/block.block.associatedps_breadcrumbs.yml
+config/sync - AsOn10-2-2026/block.block.associatedps_content.yml
+config/sync - AsOn10-2-2026/block.block.associatedps_local_actions.yml
+config/sync - AsOn10-2-2026/block.block.associatedps_login.yml
+config/sync - AsOn10-2-2026/block.block.associatedps_messages.yml
+config/sync - AsOn10-2-2026/block.block.associatedps_page_title.yml
+config/sync - AsOn10-2-2026/block.block.associatedps_primary_local_tasks.yml
+config/sync - AsOn10-2-2026/block.block.associatedps_secondary_local_tasks.yml
+config/sync - AsOn10-2-2026/block.block.clientmenu.yml
+config/sync - AsOn10-2-2026/block.block.loginnavigation.yml
+config/sync - AsOn10-2-2026/block.block.mainnavigation.yml
+config/sync - AsOn10-2-2026/block.block.searchform.yml
+config/sync - AsOn10-2-2026/block.block.views_block__client_update_client_update_block.yml
+config/sync - AsOn10-2-2026/block.block.views_block__job_list_block_1.yml
+config/sync - AsOn10-2-2026/chosen.settings.yml
+config/sync - AsOn10-2-2026/comment.settings.yml
+config/sync - AsOn10-2-2026/composer.json_before_deploy
+config/sync - AsOn10-2-2026/contact.form.feedback.yml
+config/sync - AsOn10-2-2026/contact.form.personal.yml
+config/sync - AsOn10-2-2026/contact.settings.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.basic_page.promote.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.client_update.promote.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.client_update.status.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.client.promote.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.client.title.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.email_preview.promote.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.job.promote.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.job.title.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.library.promote.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.online_instruction.promote.yml
+config/sync - AsOn10-2-2026/core.base_field_override.node.preview.promote.yml
+config/sync - AsOn10-2-2026/core.date_format.fallback.yml
+config/sync - AsOn10-2-2026/core.date_format.html_date.yml
+config/sync - AsOn10-2-2026/core.date_format.html_datetime.yml
+config/sync - AsOn10-2-2026/core.date_format.html_month.yml
+config/sync - AsOn10-2-2026/core.date_format.html_time.yml
+config/sync - AsOn10-2-2026/core.date_format.html_week.yml
+config/sync - AsOn10-2-2026/core.date_format.html_year.yml
+config/sync - AsOn10-2-2026/core.date_format.html_yearless_date.yml
+config/sync - AsOn10-2-2026/core.date_format.long.yml
+config/sync - AsOn10-2-2026/core.date_format.medium.yml
+config/sync - AsOn10-2-2026/core.date_format.short.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.block_content.basic.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.basic_page.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.client_update.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.client.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.document.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.email_preview.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_3-2-2026_1.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_3-2-2026_2.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_3-2-2026.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_5-2-2026_AddWorking_EditNotWorking.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_6-2-2026_Before_revert_To_Initial_Stage_After_All_unsuccessful_attempt_toFixConflict.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_21-1-2026_working_1.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_21-1-2026_working_12.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_30-1-2026.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default_Before_Hidden_removal_Adding_newFieldset_for_hidden_Fields.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.job.default.yml_backup-14-1-12026
+config/sync - AsOn10-2-2026/core.entity_form_display.node.library.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.online_instruction.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.preview.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.node.template.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.address.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.addresses.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.affidavit.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.attendance_note.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.cover_letter.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.document.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.from_library.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.job_fees.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.party_other.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.party_side_two_.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.paragraph.party.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.taxonomy_term.court_name.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.taxonomy_term.services.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_display.user.user.default.yml
+config/sync - AsOn10-2-2026/core.entity_form_mode.user.register.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.block_content.basic.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.basic_page.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.basic_page.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.client_update.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.client_update.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.client.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.client.ief_table.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.client.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.document.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.document.ief_table.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.document.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.email_preview.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.email_preview.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.job.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.job.full.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.job.ief_table.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.job.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.library.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.library.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.online_instruction.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.online_instruction.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.preview.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.preview.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.template.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.node.template.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.address.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.addresses.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.affidavit.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.attendance_note.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.attendance_note.preview.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.cover_letter.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.document.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.document.preview.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.from_library.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.from_library.preview.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.job_fees.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.party_other.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.party_side_two_.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraph.party.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.paragraphs_library_item.paragraphs_library_item.summary.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.taxonomy_term.court_name.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.taxonomy_term.services.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.user.user.compact.yml
+config/sync - AsOn10-2-2026/core.entity_view_display.user.user.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.block_content.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.block_content.full.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.block_content.token.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.block.token.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.comment.default.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.contact_message.token.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.file.token.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.menu_link_content.token.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.node.full.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.node.ief_table.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.node.pdf.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.node.rss.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.node.search_index.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.node.search_result.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.node.teaser.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.node.token.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.paragraph.preview.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.paragraphs_library_item.ief_table.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.paragraphs_library_item.summary.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.shortcut.token.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.taxonomy_term.full.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.taxonomy_term.ief_table.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.taxonomy_term.token.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.user.compact.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.user.full.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.user.ief_table.yml
+config/sync - AsOn10-2-2026/core.entity_view_mode.user.token.yml
+config/sync - AsOn10-2-2026/core.extension.yml
+config/sync - AsOn10-2-2026/core.menu.static_menu_link_overrides.yml
+config/sync - AsOn10-2-2026/dblog.settings.yml
+config/sync - AsOn10-2-2026/easy_breadcrumb.settings.yml
+config/sync - AsOn10-2-2026/editor.editor.basic_html.yml
+config/sync - AsOn10-2-2026/editor.editor.full_html.yml
+config/sync - AsOn10-2-2026/entity_print.print_engine.dompdf.yml
+config/sync - AsOn10-2-2026/entity_print.settings.yml
+config/sync - AsOn10-2-2026/entity_usage.settings.yml
+config/sync - AsOn10-2-2026/field_ui.settings.yml
+config/sync - AsOn10-2-2026/field.field.block_content.basic.body.yml
+config/sync - AsOn10-2-2026/field.field.node.basic_page.body.yml
+config/sync - AsOn10-2-2026/field.field.node.client_update.field_client_update_on.yml
+config/sync - AsOn10-2-2026/field.field.node.client_update.field_client_update.yml
+config/sync - AsOn10-2-2026/field.field.node.client_update.field_job_reference.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_agreed_discount.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_client_address.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_client_id.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_email_interval.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_email_template.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_email.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_notes.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_send_auto_email.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_telephone.yml
+config/sync - AsOn10-2-2026/field.field.node.client.field_user.yml
+config/sync - AsOn10-2-2026/field.field.node.document.field_affidavit_template.yml
+config/sync - AsOn10-2-2026/field.field.node.document.field_court_name.yml
+config/sync - AsOn10-2-2026/field.field.node.document.field_notice_period.yml
+config/sync - AsOn10-2-2026/field.field.node.document.layout_builder__layout.yml
+config/sync - AsOn10-2-2026/field.field.node.email_preview.body.yml
+config/sync - AsOn10-2-2026/field.field.node.email_preview.field_client_email.yml
+config/sync - AsOn10-2-2026/field.field.node.email_preview.field_email_subject.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_admin_affidavit_date.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_admin_cover_letter_date.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_admin_email_update_date.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_admin_invoiced_date.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_admin_send_to_client_date.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_admin_status.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_affidavits.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_agreed_discount.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_allocated_to_first_name.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_allocated_to_full_name.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_allocated_to_last_name.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_allocated_to.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_allocation_date.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_attendance_notes.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_business_name_value.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_business_name.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_business_other.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_case_no.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_case_status_value.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_case_status.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_client_address.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_client_cid.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_client_name.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_client_ref.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_client_s_job_email.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_client.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_court.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_cover_letters.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_date_service.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_deadline.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_division.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_documents.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_email.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_hearing_date.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_instruction_received.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_job_client_id.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_job_fees.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_job_types.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_last_mail_time.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_list.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_method_of_service.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_name_to_other.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_name_to_server_value.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_notes.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_notes2.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_other_parties.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_para_address.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_parties.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_party_2.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_party_to_serve_phone.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_person_delivered_to_fname.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_person_delivered_to_lname.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_person_delivered_to_other.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_person_delivered_to.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_person_delivered_value.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_primary_postal_code.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_registry.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_served_by_first_name.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_served_by_full_name.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_served_by_last_name.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_served_by.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_served_date.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_served_notes.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_served_party.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_service_address.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_service_details_position.yml
+config/sync - AsOn10-2-2026/field.field.node.job.field_telephone.yml
+config/sync - AsOn10-2-2026/field.field.node.library.body.yml
+config/sync - AsOn10-2-2026/field.field.node.library.field_available_tokens.yml
+config/sync - AsOn10-2-2026/field.field.node.library.field_case_status.yml
+config/sync - AsOn10-2-2026/field.field.node.library.field_category.yml
+config/sync - AsOn10-2-2026/field.field.node.library.field_email_subject.yml
+config/sync - AsOn10-2-2026/field.field.node.library.field_import_template.yml
+config/sync - AsOn10-2-2026/field.field.node.library.field_job_types.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_additional_information.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_address_of_served.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_client_s_job_reference.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_first_name.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_last_date_for_service.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_last_name.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_next_day.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_representative_name.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_representative_telephone.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_same_day.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_telephone_of_served.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_upload_documents.yml
+config/sync - AsOn10-2-2026/field.field.node.online_instruction.field_work_details_of_served.yml
+config/sync - AsOn10-2-2026/field.field.node.preview.body.yml
+config/sync - AsOn10-2-2026/field.field.node.template.field_file_upload.yml
+config/sync - AsOn10-2-2026/field.field.node.template.field_paragraph_test.yml
+config/sync - AsOn10-2-2026/field.field.node.template.field_short_codes.yml
+config/sync - AsOn10-2-2026/field.field.node.template.field_template_editor.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.address.field_address.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.address.field_party_to_serve_addresses.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.address.field_selected_address.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.addresses.field_primary_address.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.addresses.field_service_address.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.affidavit.field_body.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.affidavit.field_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_address_attendance.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_by.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_date_time.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_employee_first_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_employee_full_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_employee_last_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_notes.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_party_to_serve_addresses.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.attendance_note.field_selected_address.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.cover_letter.field_body.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_affidavit_template.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_amount.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_court_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_date.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_doc_notice_period.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_document_title.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_document.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_notice_period.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_override_notice_period.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_primary_document.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.document.field_untitled.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.from_library.field_reusable_paragraph.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.job_fees.field_agreed_fee.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.job_fees.field_standard_fee.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.job_fees.field_total.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.job_fees.field_type_of_service.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.job_fees.field_units.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party_other.field_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party_other.field_party_type_other.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party_side_two_.field_full_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party_side_two_.field_last_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party_side_two_.field_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party_side_two_.field_party_type_2.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party.field_full_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party.field_last_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party.field_name.yml
+config/sync - AsOn10-2-2026/field.field.paragraph.party.field_party_type.yml
+config/sync - AsOn10-2-2026/field.field.taxonomy_term.services.field_standard_fee.yml
+config/sync - AsOn10-2-2026/field.field.user.user.field_address.yml
+config/sync - AsOn10-2-2026/field.field.user.user.field_e_mail.yml
+config/sync - AsOn10-2-2026/field.field.user.user.field_phone.yml
+config/sync - AsOn10-2-2026/field.field.user.user.user_picture.yml
+config/sync - AsOn10-2-2026/field.settings.yml
+config/sync - AsOn10-2-2026/field.storage.block_content.body.yml
+config/sync - AsOn10-2-2026/field.storage.comment.comment_body.yml
+config/sync - AsOn10-2-2026/field.storage.node.body.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_additional_information.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_address_of_served.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_admin_affidavit_date.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_admin_cover_letter_date.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_admin_email_update_date.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_admin_invoiced_date.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_admin_send_to_client_date.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_admin_status.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_affidavit_template.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_affidavits.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_agreed_discount.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_allocated_to_first_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_allocated_to_full_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_allocated_to_last_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_allocated_to.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_allocation_date.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_attendance_notes.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_available_tokens.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_business_name_value.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_business_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_business_other.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_case_no.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_case_status_value.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_case_status.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_category.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_address.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_cid.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_email.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_id.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_ref.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_s_job_email.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_s_job_reference.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_update_on.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client_update.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_client.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_court_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_court.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_cover_letters.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_date_service.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_deadline.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_division.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_documents.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_email_interval.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_email_subject.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_email_template.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_email.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_file_upload.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_first_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_hearing_date.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_import_template.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_insert_code.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_instruction_received.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_job_client_id.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_job_fees.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_job_reference.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_job_types.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_last_date_for_service.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_last_mail_time.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_last_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_list.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_method_of_service.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_name_to_other.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_name_to_server_value.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_next_day.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_notes.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_notes2.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_notice_period.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_other_parties.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_para_address.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_paragraph_test.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_parties.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_party_2.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_party_to_serve_phone.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_person_delivered_to_fname.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_person_delivered_to_lname.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_person_delivered_to_other.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_person_delivered_to.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_person_delivered_value.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_primary_postal_code.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_registry.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_representative_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_representative_telephone.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_same_day.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_send_auto_email.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_served_by_first_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_served_by_full_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_served_by_last_name.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_served_by.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_served_date.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_served_notes.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_served_party.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_service_address.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_service_details_position.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_short_codes.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_telephone_of_served.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_telephone.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_template_editor.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_upload_documents.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_user.yml
+config/sync - AsOn10-2-2026/field.storage.node.field_work_details_of_served.yml
+config/sync - AsOn10-2-2026/field.storage.node.layout_builder__layout.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_address_attendance.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_address.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_affidavit_template.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_agreed_fee.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_amount.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_body.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_by.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_court_name.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_date_time.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_date.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_doc_notice_period.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_document_title.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_document.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_employee_first_name.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_employee_full_name.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_employee_last_name.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_full_name.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_last_name.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_name.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_notes.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_notice_period.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_override_notice_period.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_party_to_serve_addresses.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_party_type_2.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_party_type_other.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_party_type.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_primary_address.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_primary_document.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_reusable_paragraph.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_selected_address.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_service_address.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_standard_fee.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_total.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_type_of_service.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_units.yml
+config/sync - AsOn10-2-2026/field.storage.paragraph.field_untitled.yml
+config/sync - AsOn10-2-2026/field.storage.taxonomy_term.field_standard_fee.yml
+config/sync - AsOn10-2-2026/field.storage.user.field_address.yml
+config/sync - AsOn10-2-2026/field.storage.user.field_e_mail.yml
+config/sync - AsOn10-2-2026/field.storage.user.field_phone.yml
+config/sync - AsOn10-2-2026/field.storage.user.user_picture.yml
+config/sync - AsOn10-2-2026/file.settings.yml
+config/sync - AsOn10-2-2026/filter.format.basic_html.yml
+config/sync - AsOn10-2-2026/filter.format.full_html.yml
+config/sync - AsOn10-2-2026/filter.format.plain_text.yml
+config/sync - AsOn10-2-2026/filter.format.restricted_html.yml
+config/sync - AsOn10-2-2026/filter.settings.yml
+config/sync - AsOn10-2-2026/image.settings.yml
+config/sync - AsOn10-2-2026/image.style.large.yml
+config/sync - AsOn10-2-2026/image.style.medium.yml
+config/sync - AsOn10-2-2026/image.style.thumbnail.yml
+config/sync - AsOn10-2-2026/layout_paragraphs.modal_settings.yml
+config/sync - AsOn10-2-2026/layout_paragraphs.settings.yml
+config/sync - AsOn10-2-2026/mailgun.settings.yml
+config/sync - AsOn10-2-2026/mailsystem.settings.yml
+config/sync - AsOn10-2-2026/menu_ui.settings.yml
+config/sync - AsOn10-2-2026/node.settings.yml
+config/sync - AsOn10-2-2026/node.type.basic_page.yml
+config/sync - AsOn10-2-2026/node.type.client_update.yml
+config/sync - AsOn10-2-2026/node.type.client.yml
+config/sync - AsOn10-2-2026/node.type.document.yml
+config/sync - AsOn10-2-2026/node.type.email_preview.yml
+config/sync - AsOn10-2-2026/node.type.job.yml
+config/sync - AsOn10-2-2026/node.type.library.yml
+config/sync - AsOn10-2-2026/node.type.online_instruction.yml
+config/sync - AsOn10-2-2026/node.type.preview.yml
+config/sync - AsOn10-2-2026/node.type.template.yml
+config/sync - AsOn10-2-2026/paragraphs_browser.paragraphs_browser_type.content.yml
+config/sync - AsOn10-2-2026/paragraphs_browser.paragraphs_browser_type.list_all.yml
+config/sync - AsOn10-2-2026/paragraphs_features.settings.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.address.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.addresses.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.affidavit.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.attendance_note.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.cover_letter.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.document.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.from_library.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.job_fees.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.party_other.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.party_side_two_.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.party.yml
+config/sync - AsOn10-2-2026/paragraphs.paragraphs_type.test_paragraph.yml
+config/sync - AsOn10-2-2026/paragraphs.settings.yml
+config/sync - AsOn10-2-2026/pathauto.settings.yml
+config/sync - AsOn10-2-2026/rest.settings.yml
+config/sync - AsOn10-2-2026/search.page.node_search.yml
+config/sync - AsOn10-2-2026/search.settings.yml
+config/sync - AsOn10-2-2026/serialization.settings.yml
+config/sync - AsOn10-2-2026/shortcut.set.default.yml
+config/sync - AsOn10-2-2026/smtp.settings.yml
+config/sync - AsOn10-2-2026/system.action.comment_delete_action.yml
+config/sync - AsOn10-2-2026/system.action.comment_publish_action.yml
+config/sync - AsOn10-2-2026/system.action.comment_save_action.yml
+config/sync - AsOn10-2-2026/system.action.comment_unpublish_action.yml
+config/sync - AsOn10-2-2026/system.action.entity_print_pdf_download_action.yml
+config/sync - AsOn10-2-2026/system.action.node_delete_action.yml
+config/sync - AsOn10-2-2026/system.action.node_make_sticky_action.yml
+config/sync - AsOn10-2-2026/system.action.node_make_unsticky_action.yml
+config/sync - AsOn10-2-2026/system.action.node_promote_action.yml
+config/sync - AsOn10-2-2026/system.action.node_publish_action.yml
+config/sync - AsOn10-2-2026/system.action.node_save_action.yml
+config/sync - AsOn10-2-2026/system.action.node_unpromote_action.yml
+config/sync - AsOn10-2-2026/system.action.node_unpublish_action.yml
+config/sync - AsOn10-2-2026/system.action.pathauto_update_alias_node.yml
+config/sync - AsOn10-2-2026/system.action.pathauto_update_alias_user.yml
+config/sync - AsOn10-2-2026/system.action.user_add_role_action.administrator.yml
+config/sync - AsOn10-2-2026/system.action.user_add_role_action.agent.yml
+config/sync - AsOn10-2-2026/system.action.user_add_role_action.client.yml
+config/sync - AsOn10-2-2026/system.action.user_add_role_action.editor.yml
+config/sync - AsOn10-2-2026/system.action.user_add_role_action.office.yml
+config/sync - AsOn10-2-2026/system.action.user_block_user_action.yml
+config/sync - AsOn10-2-2026/system.action.user_cancel_user_action.yml
+config/sync - AsOn10-2-2026/system.action.user_remove_role_action.administrator.yml
+config/sync - AsOn10-2-2026/system.action.user_remove_role_action.agent.yml
+config/sync - AsOn10-2-2026/system.action.user_remove_role_action.client.yml
+config/sync - AsOn10-2-2026/system.action.user_remove_role_action.editor.yml
+config/sync - AsOn10-2-2026/system.action.user_remove_role_action.office.yml
+config/sync - AsOn10-2-2026/system.action.user_unblock_user_action.yml
+config/sync - AsOn10-2-2026/system.authorize.yml
+config/sync - AsOn10-2-2026/system.cron.yml
+config/sync - AsOn10-2-2026/system.date.yml
+config/sync - AsOn10-2-2026/system.diff.yml
+config/sync - AsOn10-2-2026/system.file.yml
+config/sync - AsOn10-2-2026/system.image.gd.yml
+config/sync - AsOn10-2-2026/system.image.yml
+config/sync - AsOn10-2-2026/system.logging.yml
+config/sync - AsOn10-2-2026/system.mail.yml
+config/sync - AsOn10-2-2026/system.maintenance.yml
+config/sync - AsOn10-2-2026/system.menu.account.yml
+config/sync - AsOn10-2-2026/system.menu.admin.yml
+config/sync - AsOn10-2-2026/system.menu.client-menu.yml
+config/sync - AsOn10-2-2026/system.menu.footer.yml
+config/sync - AsOn10-2-2026/system.menu.login-navigation.yml
+config/sync - AsOn10-2-2026/system.menu.main.yml
+config/sync - AsOn10-2-2026/system.menu.tools.yml
+config/sync - AsOn10-2-2026/system.performance.yml
+config/sync - AsOn10-2-2026/system.rss.yml
+config/sync - AsOn10-2-2026/system.site.yml
+config/sync - AsOn10-2-2026/system.theme.global.yml
+config/sync - AsOn10-2-2026/system.theme.yml
+config/sync - AsOn10-2-2026/taxonomy.settings.yml
+config/sync - AsOn10-2-2026/taxonomy.vocabulary.business_name.yml
+config/sync - AsOn10-2-2026/taxonomy.vocabulary.corresponding_affidavit.yml
+config/sync - AsOn10-2-2026/taxonomy.vocabulary.court_name.yml
+config/sync - AsOn10-2-2026/taxonomy.vocabulary.services.yml
+config/sync - AsOn10-2-2026/taxonomy.vocabulary.tags.yml
+config/sync - AsOn10-2-2026/text.settings.yml
+config/sync - AsOn10-2-2026/tracker.settings.yml
+config/sync - AsOn10-2-2026/update.settings.yml
+config/sync - AsOn10-2-2026/user.flood.yml
+config/sync - AsOn10-2-2026/user.mail.yml
+config/sync - AsOn10-2-2026/user.role.administrator.yml
+config/sync - AsOn10-2-2026/user.role.agent.yml
+config/sync - AsOn10-2-2026/user.role.anonymous.yml
+config/sync - AsOn10-2-2026/user.role.authenticated.yml
+config/sync - AsOn10-2-2026/user.role.client.yml
+config/sync - AsOn10-2-2026/user.role.editor.yml
+config/sync - AsOn10-2-2026/user.role.office.yml
+config/sync - AsOn10-2-2026/user.settings.yml
+config/sync - AsOn10-2-2026/views.settings.yml
+config/sync - AsOn10-2-2026/views.view.archive.yml
+config/sync - AsOn10-2-2026/views.view.block_content.yml
+config/sync - AsOn10-2-2026/views.view.client_page.yml
+config/sync - AsOn10-2-2026/views.view.client_update.yml
+config/sync - AsOn10-2-2026/views.view.comment.yml
+config/sync - AsOn10-2-2026/views.view.comments_recent.yml
+config/sync - AsOn10-2-2026/views.view.content_jobs_.yml
+config/sync - AsOn10-2-2026/views.view.content_recent.yml
+config/sync - AsOn10-2-2026/views.view.content.yml
+config/sync - AsOn10-2-2026/views.view.court_name_page.yml
+config/sync - AsOn10-2-2026/views.view.doc_files.yml
+config/sync - AsOn10-2-2026/views.view.document_page.yml
+config/sync - AsOn10-2-2026/views.view.duplicate_of_content_agent_jobs_.yml
+config/sync - AsOn10-2-2026/views.view.files.yml
+config/sync - AsOn10-2-2026/views.view.frontpage.yml
+config/sync - AsOn10-2-2026/views.view.generate_pdf.yml
+config/sync - AsOn10-2-2026/views.view.glossary.yml
+config/sync - AsOn10-2-2026/views.view.job_list.yml
+config/sync - AsOn10-2-2026/views.view.job_page_per_agent.yml
+config/sync - AsOn10-2-2026/views.view.job_page_per_user.yml
+config/sync - AsOn10-2-2026/views.view.job_page.yml
+config/sync - AsOn10-2-2026/views.view.library_pdf_template.yml
+config/sync - AsOn10-2-2026/views.view.online_instruction_manager.yml
+config/sync - AsOn10-2-2026/views.view.online_instruction.yml
+config/sync - AsOn10-2-2026/views.view.paragraphs_library.yml
+config/sync - AsOn10-2-2026/views.view.services.yml
+config/sync - AsOn10-2-2026/views.view.taxonomy_term.yml
+config/sync - AsOn10-2-2026/views.view.templates.yml
+config/sync - AsOn10-2-2026/views.view.user_activity.yml
+config/sync - AsOn10-2-2026/views.view.user_admin_people.yml
+config/sync - AsOn10-2-2026/views.view.user_page.yml
+config/sync - AsOn10-2-2026/views.view.watchdog.yml
+config/sync - AsOn10-2-2026/views.view.who_s_new.yml
+config/sync - AsOn10-2-2026/views.view.who_s_online.yml
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_1cbab607f804ac36.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_5af16eb4cba38813.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_6a826ff526e1a6c2.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_7ceb824d7f38ce36.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_276bfb1874e6fc84.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_510af1c8da9adab6.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_779f9ae8fe4469bd.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_975d7a4eacff45ff.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_12588b712a0626a3.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_828206256edd45b5.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_ac926f295b065bce.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_b42c69c0b9067d04.jpg
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_cd49eb0cb979d5a4.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806_html_e3487e6a4b24ad3.gif
+web/conversion/58901ee1-4b72-44eb-abb5-0742fd57e806.html
+web/conversion/Workers Compensation - Certificate of Service Form 4.pdf
+web/conversion/WorkersCompensation-CertificateofServiceForm4.html
+web/core/lib/Drupal/Core/Render/MainContent/debug_htmlrenderer_prepare.txt
+web/modules/contrib/admin_toolbar/.cspell-project-words.txt
+web/modules/contrib/admin_toolbar/.eslintignore
+web/modules/contrib/admin_toolbar/.gitlab-ci.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.install
+web/modules/contrib/admin_toolbar/admin_toolbar.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.links.menu.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.links.task.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.module
+web/modules/contrib/admin_toolbar/admin_toolbar.routing.yml
+web/modules/contrib/admin_toolbar/CHANGELOG.txt
+web/modules/contrib/admin_toolbar/composer.json
+web/modules/contrib/admin_toolbar/logo.png
+web/modules/contrib/admin_toolbar/phpstan.neon
+web/modules/contrib/admin_toolbar/README.md
+web/modules/contrib/admin_toolbar/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/admin_toolbar_links_access_filter.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/admin_toolbar_links_access_filter.install
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/admin_toolbar_links_access_filter.module
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.install
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.links.menu.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.links.task.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.module
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.permissions.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.routing.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.services.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/README.md
+web/modules/contrib/admin_toolbar/admin_toolbar_search/config/install/admin_toolbar_search.settings.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/config/schema/admin_toolbar_search.schema.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/css/admin_toolbar_search.css
+web/modules/contrib/admin_toolbar/admin_toolbar_search/css/admin.toolbar_search.css
+web/modules/contrib/admin_toolbar/admin_toolbar_search/css/admin.toolbar_search.css.orig
+web/modules/contrib/admin_toolbar/admin_toolbar_search/images/search_icon.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_search/js/admin_toolbar_search.js
+web/modules/contrib/admin_toolbar/admin_toolbar_search/js/admin_toolbar_search.js.orig
+web/modules/contrib/admin_toolbar/admin_toolbar_search/js/admin_toolbar_search.keyboard_shortcut.js
+web/modules/contrib/admin_toolbar/admin_toolbar_search/src/SearchLinks.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/src/Constants/AdminToolbarSearchConstants.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/src/Controller/AdminToolbarSearchController.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/src/Form/AdminToolbarSearchSettingsForm.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/Functional/AdminToolbarSearchSettingsFormTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarSearchEventsTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarSearchTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarSearchTestBase.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarToolsSearchTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.install
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.links.menu.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.links.task.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.module
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.post_update.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.routing.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.services.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/README.md
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/config/install/admin_toolbar_tools.settings.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/config/schema/admin_toolbar_tools.schema.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/css/admin_toolbar_tools.css
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/css/tools.css
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/images/drupal-logo.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/images/local_tasks.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/misc/icons/ffffff/drupal-8-logo.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/misc/icons/ffffff/drupal-9-logo.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/AdminToolbarToolsHelper.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Constants/AdminToolbarToolsConstants.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Controller/ToolbarController.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Form/AdminToolbarToolsSettingsForm.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Plugin/Derivative/ExtraLinks.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Plugin/Menu/MenuLinkEntity.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Plugin/Menu/MenuLinkPlugin.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsAlterTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsExtraLinksCustomTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsExtraLinksTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsProjectBrowserTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsSettingsFormTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsToolbarControllerTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/FunctionalJavascript/AdminToolbarToolsSearchTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Traits/AdminToolbarToolsEntityCreationTrait.php
+web/modules/contrib/admin_toolbar/config/install/admin_toolbar.settings.yml
+web/modules/contrib/admin_toolbar/config/schema/admin_toolbar.schema.yml
+web/modules/contrib/admin_toolbar/css/admin_toolbar.disable_sticky.css
+web/modules/contrib/admin_toolbar/css/admin_toolbar.sticky_behavior.css
+web/modules/contrib/admin_toolbar/css/admin_toolbar.toggle_shortcut.css
+web/modules/contrib/admin_toolbar/css/admin.toolbar_search.css
+web/modules/contrib/admin_toolbar/css/admin.toolbar.css
+web/modules/contrib/admin_toolbar/images/icons/collapse.svg
+web/modules/contrib/admin_toolbar/images/icons/expand.svg
+web/modules/contrib/admin_toolbar/js/admin_toolbar.hover.js
+web/modules/contrib/admin_toolbar/js/admin_toolbar.hoverintent.js
+web/modules/contrib/admin_toolbar/js/admin_toolbar.js
+web/modules/contrib/admin_toolbar/js/admin_toolbar.sticky_behavior.js
+web/modules/contrib/admin_toolbar/js/admin_toolbar.toggle_shortcut.js
+web/modules/contrib/admin_toolbar/js/jquery.hoverIntent.js
+web/modules/contrib/admin_toolbar/misc/icons/bebebe/loupe.svg
+web/modules/contrib/admin_toolbar/misc/icons/ffffff/loupe.svg
+web/modules/contrib/admin_toolbar/src/Form/AdminToolbarSettingsForm.php
+web/modules/contrib/admin_toolbar/src/Render/Element/AdminToolbar.php
+web/modules/contrib/admin_toolbar/tests/src/Functional/AdminToolbarAdminMenuTest.php
+web/modules/contrib/admin_toolbar/tests/src/Functional/AdminToolbarAlterTest.php
+web/modules/contrib/admin_toolbar/tests/src/Functional/AdminToolbarSettingsFormTest.php
+web/modules/contrib/admin_toolbar/tests/src/Functional/AdminToolbarToolsSortTest.php
+web/modules/contrib/admin_toolbar/tests/src/Traits/AdminToolbarHelperTestTrait.php
+web/modules/contrib/adminimal_admin_toolbar/adminimal_admin_toolbar.info.yml
+web/modules/contrib/adminimal_admin_toolbar/composer.json
+web/modules/contrib/adminimal_admin_toolbar/README.md
+web/modules/contrib/adminimal_admin_toolbar/README.txt
+web/modules/contrib/adminimal_admin_toolbar/css/adminimal_admin_toolbar.css
+web/modules/contrib/ief_table_view_mode/git_deploy/composer.json
+web/modules/contrib/ief_table_view_mode/git_deploy/git_deploy.info.yml
+web/modules/contrib/ief_table_view_mode/git_deploy/git_deploy.install
+web/modules/contrib/ief_table_view_mode/git_deploy/git_deploy.module
+web/modules/contrib/ief_table_view_mode/git_deploy/LICENSE.txt
+web/modules/contrib/ief_table_view_mode/git_deploy/README.md
+web/modules/contrib/node_save_redirect/.gitlab-ci.yml
+web/modules/contrib/node_save_redirect/LICENSE.txt
+web/modules/contrib/node_save_redirect/node_save_redirect.info.yml
+web/modules/contrib/node_save_redirect/node_save_redirect.install
+web/modules/contrib/node_save_redirect/node_save_redirect.module
+web/modules/contrib/node_save_redirect/README.md
+web/modules/contrib/node_save_redirect/config/schema/node_save_redirect.schema.yml
+web/modules/contrib/select_or_other/.gitlab-ci.yml
+web/modules/contrib/select_or_other/README.md
+web/modules/contrib/select_or_other/README.txt
+web/modules/contrib/select_or_other/select_or_other.info.yml
+web/modules/contrib/select_or_other/select_or_other.module
+web/modules/contrib/select_or_other/config/schema/select_or_other.schema.yml
+web/modules/contrib/select_or_other/js/MultipleSelectStatesHack.js
+web/modules/contrib/select_or_other/src/Element/Buttons.php
+web/modules/contrib/select_or_other/src/Element/ElementBase.php
+web/modules/contrib/select_or_other/src/Element/Select.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/ListWidget.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/ReferenceWidget.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/WidgetBase.php
+web/modules/contrib/select_or_other/src/Plugin/Validation/AllowedValuesConstraint.php
+web/modules/contrib/select_or_other/src/Plugin/Validation/AllowedValuesConstraintValidator.php
+web/modules/contrib/select_or_other/tests/src/Functional/ListTest.php
+web/modules/contrib/select_or_other/tests/src/Functional/ReferenceTest.php
+web/modules/contrib/select_or_other/tests/src/Functional/TestBase.php
+web/modules/contrib/select_or_other/tests/src/Unit/ButtonsElementTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ElementsTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ListWidgetTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ReferenceWidgetTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/SelectElementTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/UnitTestBase.php
+web/modules/contrib/admin_toolbar/admin_toolbar.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.install
+web/modules/contrib/admin_toolbar/admin_toolbar.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.module
+web/modules/contrib/admin_toolbar/CHANGELOG.txt
+web/modules/contrib/admin_toolbar/composer.json
+web/modules/contrib/admin_toolbar/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/admin_toolbar_links_access_filter.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/admin_toolbar_links_access_filter.module
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.module
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.permissions.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.routing.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.services.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/css/admin.toolbar_search.css
+web/modules/contrib/admin_toolbar/admin_toolbar_search/css/admin.toolbar_search.css.orig
+web/modules/contrib/admin_toolbar/admin_toolbar_search/js/admin_toolbar_search.js
+web/modules/contrib/admin_toolbar/admin_toolbar_search/js/admin_toolbar_search.js.orig
+web/modules/contrib/admin_toolbar/admin_toolbar_search/src/SearchLinks.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/src/Controller/AdminToolbarSearchController.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarSearchTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarSearchTestBase.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarToolsSearchTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.install
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.links.menu.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.module
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.routing.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.services.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/css/tools.css
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/misc/icons/ffffff/drupal-8-logo.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/misc/icons/ffffff/drupal-9-logo.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/AdminToolbarToolsHelper.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Controller/ToolbarController.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Plugin/Derivative/ExtraLinks.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsAlterTest.php
+web/modules/contrib/admin_toolbar/css/admin.toolbar_search.css
+web/modules/contrib/admin_toolbar/css/admin.toolbar.css
+web/modules/contrib/admin_toolbar/js/admin_toolbar.js
+web/modules/contrib/admin_toolbar/js/jquery.hoverIntent.js
+web/modules/contrib/admin_toolbar/misc/icons/bebebe/loupe.svg
+web/modules/contrib/admin_toolbar/misc/icons/ffffff/loupe.svg
+web/modules/contrib/admin_toolbar/src/Render/Element/AdminToolbar.php
+web/modules/contrib/admin_toolbar/tests/src/Functional/AdminToolbarAlterTest.php
+web/modules/contrib/admin_toolbar/tests/src/Functional/AdminToolbarToolsSortTest.php
+web/modules/contrib/adminimal_admin_toolbar/adminimal_admin_toolbar.info.yml
+web/modules/contrib/adminimal_admin_toolbar/composer.json
+web/modules/contrib/adminimal_admin_toolbar/README.txt
+web/modules/contrib/adminimal_admin_toolbar/css/adminimal_admin_toolbar.css
+web/modules/contrib/node_save_redirect/node_save_redirect.info.yml
+web/modules/contrib/node_save_redirect/node_save_redirect.module
+web/modules/contrib/select_or_other/README.txt
+web/modules/contrib/select_or_other/select_or_other.info.yml
+web/modules/contrib/select_or_other/select_or_other.module
+web/modules/contrib/select_or_other/config/schema/select_or_other.schema.yml
+web/modules/contrib/select_or_other/js/MultipleSelectStatesHack.js
+web/modules/contrib/select_or_other/src/Element/Buttons.php
+web/modules/contrib/select_or_other/src/Element/ElementBase.php
+web/modules/contrib/select_or_other/src/Element/Select.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/ListWidget.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/ReferenceWidget.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/WidgetBase.php
+web/modules/contrib/select_or_other/src/Plugin/Validation/AllowedValuesConstraint.php
+web/modules/contrib/select_or_other/src/Plugin/Validation/AllowedValuesConstraintValidator.php
+web/modules/contrib/select_or_other/tests/src/Functional/ListTest.php
+web/modules/contrib/select_or_other/tests/src/Functional/ReferenceTest.php
+web/modules/contrib/select_or_other/tests/src/Functional/TestBase.php
+web/modules/contrib/select_or_other/tests/src/Unit/ButtonsElementTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ElementsTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ListWidgetTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ReferenceWidgetTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/SelectElementTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/UnitTestBase.php
+web/modules/contrib/select_or_other/README.txt
+web/modules/contrib/select_or_other/select_or_other.info.yml
+web/modules/contrib/select_or_other/select_or_other.module
+web/modules/contrib/select_or_other/config/schema/select_or_other.schema.yml
+web/modules/contrib/select_or_other/js/MultipleSelectStatesHack.js
+web/modules/contrib/select_or_other/src/Element/Buttons.php
+web/modules/contrib/select_or_other/src/Element/ElementBase.php
+web/modules/contrib/select_or_other/src/Element/Select.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/ListWidget.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/ReferenceWidget.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/WidgetBase.php
+web/modules/contrib/select_or_other/src/Plugin/Validation/AllowedValuesConstraint.php
+web/modules/contrib/select_or_other/src/Plugin/Validation/AllowedValuesConstraintValidator.php
+web/modules/contrib/select_or_other/tests/src/Functional/ListTest.php
+web/modules/contrib/select_or_other/tests/src/Functional/ReferenceTest.php
+web/modules/contrib/select_or_other/tests/src/Functional/TestBase.php
+web/modules/contrib/select_or_other/tests/src/Unit/ButtonsElementTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ElementsTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ListWidgetTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ReferenceWidgetTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/SelectElementTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/UnitTestBase.php
+web/modules/contrib/admin_toolbar/admin_toolbar.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.install
+web/modules/contrib/admin_toolbar/admin_toolbar.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar.module
+web/modules/contrib/admin_toolbar/CHANGELOG.txt
+web/modules/contrib/admin_toolbar/composer.json
+web/modules/contrib/admin_toolbar/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/admin_toolbar_links_access_filter.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/admin_toolbar_links_access_filter.module
+web/modules/contrib/admin_toolbar/admin_toolbar_links_access_filter/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.module
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.permissions.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.routing.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/admin_toolbar_search.services.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_search/css/admin.toolbar_search.css
+web/modules/contrib/admin_toolbar/admin_toolbar_search/css/admin.toolbar_search.css.orig
+web/modules/contrib/admin_toolbar/admin_toolbar_search/js/admin_toolbar_search.js
+web/modules/contrib/admin_toolbar/admin_toolbar_search/js/admin_toolbar_search.js.orig
+web/modules/contrib/admin_toolbar/admin_toolbar_search/src/SearchLinks.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/src/Controller/AdminToolbarSearchController.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarSearchTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarSearchTestBase.php
+web/modules/contrib/admin_toolbar/admin_toolbar_search/tests/src/FunctionalJavascript/AdminToolbarToolsSearchTest.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.info.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.install
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.libraries.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.links.menu.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.module
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.routing.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/admin_toolbar_tools.services.yml
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/README.txt
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/css/tools.css
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/misc/icons/ffffff/drupal-8-logo.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/misc/icons/ffffff/drupal-9-logo.svg
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/AdminToolbarToolsHelper.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Controller/ToolbarController.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/src/Plugin/Derivative/ExtraLinks.php
+web/modules/contrib/admin_toolbar/admin_toolbar_tools/tests/src/Functional/AdminToolbarToolsAlterTest.php
+web/modules/contrib/admin_toolbar/css/admin.toolbar_search.css
+web/modules/contrib/admin_toolbar/css/admin.toolbar.css
+web/modules/contrib/admin_toolbar/js/admin_toolbar.js
+web/modules/contrib/admin_toolbar/js/jquery.hoverIntent.js
+web/modules/contrib/admin_toolbar/misc/icons/bebebe/loupe.svg
+web/modules/contrib/admin_toolbar/misc/icons/ffffff/loupe.svg
+web/modules/contrib/admin_toolbar/src/Render/Element/AdminToolbar.php
+web/modules/contrib/admin_toolbar/tests/src/Functional/AdminToolbarAlterTest.php
+web/modules/contrib/admin_toolbar/tests/src/Functional/AdminToolbarToolsSortTest.php
+web/modules/contrib/adminimal_admin_toolbar/adminimal_admin_toolbar.info.yml
+web/modules/contrib/adminimal_admin_toolbar/composer.json
+web/modules/contrib/adminimal_admin_toolbar/README.txt
+web/modules/contrib/adminimal_admin_toolbar/css/adminimal_admin_toolbar.css
+.claude/settings.local.json
+modules/.gitignore
+web/modules/contrib/select_or_other/README.txt
+web/modules/contrib/select_or_other/select_or_other.info.yml
+web/modules/contrib/select_or_other/select_or_other.module
+web/modules/contrib/select_or_other/config/schema/select_or_other.schema.yml
+web/modules/contrib/select_or_other/js/MultipleSelectStatesHack.js
+web/modules/contrib/select_or_other/src/Element/Buttons.php
+web/modules/contrib/select_or_other/src/Element/ElementBase.php
+web/modules/contrib/select_or_other/src/Element/Select.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/ListWidget.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/ReferenceWidget.php
+web/modules/contrib/select_or_other/src/Plugin/Field/FieldWidget/WidgetBase.php
+web/modules/contrib/select_or_other/src/Plugin/Validation/AllowedValuesConstraint.php
+web/modules/contrib/select_or_other/src/Plugin/Validation/AllowedValuesConstraintValidator.php
+web/modules/contrib/select_or_other/tests/src/Functional/ListTest.php
+web/modules/contrib/select_or_other/tests/src/Functional/ReferenceTest.php
+web/modules/contrib/select_or_other/tests/src/Functional/TestBase.php
+web/modules/contrib/select_or_other/tests/src/Unit/ButtonsElementTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ElementsTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ListWidgetTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/ReferenceWidgetTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/SelectElementTest.php
+web/modules/contrib/select_or_other/tests/src/Unit/UnitTestBase.php
+web/modules/contrib/select_or_other/config/schema/select_or_other.schema.yml
+web/modules/contrib/select_or_other/js/MultipleSelectStatesHack.js
+web/58901ee1-4b72-44eb-abb5-0742fd57e806.docx
+debug.log
+devapp.stallioni.com.vhost
+devapp.stallioni.com.vhost_backup_13-2-2026

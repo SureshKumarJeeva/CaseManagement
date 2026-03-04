@@ -3,12 +3,14 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.node.template.body
+    - field.field.node.template.field_file_upload
     - field.field.node.template.field_paragraph_test
+    - field.field.node.template.field_short_codes
+    - field.field.node.template.field_template_editor
     - node.type.template
   module:
     - field_group
-    - layout_paragraphs
+    - file
     - path
     - text
 third_party_settings:
@@ -18,7 +20,7 @@ third_party_settings:
       label: 'Template controls'
       region: content
       parent_name: ''
-      weight: 9
+      weight: 6
       format_type: html_element
       format_settings:
         classes: ''
@@ -38,9 +40,28 @@ targetEntityType: node
 bundle: template
 mode: default
 content:
-  body:
+  created:
+    type: datetime_timestamp
+    weight: 1
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_file_upload:
+    type: file_generic
+    weight: 8
+    region: content
+    settings:
+      progress_indicator: throbber
+    third_party_settings: {  }
+  field_short_codes:
+    type: options_select
+    weight: 26
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_template_editor:
     type: text_textarea_with_summary
-    weight: 7
+    weight: 9
     region: content
     settings:
       rows: 9
@@ -48,54 +69,36 @@ content:
       placeholder: ''
       show_summary: false
     third_party_settings: {  }
-  created:
-    type: datetime_timestamp
-    weight: 2
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_paragraph_test:
-    type: layout_paragraphs
-    weight: 8
-    region: content
-    settings:
-      view_mode: preview
-      preview_view_mode: preview
-      form_display_mode: default
-      nesting_depth: 0
-      require_layouts: 0
-      empty_message: ''
-    third_party_settings: {  }
   path:
     type: path
-    weight: 5
+    weight: 4
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    weight: 3
+    weight: 2
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 6
+    weight: 5
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    weight: 4
+    weight: 3
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   title:
     type: string_textfield
-    weight: 0
+    weight: 7
     region: content
     settings:
       size: 60
@@ -103,7 +106,7 @@ content:
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 1
+    weight: 0
     region: content
     settings:
       match_operator: CONTAINS
@@ -111,4 +114,5 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-hidden: {  }
+hidden:
+  field_paragraph_test: true

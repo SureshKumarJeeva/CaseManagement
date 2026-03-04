@@ -63,3 +63,40 @@ associatedps_affidavit_template.save_document_template:
     _title: 'Document Template Store'
   requirements:
     _permission: 'administer site configuration'
+
+associatedps_affidavit_template.xero_account_config:
+  path: '/admin/config/associatedps/xero'
+  defaults:
+    _form: '\Drupal\associatedps_affidavit_template\Form\XeroAccountConfigForm'
+    _title: 'Xero Account Configuration'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.xero_oauth_start:
+  path: '/admin/config/associatedps/xero/authorize'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\XeroOAuthController::authorize'
+  requirements:
+    _permission: 'administer site configuration'
+
+
+associatedps_affidavit_template.xero_oauth_callback:
+  path: '/xero/oauth/callback'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\XeroOAuthController::callback'
+  requirements:
+    _access: 'TRUE'
+
+associatedps_affidavit_template.xero_handle_tokens:
+  path: '/xero/oauth/tokens'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\XeroOAuthController::handleTokens'
+  requirements:
+    _access: 'TRUE'
+
+associatedps_affidavit_template.xero_generate_invoice:
+  path: '/xero/generate-invoice/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\XeroServices::generateInvoice'
+  requirements:
+    _access: 'TRUE'

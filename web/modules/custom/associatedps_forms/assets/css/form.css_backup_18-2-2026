@@ -1,0 +1,42 @@
+#node-job-form a.use-ajax,
+#node-job-edit-form a.use-ajax {
+  margin: 0;
+  text-decoration: none;
+  display: inline-block;
+}
+
+#node-job-form .paragraph-type--document a.use-ajax,
+#node-job-edit-form .paragraph-type--document a.use-ajax {
+  margin-bottom: 10px;
+}
+
+#node-job-edit-form .paragraph-type--document .form-wrapper > a.use-ajax {
+  display: none;
+}
+#node-job-edit-form .paragraph-type--document .paragraphs-subform.form-wrapper > a.use-ajax {
+  display: inline-block;
+}
+
+#node-job-form .paragraph-type--party .field--name-field-full-name,
+#node-job-edit-form .paragraph-type--party .field--name-field-full-name,
+#node-job-form .paragraph-type--party-side-two- .field--name-field-full-name,
+#node-job-edit-form .paragraph-type--party-side-two- .field--name-field-full-name,
+#node-job-form .paragraph-type--document .field--name-field-document-title,
+#node-job-edit-form .paragraph-type--document .field--name-field-document-title,
+#node-job-form .paragraph-type--document .field--name-field-notice-period,
+#node-job-edit-form .paragraph-type--document .field--name-field-notice-period,
+#node-job-form .paragraph-type--document .field--name-field-doc-notice-period,
+#node-job-edit-form .paragraph-type--document .field--name-field-doc-notice-period,
+#node-job-form .paragraph-type--document .field--name-field-court-name,
+#node-job-edit-form .paragraph-type--document .field--name-field-court-name,
+#node-job-form .paragraph-type--document .field--name-field-affidavit-template,
+#node-job-edit-form .paragraph-type--document .field--name-field-affidavit-template,
+#node-job-form .paragraph-type--attendance-note .field--name-field-employee-first-name,
+#node-job-edit-form .paragraph-type--attendance-note .field--name-field-employee-first-name,
+#node-job-form .paragraph-type--attendance-note .field--name-field-employee-last-name,
+#node-job-edit-form .paragraph-type--attendance-note .field--name-field-employee-last-name,
+#node-job-form .paragraph-type--attendance-note .field--name-field-employee-full-name,
+#node-job-edit-form .paragraph-type--attendance-note .field--name-field-employee-full-name {
+  opacity: 0;
+  height: 0;
+}

@@ -55,6 +55,20 @@ class FileConverter{
                 $bodyHTML = $this->embeddImagestoHTML($output, $path);
 
                 return $headerHtml.$bodyHTML;
+            case 'rtf':
+                $tempDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'rtfhtml_' . uniqid();
+                mkdir($tempDir, 0777, true);
+                $command = sprintf(
+                    'pandoc -f rtf -t html --extract-media=%s %s',
+                    escapeshellarg($tempDir),
+                    escapeshellarg($path)
+                );
+                \Drupal::logger('template_upload')->info('convertToHtml rtf command: ' . $command);
+                $output = shell_exec($command);
+                \Drupal::logger('template_upload')->info('convertToHtml rtf: ' . $output);
+
+                $bodyHTML = $this->embeddImagestoHTML($output, $path, 'rtf', $tempDir);
+                return $bodyHTML;
             case 'eml':
                 $content = file_get_contents($path);
                 return "<pre>".htmlspecialchars($content)."</pre>";
@@ -158,6 +172,10 @@ class FileConverter{
             if (!file_exists($imgPath) && $file_type == 'docx') {
                 // Try media subfolder
                 $imgPath = $tempDir . DIRECTORY_SEPARATOR.'word'. DIRECTORY_SEPARATOR. 'media' . DIRECTORY_SEPARATOR. basename($src);
+            }
+            if (!file_exists($imgPath) && $file_type == 'rtf') {
+                // pandoc --extract-media puts images in a media/ subfolder
+                $imgPath = $tempDir . DIRECTORY_SEPARATOR . 'media' . DIRECTORY_SEPARATOR . basename($src);
             }
             \Drupal::logger('convert docx to html')->info('embedd image: image path'.$imgPath);
             \Drupal::logger('convert docx to html')->info('embedd image: file_exists($imgPath)');

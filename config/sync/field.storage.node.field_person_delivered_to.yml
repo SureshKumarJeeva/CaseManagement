@@ -18,6 +18,30 @@ settings:
     -
       value: 'Pranali Kalavadia'
       label: 'Pranali Kalavadia'
+    -
+      value: 'asdlj asdlfj'
+      label: 'asdlj asdlfj'
+    -
+      value: ' '
+      label: ' '
+    -
+      value: 'Lorenzo Dominico Guiseppe Cazzola'
+      label: 'Lorenzo Dominico Guiseppe Cazzola'
+    -
+      value: 'Sandra Carrera'
+      label: 'Sandra Carrera'
+    -
+      value: 'Beverley Dew'
+      label: 'Beverley Dew'
+    -
+      value: 'New '
+      label: 'New '
+    -
+      value: 'New 2 fname new 2 lname'
+      label: 'New 2 fname new 2 lname'
+    -
+      value: '2'
+      label: '2'
   allowed_values_function: ''
 module: options
 locked: false

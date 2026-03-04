@@ -12,12 +12,17 @@ class ListTest extends TestBase {
   /**
    * {@inheritdoc}
    */
-  public static $modules = ['options'];
+  protected $defaultTheme = 'stark';
 
   /**
    * {@inheritdoc}
    */
-  public function setUp() {
+  protected static $modules = ['options'];
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setUp(): void {
     parent::setUp();
     $field_settings = [];
     $widget = 'select_or_other_list';
@@ -54,30 +59,30 @@ class ListTest extends TestBase {
         if (!$required) {
           if ($multiple) {
             $this->setFieldValue($field_name, 'select_or_other', 'multi_value');
-            $this->clickLink(t('Edit'));
+            $this->clickLink('Edit');
 
             $this->getSession()->getPage()->findButton('edit-preview')->press();
-            $this->clickLink(t('Back to content editing'));
+            $this->clickLink('Back to content editing');
             $this->assertSession()->pageTextNotContains('An illegal choice has been detected. Please contact the site administrator.');
 
             $this->setFieldValue($field_name, 'multi_value');
-            $this->clickLink(t('Edit'));
+            $this->clickLink('Edit');
 
             $this->getSession()->getPage()->findButton('edit-preview')->press();
-            $this->clickLink(t('Back to content editing'));
+            $this->clickLink('Back to content editing');
             $this->assertSession()->pageTextNotContains('An illegal choice has been detected. Please contact the site administrator.');
           }
           else {
             $this->setFieldValue($field_name, 'select_or_other', 'value');
-            $this->clickLink(t('Edit'));
+            $this->clickLink('Edit');
 
             $this->getSession()->getPage()->findButton('edit-preview')->press();
-            $this->clickLink(t('Back to content editing'));
+            $this->clickLink('Back to content editing');
             $this->assertSession()->pageTextNotContains('An illegal choice has been detected. Please contact the site administrator.');
 
             $this->setFieldValue($field_name, '');
 
-            $this->clickLink(t('Back to content editing'));
+            $this->clickLink('Back to content editing');
             $this->assertSession()->pageTextNotContains('An illegal choice has been detected. Please contact the site administrator.');
           }
         }

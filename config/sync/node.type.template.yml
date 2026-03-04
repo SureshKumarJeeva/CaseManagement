@@ -4,15 +4,23 @@ status: true
 dependencies:
   module:
     - menu_ui
+    - node_save_redirect
 third_party_settings:
   menu_ui:
     available_menus:
       - main
     parent: 'main:'
+  node_save_redirect:
+    save_type: '0'
+    save_location: ''
+    save_destination: 0
+    edit_type: '0'
+    edit_location: ''
+    edit_destination: 0
 name: Template
 type: template
 description: null
 help: null
 new_revision: true
-preview_mode: 1
+preview_mode: 0
 display_submitted: true

@@ -7,3 +7,43 @@ global:
   dependencies:
     - core/jquery
     - core/drupalSettings
+    - core/once
+
+job_form_tabs:
+  js:
+    assets/js/job_form_tabs.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+    - field_group/element.horizontal_tabs
+
+party_to_serve_sync:
+  js:
+    assets/js/party_to_serve_sync.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+
+service_fee_sync:
+  js:
+    assets/js/service_fee_sync.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+    - core/drupalSettings
+
+employee_sync:
+  js:
+    assets/js/employee_sync.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+    - core/drupalSettings
+
+attendance_address_sync:
+  js:
+    assets/js/attendance_address_sync.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+    - core/drupalSettings

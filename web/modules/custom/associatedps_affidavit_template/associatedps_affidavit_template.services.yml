@@ -3,3 +3,17 @@ services:
     class : Drupal\associatedps_affidavit_template\Service\FileConverter
   associatedps_affidavit_template.pdf:
     class: Drupal\associatedps_affidavit_template\Service\PdfGenerator
+  associatedps_affidavit_template.xero_client:
+    class: Drupal\associatedps_affidavit_template\Service\XeroClient
+    arguments:
+      - '@http_client'
+      - '@database'
+  associatedps_affidavit_template.xero_invoice_integration:
+    class: Drupal\associatedps_affidavit_template\Service\XeroInvoiceIntegration
+    arguments:
+      - '@associatedps_affidavit_template.xero_client'
+      - '@database'
+  associatedps_affidavit_template.token_crypto:
+    class: Drupal\associatedps_affidavit_template\Service\TokenCrypto
+    arguments:
+      - '@settings'

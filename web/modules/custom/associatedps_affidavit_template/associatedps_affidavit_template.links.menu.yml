@@ -11,3 +11,10 @@ associatedps_affidavit_template.list_template_documents:
   route_name: associatedps_affidavit_template.list_template_documents
   parent: system.admin_content   # shows under "Content"
   weight: 25
+
+associatedps_affidavit_template.xero_account_config:
+  title: 'Xero Account Configuration'
+  description: 'Configure Xero Account Settings'
+  route_name: associatedps_affidavit_template.xero_account_config
+  parent: system.admin_config   # shows under "Configuration"
+  weight: 30

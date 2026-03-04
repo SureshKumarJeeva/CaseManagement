@@ -2,9 +2,13 @@
 
 namespace Drupal\select_or_other\Plugin\Field\FieldWidget;
 
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\Core\Field\FieldDefinitionInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Session\AccountInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
  * Plugin implementation of the 'select_or_other_list' widget.
@@ -21,6 +25,59 @@ use Drupal\Core\Form\FormStateInterface;
  * )
  */
 class ListWidget extends WidgetBase {
+
+  /**
+   * The current user.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $currentUser;
+
+  /**
+   * The entity type manager.
+   *
+   * @var \Drupal\Core\Entity\EntityTypeManagerInterface
+   */
+  protected $entityTypeManager;
+
+  /**
+   * Creates a ListWidget instance.
+   *
+   * @param string $plugin_id
+   *   The plugin_id for the widget.
+   * @param mixed $plugin_definition
+   *   The plugin implementation definition.
+   * @param \Drupal\Core\Field\FieldDefinitionInterface $field_definition
+   *   The definition of the field to which the widget is associated.
+   * @param array $settings
+   *   The widget settings.
+   * @param array $third_party_settings
+   *   Any third party settings.
+   * @param \Drupal\Core\Session\AccountInterface $current_user
+   *   The current user.
+   * @param \Drupal\Core\Entity\EntityTypeManagerInterface $entity_type_manager
+   *   The entity type manager.
+   */
+  public function __construct($plugin_id, $plugin_definition, FieldDefinitionInterface $field_definition, array $settings, array $third_party_settings, AccountInterface $current_user, EntityTypeManagerInterface $entity_type_manager) {
+    parent::__construct($plugin_id, $plugin_definition, $field_definition, $settings, $third_party_settings);
+    $this->currentUser = $current_user;
+    $this->entityTypeManager = $entity_type_manager;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    return new static(
+      $plugin_id,
+      $plugin_definition,
+      $configuration['field_definition'],
+      $configuration['settings'],
+      $configuration['third_party_settings'],
+      $container->get('current_user'),
+      $container->get('entity_type.manager'),
+    );
+  }
 
   /**
    * {@inheritdoc}
@@ -54,7 +111,7 @@ class ListWidget extends WidgetBase {
       $options = $this->fieldDefinition
         ->getFieldStorageDefinition()
         ->getOptionsProvider($this->getColumn(), $entity)
-        ->getSettableOptions(\Drupal::currentUser());
+        ->getSettableOptions($this->currentUser);
     }
 
     return $options;
@@ -84,12 +141,15 @@ class ListWidget extends WidgetBase {
     }
 
     $element = $element + [
-        '#merged_values' => TRUE,
-      ];
+      '#merged_values' => TRUE,
+    ];
 
     return $element;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function massageFormValues(array $values, array $form, FormStateInterface $form_state) {
     unset($values['select']);
     unset($values['other']);
@@ -136,7 +196,7 @@ class ListWidget extends WidgetBase {
     $entity_type = $this->fieldDefinition->getTargetEntityTypeId();
     $field_name = $this->fieldDefinition->getName();
     /** @var \Drupal\field\FieldStorageConfigInterface $storage */
-    $storage = \Drupal::entityTypeManager()->getStorage('field_storage_config')->load("$entity_type.$field_name");
+    $storage = $this->entityTypeManager->getStorage('field_storage_config')->load("$entity_type.$field_name");
     $allowed_values = $storage->getSetting('allowed_values');
 
     foreach ($values_to_add as $value) {

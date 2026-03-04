@@ -1,0 +1,66 @@
+<?php
+
+/**
+ * Implements hook_update_N().
+ */
+function associatedps_affidavit_template_update_8002() {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('xero_tokens')) {
+    $schema->createTable('xero_tokens',[
+      'description' => 'Stores OAuth tokens for Xero integration.',
+      'fields' => [
+        'id' => [
+          'type' => 'serial',
+          'not null' => TRUE,
+          'description' => 'Primary key.',
+        ],
+        'tenant_id' => [
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'description' => 'Xero tenant ID.',
+        ],
+        'token_type' => [
+          'type' => 'varchar',
+          'length' => 50,
+          'not null' => TRUE,
+          'description' => 'Xero token type.',
+        ],
+        'access_token' => [
+          'type' => 'text',
+          'not null' => TRUE,
+          'description' => 'OAuth access token.',
+        ],
+        'refresh_token' => [
+          'type' => 'text',
+          'not null' => TRUE,
+          'description' => 'OAuth refresh token.',
+        ],
+        'expires_at' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Token expiry timestamp.',
+        ],
+        'scope' => [
+          'type' => 'text',
+          'not null' => TRUE,
+          'description' => 'OAuth registered scopes.',
+        ],
+        'created' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Created timestamp.',
+        ],
+        'updated' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Updated timestamp.',
+        ],
+      ],
+      'primary key' => ['id'],
+      'indexes' => [
+        'tenant_id' => ['tenant_id'],
+      ],
+    ]);
+  }
+}

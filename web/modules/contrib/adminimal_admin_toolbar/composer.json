@@ -11,5 +11,5 @@
     "issues": "https://www.drupal.org/project/issues/adminimal_admin_toolbar",
     "source": "http://cgit.drupalcode.org/adminimal_admin_toolbar"
   },
-  "license": "GPL-2.0+"
+  "license": "GPL-2.0-or-later"
 }

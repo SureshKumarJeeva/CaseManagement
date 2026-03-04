@@ -51,18 +51,30 @@ class CustomAddClient extends FormBase {
       $nid = abs($nid);
 
       if ($nid > 0) {
-        $node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
-        $client_name = $node->get('field_client_name')->getValue()[0]['value'];
-        $client_id = $node->get('field_job_client_id')->getValue()[0]['value'];
-        $telephone = $node->get('field_telephone')->getValue()[0]['value'];
-        $generic_email = $node->get('field_email')->getValue()[0]['value'];
-        $discount = $node->get('field_agreed_discount')->getValue()[0]['value'];
-        $notes = $node->get('field_notes')->getValue()[0]['value'];
-        $sa_address_line1 = $node->get('field_client_address')->getValue()[0]['address_line1'];
-        $sa_address_line2 = $node->get('field_client_address')->getValue()[0]['address_line2'];
-        $sa_locality = $node->get('field_client_address')->getValue()[0]['locality'];
-        $sa_postal_code = $node->get('field_client_address')->getValue()[0]['postal_code'];
-        $sa_administrative_area = $node->get('field_client_address')->getValue()[0]['administrative_area'];
+        $job_node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
+        if ($job_node) {
+          // Load client data from the actual client node for fresh data.
+          $client_ref = $job_node->get('field_client')->getValue();
+          if (!empty($client_ref)) {
+            $client_node = Node::load($client_ref[0]['target_id']);
+            if ($client_node) {
+              $client_name = $client_node->getTitle();
+              $client_id = !empty($client_node->get('field_client_id')->getValue()) ? $client_node->get('field_client_id')->getValue()[0]['value'] : '';
+              $telephone = !empty($client_node->get('field_telephone')->getValue()) ? $client_node->get('field_telephone')->getValue()[0]['value'] : '';
+              $generic_email = !empty($client_node->get('field_email')->getValue()) ? $client_node->get('field_email')->getValue()[0]['value'] : '';
+              $discount = !empty($client_node->get('field_agreed_discount')->getValue()) ? $client_node->get('field_agreed_discount')->getValue()[0]['value'] : '0';
+              $notes = !empty($client_node->get('field_notes')->getValue()) ? $client_node->get('field_notes')->getValue()[0]['value'] : '';
+              $address = $client_node->get('field_client_address')->getValue();
+              if (!empty($address)) {
+                $sa_address_line1 = $address[0]['address_line1'] ?? '';
+                $sa_address_line2 = $address[0]['address_line2'] ?? '';
+                $sa_locality = $address[0]['locality'] ?? '';
+                $sa_postal_code = $address[0]['postal_code'] ?? '';
+                $sa_administrative_area = $address[0]['administrative_area'] ?? '';
+              }
+            }
+          }
+        }
       }
 
       if ($client_id == '') {
@@ -99,9 +111,6 @@ class CustomAddClient extends FormBase {
       // Create the address field.
       $form['address']['site_address'] = [
         '#type' => 'address',
-        '#default_value' => \Drupal::config('system.site')->get('address') ?? [
-          'country_code' => 'AU',
-        ],
         '#field_overrides' => [
           'addressLine1' => 'optional',
           'addressLine2' => 'optional',
@@ -178,7 +187,6 @@ class CustomAddClient extends FormBase {
         '#type' => 'submit',
         '#ajax' => [
           'callback' => '::submitFormAddClient',
-          'wrapper' => 'wrapper-form-action',
         ],
       ];
 
@@ -225,15 +233,17 @@ class CustomAddClient extends FormBase {
   }
 
   /**
-   * {@inheritdoc}
+   * AJAX callback for the client form save button.
    */
   public function submitFormAddClient(array &$form, FormStateInterface $form_state) {
     $response = new AjaxResponse();
-    $client_name = $form_state->getValue('client_name');
-    $client_id = $form_state->getValue('client_id');
+    $values = $form_state->getValues();
+    $client_name = $values['client_name'];
+    $client_id_value = $values['client_id'];
+    $job_id = (int) $values['job_id'];
 
-    if (empty($client_id) || empty($client_name)) {
-      if (empty($client_id)) {
+    if (empty($client_id_value) || empty($client_name)) {
+      if (empty($client_id_value)) {
         $response->addCommand(new CssCommand('.form-item-client-id input', ['border' => '1px solid red']));
         $response->addCommand(new HtmlCommand('#client-id-validate', 'Please enter a Client ID.'));
       }
@@ -243,45 +253,63 @@ class CustomAddClient extends FormBase {
       }
       return $response;
     }
-    else {
-      $response->addCommand(new CssCommand('.form-item-client-id input', ['border' => '1px solid #b8b8b8', 'border-top-color' => '#999']));
-      $response->addCommand(new HtmlCommand('#client-name-validate', ''));
-      $response->addCommand(new CssCommand('.form-item-client-name input', ['border' => '1px solid #b8b8b8', 'border-top-color' => '#999']));
-      $response->addCommand(new HtmlCommand('#client-id-validate', ''));
 
-      $response->addCommand(new CloseDialogCommand());
+    $response->addCommand(new CssCommand('.form-item-client-id input', ['border' => '1px solid #b8b8b8', 'border-top-color' => '#999']));
+    $response->addCommand(new HtmlCommand('#client-name-validate', ''));
+    $response->addCommand(new CssCommand('.form-item-client-name input', ['border' => '1px solid #b8b8b8', 'border-top-color' => '#999']));
+    $response->addCommand(new HtmlCommand('#client-id-validate', ''));
 
-      $values = $form_state->getValues();
-      if ($values['job_id'] === 0) {
-        $redirect_url = '/node/add/job';
+    // Build the address array with country_code.
+    $address_data = [
+      'country_code' => $values['site_address']['country_code'] ?? 'AU',
+      'address_line1' => $values['site_address']['address_line1'] ?? '',
+      'address_line2' => $values['site_address']['address_line2'] ?? '',
+      'locality' => $values['site_address']['locality'] ?? '',
+      'administrative_area' => $values['site_address']['administrative_area'] ?? '',
+      'postal_code' => $values['site_address']['postal_code'] ?? '',
+    ];
+
+    // Determine if we should update an existing client or create a new one.
+    $client_node = NULL;
+    $job_node = NULL;
+    if ($job_id > 0) {
+      $job_node = Node::load($job_id);
+      if ($job_node) {
+        $client_ref = $job_node->get('field_client')->getValue();
+        if (!empty($client_ref)) {
+          $client_node = Node::load($client_ref[0]['target_id']);
+        }
       }
-      else {
-        $redirect_url = '/node/' . $values['job_id'] . '/edit';
-      }
+    }
 
-      $command = new RedirectCommand($redirect_url);
-      $response->addCommand($command);
+    if (!$client_node) {
+      $client_node = Node::create(['type' => 'client']);
+      $client_node->status = 1;
+    }
 
-      /* Node add client */
+    // Save client fields.
+    $client_node->set('title', $values['client_name']);
+    $client_node->set('field_client_id', $values['client_id']);
+    $client_node->set('field_telephone', $values['telephone']);
+    $client_node->set('field_email', $values['generic_email']);
+    $client_node->set('field_agreed_discount', $values['discount']);
+    $client_node->set('field_notes', $values['notes']);
+    $client_node->set('field_client_address', $address_data);
+    $client_node->save();
 
-      $node = Node::create(['type' => 'client']);
-      $node->set('title', $values['client_name']);
-      $node->set('field_client_id', $values['client_id']);
-      $node->set('field_telephone', $values['telephone']);
-      $node->set('field_email', $values['generic_email']);
-      $node->set('field_agreed_discount', $values['discount']);
-      $node->set('field_notes', $values['notes']);
-      $node->field_client_address->address_line1 = $values['site_address']['address_line1'];
-      $node->field_client_address->address_line2 = $values['site_address']['address_line2'];
-      $node->field_client_address->locality = $values['site_address']['locality'];
-      $node->field_client_address->administrative_area = $values['site_address']['administrative_area'];
-      $node->field_client_address->postal_code = $values['site_address']['postal_code'];
-      $node->status = 1;
-      $node->save();
+    $node_id = $client_node->id();
 
-      /* End node add client */
-      $node_id = $node->id();
+    // If editing an existing job, set the client reference and save the job.
+    // The presave hook will sync the denormalized fields from the client node.
+    if ($job_node) {
+      $job_node->set('field_client', ['target_id' => $node_id]);
+      $job_node->save();
+    }
 
+    // Only set cookies for new job creation (job_id = 0). For existing jobs
+    // the client and job are saved directly above, so cookies are not needed.
+    if ($job_id === 0) {
+      $notes_value = is_array($values['notes']) ? ($values['notes']['value'] ?? '') : $values['notes'];
       $value_submit = [
         'node_id' => $node_id,
         'client_submit' => 1,
@@ -290,20 +318,28 @@ class CustomAddClient extends FormBase {
         'telephone' => $values['telephone'],
         'generic_email' => $values['generic_email'],
         'discount' => $values['discount'],
-        'notes' => $values['notes'],
-        'sa_address_line1' => $values['site_address']['address_line1'],
-        'sa_address_line2' => $values['site_address']['address_line2'],
-        'sa_locality' => $values['site_address']['locality'],
-        'sa_postal_code' => $values['site_address']['postal_code'],
-        'sa_administrative_area' => $values['site_address']['administrative_area'],
+        'notes' => $notes_value,
+        'sa_address_line1' => $address_data['address_line1'],
+        'sa_address_line2' => $address_data['address_line2'],
+        'sa_locality' => $address_data['locality'],
+        'sa_postal_code' => $address_data['postal_code'],
+        'sa_administrative_area' => $address_data['administrative_area'],
       ];
       user_cookie_save($value_submit);
-      return $response;
     }
-    if (form_get_errors()) {
-      $form_state['rebuild'] = TRUE;
-      return $form;
+
+    // Close dialog and redirect back to the job form.
+    $response->addCommand(new CloseDialogCommand());
+
+    if ($job_id === 0) {
+      $redirect_url = '/node/add/job';
     }
+    else {
+      $redirect_url = '/node/' . $job_id . '/edit';
+    }
+    $response->addCommand(new RedirectCommand($redirect_url));
+
+    return $response;
   }
 
 }

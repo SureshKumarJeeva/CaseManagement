@@ -5,6 +5,7 @@ namespace Drupal\select_or_other\Plugin\Field\FieldWidget;
 use Drupal\Core\Entity\FieldableEntityInterface;
 use Drupal\Core\Field\FieldItemListInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Field\WidgetBase as CoreWidgetBase;
 
 /**
  * Base class for the 'select_or_other_*' widgets.
@@ -16,7 +17,7 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @see \Drupal\Core\TypedData\AllowedValuesInterface
  */
-abstract class WidgetBase extends \Drupal\Core\Field\WidgetBase {
+abstract class WidgetBase extends CoreWidgetBase {
 
   /**
    * Helper method to determine the identifying column for the field.
@@ -66,6 +67,9 @@ abstract class WidgetBase extends \Drupal\Core\Field\WidgetBase {
     return [
       'select_element_type' => 'select_or_other_select',
       'sort_options' => '',
+      'other_placeholder' => '',
+      'other_option' => '',
+      'other_field_label' => '',
     ] + parent::defaultSettings();
   }
 
@@ -89,6 +93,27 @@ abstract class WidgetBase extends \Drupal\Core\Field\WidgetBase {
       '#default_value' => $this->getSetting('sort_options'),
     ];
 
+    $form['other_placeholder'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Other placeholder'),
+      '#default_value' => $this->getSetting('other_placeholder'),
+      '#description' => $this->t('Text that will be shown inside the field until a value is entered. This hint is usually a sample value or a brief description of the expected format.'),
+    ];
+
+    $form['other_option'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Other option'),
+      '#description' => $this->t('Label of the option that the user will choose when they want to supply an other value.'),
+      '#default_value' => $this->getSetting('other_option'),
+    ];
+
+    $form['other_field_label'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Label of the Other field'),
+      '#description' => $this->t('Label for the field in which the user will supply an other value.'),
+      '#default_value' => $this->getSetting('other_field_label'),
+    ];
+
     return $form;
   }
 
@@ -99,11 +124,27 @@ abstract class WidgetBase extends \Drupal\Core\Field\WidgetBase {
     $summary = parent::settingsSummary();
 
     $options = $this->selectElementTypeOptions();
-    $summary[] = $this->t('Type of select form element') . ': ' . $options[$this->getSetting('select_element_type')];
+    $summary[] = $this->t('Type of select form element:') . $options[$this->getSetting('select_element_type')];
+
+    $placeholder = $this->getSetting('other_placeholder');
+    if (!empty($placeholder)) {
+      $summary[] = $this->t('Placeholder: @placeholder', ['@placeholder' => $placeholder]);
+    }
+    else {
+      $summary[] = $this->t('No placeholder');
+    }
 
     if ($option = $this->getSetting('sort_options')) {
       $options = $this->getAvailableSortOptions();
       $summary[] = $options[$option];
+    }
+
+    if ($other_option = $this->getSetting('other_option')) {
+      $summary[] = $this->t('Other option: @option', ['@option' => $other_option]);
+    }
+
+    if ($other_field_label = $this->getSetting('other_field_label')) {
+      $summary[] = $this->t('Label of the Other field: @label', ['@label' => $other_field_label]);
     }
 
     return $summary;
@@ -119,6 +160,9 @@ abstract class WidgetBase extends \Drupal\Core\Field\WidgetBase {
       '#default_value' => $this->getSelectedOptions($items),
       '#multiple' => $this->isMultiple(),
       '#key_column' => $this->getColumn(),
+      '#other_placeholder' => $this->getSetting('other_placeholder'),
+      '#other_option' => $this->getSetting('other_option'),
+      '#other_field_label' => $this->getSetting('other_field_label'),
     ];
 
     $element['#options'] = $this->getOptions($items->getEntity());
@@ -131,8 +175,11 @@ abstract class WidgetBase extends \Drupal\Core\Field\WidgetBase {
   /**
    * Adds the available options to the select or other element.
    *
-   * @param $options
+   * @param array|null $options
    *   The options to sort.
+   *
+   * @return array
+   *   The sorted options.
    */
   private function sortOptions($options) {
     if ($direction = $this->getSetting('sort_options')) {
@@ -154,8 +201,8 @@ abstract class WidgetBase extends \Drupal\Core\Field\WidgetBase {
    * @param \Drupal\Core\Entity\FieldableEntityInterface $entity
    *   The entity this widget is used for.
    *
-   * @return array The array of available options for the widget.
-   * The array of available options for the widget.
+   * @return array
+   *   The array of available options for the widget.
    */
   abstract protected function getOptions(FieldableEntityInterface $entity = NULL);
 
@@ -205,7 +252,7 @@ abstract class WidgetBase extends \Drupal\Core\Field\WidgetBase {
    *   The flattened array.
    */
   protected function flattenOptions(array $array) {
-    $result = array();
+    $result = [];
     array_walk_recursive($array, function ($a, $b) use (&$result) {
       $result[$b] = $a;
     });

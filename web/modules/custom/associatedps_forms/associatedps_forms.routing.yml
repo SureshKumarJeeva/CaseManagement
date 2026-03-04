@@ -6,6 +6,14 @@ associatedps_forms.form_add_client:
   requirements:
     _permission: 'access content'
 
+associatedps_forms.form_add_court:
+  path: '/add-court/{id}'
+  defaults:
+    _form: '\Drupal\associatedps_forms\Form\CustomAddCourt'
+    _title: 'Add Court'
+  requirements:
+    _permission: 'access content'
+
 associatedps_forms.form_add_document:
   path: '/add-document/{id}'
   defaults:

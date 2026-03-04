@@ -8,9 +8,11 @@ dependencies:
     - field.field.node.library.field_case_status
     - field.field.node.library.field_category
     - field.field.node.library.field_email_subject
+    - field.field.node.library.field_import_template
     - field.field.node.library.field_job_types
     - node.type.library
   module:
+    - file
     - options
     - text
     - user
@@ -47,6 +49,14 @@ content:
       link_to_entity: false
     third_party_settings: {  }
     weight: 1
+    region: content
+  field_import_template:
+    type: file_default
+    label: above
+    settings:
+      use_description_as_link_text: true
+    third_party_settings: {  }
+    weight: 6
     region: content
   field_job_types:
     type: entity_reference_label

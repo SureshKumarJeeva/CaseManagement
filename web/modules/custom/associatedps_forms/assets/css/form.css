@@ -5,6 +5,12 @@
   display: inline-block;
 }
 
+.client-actions-wrapper a.button {
+  margin: 0;
+  text-decoration: none;
+  display: inline-block;
+}
+
 #node-job-form .paragraph-type--document a.use-ajax,
 #node-job-edit-form .paragraph-type--document a.use-ajax {
   margin-bottom: 10px;

@@ -19,26 +19,44 @@ settings:
       value: '12345 abcde street'
       label: '12345 abcde street'
     -
-      value: '000, Happy street-sydney-NSW-2037'
-      label: '000, Happy street-sydney-NSW-2037'
+      value: Mittapudur-ghjghj-Salem-NSW-6367
+      label: Mittapudur-ghjghj-Salem-NSW-6367
     -
-      value: '12345 abcd street-sydney-NSW-2000'
-      label: '12345 abcd street-sydney-NSW-2000'
+      value: sdfsdf-sdfsdf-sdfsdf-TAS-3455
+      label: sdfsdf-sdfsdf-sdfsdf-TAS-3455
     -
-      value: '234 ABC Street-Asquith-NSW-2077'
-      label: '234 ABC Street-Asquith-NSW-2077'
+      value: juyyu-yuyujjy-yj-TAS-5677
+      label: juyyu-yuyujjy-yj-TAS-5677
     -
-      value: '366 Collins Street-Melbourne-VIC-3000'
-      label: '366 Collins Street-Melbourne-VIC-3000'
+      value: ahh5-h5-h5h5h-ACT-6666
+      label: ahh5-h5-h5h5h-ACT-6666
     -
-      value: '12345 abcde street-sydney-NSW-2000'
-      label: '12345 abcde street-sydney-NSW-2000'
+      value: wewer-wre-wre-VIC-6345
+      label: wewer-wre-wre-VIC-6345
     -
-      value: 'test street-Sydney-NSW-2010'
-      label: 'test street-Sydney-NSW-2010'
+      value: hgh-ghjghj-sdf-WA-1243
+      label: hgh-ghjghj-sdf-WA-1243
     -
-      value: '123 ABC Street-Sydney-NSW-2000'
-      label: '123 ABC Street-Sydney-NSW-2000'
+      value: gdfg-dfg-dfg-VIC-3454
+      label: gdfg-dfg-dfg-VIC-3454
+    -
+      value: jhk-hjk-hjk-SA-1234
+      label: jhk-hjk-hjk-SA-1234
+    -
+      value: uii-ui-uio-SA-6687
+      label: uii-ui-uio-SA-6687
+    -
+      value: asda-sdasd-sfd-NT-3456
+      label: asda-sdasd-sfd-NT-3456
+    -
+      value: yuiyui-yui-m-SA-8988
+      label: yuiyui-yui-m-SA-8988
+    -
+      value: fhfgfgh-fghfg-fghfgh-VIC-5655
+      label: fhfgfgh-fghfg-fghfgh-VIC-5655
+    -
+      value: dfgdfg-dfg-t555t55555-VIC-5555
+      label: dfgdfg-dfg-t555t55555-VIC-5555
   allowed_values_function: ''
 module: options
 locked: false

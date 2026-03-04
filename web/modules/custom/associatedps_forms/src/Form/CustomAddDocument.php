@@ -11,9 +11,10 @@ use Drupal\Core\Ajax\CloseDialogCommand;
 use Drupal\Core\Ajax\RedirectCommand;
 use Drupal\node\Entity\Node;
 use Drupal\user\Entity\User;
+use Drupal\taxonomy\Entity\Term;
 
 /**
- * Form for Custom Add Document in create/edit job.
+ * Form for Custom Add/Edit Document in create/edit job.
  */
 class CustomAddDocument extends FormBase {
 
@@ -36,12 +37,27 @@ class CustomAddDocument extends FormBase {
 
       $document_title = '';
       $notice_period = '';
+      $document_court = NULL;
+      $document_affidavit = NULL;
 
       $path = \Drupal::service('path.current')->getPath();
-      $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
-      $nid = abs($nid);
+      $doc_id = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
+      $doc_id = abs($doc_id);
+      $job_nid = (int) \Drupal::request()->query->get('job_nid', 0);
 
-      if ($nid > 0) {
+      // Load existing document data for edit mode.
+      if ($doc_id > 0) {
+        $doc_node = Node::load($doc_id);
+        if ($doc_node && $doc_node->getType() === 'document') {
+          $document_title = $doc_node->getTitle();
+          $notice_period = $doc_node->field_notice_period->value ?? '';
+          if ($doc_node->field_court_name->target_id) {
+            $document_court = Term::load($doc_node->field_court_name->target_id);
+          }
+          if ($doc_node->field_affidavit_template->target_id) {
+            $document_affidavit = Node::load($doc_node->field_affidavit_template->target_id);
+          }
+        }
       }
 
       $form = [];
@@ -68,7 +84,7 @@ class CustomAddDocument extends FormBase {
         '#type' => 'entity_autocomplete',
         '#target_type' => 'taxonomy_term',
         '#title' => $this->t('Court name'),
-        '#default_value' => '',
+        '#default_value' => $document_court,
         '#tags' => TRUE,
         '#selection_settings' => [
           'target_bundles' => ['court_name'],
@@ -79,7 +95,7 @@ class CustomAddDocument extends FormBase {
         '#type' => 'entity_autocomplete',
         '#target_type' => 'node',
         '#title' => $this->t('Affidavite Template'),
-        '#default_value' => '',
+        '#default_value' => $document_affidavit,
         '#tags' => TRUE,
         '#selection_handler' => 'default',
         '#selection_settings' => [
@@ -87,14 +103,19 @@ class CustomAddDocument extends FormBase {
         ],
       ];
 
+      $form['doc_id'] = [
+        '#type' => 'hidden',
+        '#value' => $doc_id,
+      ];
+
       $form['job_id'] = [
         '#type' => 'hidden',
-        '#value' => $nid,
+        '#value' => $job_nid,
       ];
 
       $form['submit'] = [
         '#id' => 'document-for-job',
-        '#value' => $this->t("Save"),
+        '#value' => $doc_id > 0 ? $this->t("Update") : $this->t("Save"),
         '#type' => 'submit',
         '#ajax' => [
           'callback' => '::submitFormAddDocument',
@@ -137,32 +158,52 @@ class CustomAddDocument extends FormBase {
       $response->addCommand(new HtmlCommand('#document-title-validate', 'Please enter a Title.'));
       return $response;
     }
+
+    $response->addCommand(new CssCommand('.form-item-document-title input', ['border' => '1px solid #b8b8b8', 'border-top-color' => '#999']));
+    $response->addCommand(new HtmlCommand('#document-title-validate', ''));
+    $response->addCommand(new CloseDialogCommand());
+
+    $values = $form_state->getValues();
+    $doc_id = (int) $values['doc_id'];
+    $job_nid = (int) $values['job_id'];
+
+    // Determine redirect URL.
+    if ($job_nid === 0) {
+      $redirect_url = '/node/add/job';
+    }
     else {
-      $response->addCommand(new CssCommand('.form-item-document-title input', ['border' => '1px solid #b8b8b8', 'border-top-color' => '#999']));
-      $response->addCommand(new HtmlCommand('#document-title-validate', ''));
-      $response->addCommand(new CloseDialogCommand());
-      $values = $form_state->getValues();
-      $values = $form_state->getValues();
-      if ($values['job_id'] === 0) {
-        $redirect_url = '/node/add/job';
+      $redirect_url = '/node/' . $job_nid . '/edit';
+    }
+    $response->addCommand(new RedirectCommand($redirect_url));
+
+    // Get court and affidavit values safely.
+    $court_target_id = !empty($values['document_court'][0]['target_id']) ? $values['document_court'][0]['target_id'] : NULL;
+    $affidavit_target_id = !empty($values['document_affidavit'][0]['target_id']) ? $values['document_affidavit'][0]['target_id'] : NULL;
+
+    if ($doc_id > 0) {
+      // Update existing document node.
+      $node = Node::load($doc_id);
+      if ($node) {
+        $node->set('title', $values['document_title']);
+        $node->set('field_notice_period', $values['notice_period']);
+        $node->set('field_court_name', $court_target_id ? ['target_id' => $court_target_id] : []);
+        $node->set('field_affidavit_template', $affidavit_target_id ? ['target_id' => $affidavit_target_id] : []);
+        $node->save();
       }
-      else {
-        $redirect_url = '/node/' . $values['job_id'] . '/edit';
-      }
-
-      $command = new RedirectCommand($redirect_url);
-      $response->addCommand($command);
-
-      /* Node add document */
-
+    }
+    else {
+      // Create new document node.
       $node = Node::create(['type' => 'document']);
       $node->set('title', $values['document_title']);
       $node->set('field_notice_period', $values['notice_period']);
-      $node->field_court_name[] = ['target_id' => $values['document_court'][0]['target_id']];
-      $node->field_affidavit_template[] = ['target_id' => $values['document_affidavit'][0]['target_id']];
+      if ($court_target_id) {
+        $node->field_court_name[] = ['target_id' => $court_target_id];
+      }
+      if ($affidavit_target_id) {
+        $node->field_affidavit_template[] = ['target_id' => $affidavit_target_id];
+      }
       $node->status = 1;
       $node->save();
-      /* End node add client */
 
       $node_id = $node->id();
       setcookie('create_doc_for_job', $node_id, time() + (86400 * 30), "/");
@@ -172,18 +213,13 @@ class CustomAddDocument extends FormBase {
         'document_submit' => 1,
         'document_title' => $values['document_title'],
         'notice_period' => $values['notice_period'],
-        'court_name' => $values['document_court'][0]['target_id'],
-        'affidavit_template' => $values['document_affidavit'][0]['target_id'],
+        'court_name' => $court_target_id ?? '',
+        'affidavit_template' => $affidavit_target_id ?? '',
       ];
       user_cookie_save($value_submit);
-
-      return $response;
     }
 
-    if (form_get_errors()) {
-      $form_state['rebuild'] = TRUE;
-      return $form;
-    }
+    return $response;
   }
 
 }

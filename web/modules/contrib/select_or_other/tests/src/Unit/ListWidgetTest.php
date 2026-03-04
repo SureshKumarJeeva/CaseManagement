@@ -2,11 +2,13 @@
 
 namespace Drupal\Tests\select_or_other\Unit;
 
-use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Form\FormState;
+use Drupal\Core\Field\FieldDefinitionInterface;
+use Drupal\Core\Session\AccountInterface;
+use Drupal\field\FieldStorageConfigInterface;
 use Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget;
-use Drupal\select_or_other\Plugin\Field\FieldWidget\WidgetBase;
-use ReflectionMethod;
 
 /**
  * Tests the form element implementation.
@@ -17,9 +19,44 @@ use ReflectionMethod;
  */
 class ListWidgetTest extends UnitTestBase {
 
+  protected AccountInterface $currentUser;
+  protected EntityTypeManagerInterface $entityTypeManager;
+  protected EntityStorageInterface $entityStorage;
+  protected FieldStorageConfigInterface $field_storage_config;
+
   /**
-   * @return string
-   *   The fully qualified class name of the subject under test.
+   * {@inheritDoc}
+   */
+  public function setUp() :void {
+    parent::setUp();
+    $this->currentUser = $this->createMock('Drupal\Core\Session\AccountInterface');
+    $this->entityTypeManager = $this->createMock('Drupal\Core\Entity\EntityTypeManagerInterface');
+    $this->entityStorage = $this->createMock('Drupal\Core\Entity\EntityStorageInterface');
+    $this->field_storage_config = $this->getMockForAbstractClass('Drupal\field\FieldStorageConfigInterface');
+
+  }
+
+  /**
+   * Method to set the return value of each mock.
+   *
+   * @param array $allowed_values
+   *   Values of the allowed_values settings.
+   */
+  private function setMock(array $allowed_values = []) :void {
+    $this->field_storage_config
+      ->method('setSetting')
+      ->with('allowed_values', $allowed_values)
+      ->willReturnSelf();
+    $this->entityStorage
+      ->method('load')
+      ->will(self::returnValue($this->field_storage_config));
+    $this->entityTypeManager
+      ->method('getStorage')
+      ->will(self::returnValue($this->entityStorage));
+  }
+
+  /**
+   * {@inheritdoc}
    */
   protected function getTestedClassName() {
     return 'Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget';
@@ -40,28 +77,36 @@ class ListWidgetTest extends UnitTestBase {
     $field_definition = $this->getMockForAbstractClass('Drupal\Core\Field\FieldDefinitionInterface');
     $field_definition->method('getFieldStorageDefinition')
       ->willReturn($storage_definition);
-    $constructor_arguments = ['', '', $field_definition, [], []];
+    $constructor_arguments = [
+      '',
+      '',
+      $field_definition,
+      [],
+      [],
+      $this->currentUser,
+      $this->entityTypeManager,
+    ];
     $mock = $this->mockBuilder->setConstructorArgs($constructor_arguments)
-      ->setMethods([
-        'getColumn'
+      ->onlyMethods([
+        'getColumn',
       ])
       ->getMock();
     $mock->method('getColumn')->willReturn(['column']);
 
-    $get_options = new ReflectionMethod($mock, 'getOptions');
+    $get_options = new \ReflectionMethod($mock, 'getOptions');
     $get_options->setAccessible(TRUE);
 
     $options = $get_options->invoke($mock, $this->getMockForAbstractClass('Drupal\Core\Entity\FieldableEntityInterface'));
-    $this->assertArrayEquals($expected, $options);
+    $this->assertEquals($expected, $options);
   }
 
   /**
    * Test if formElement() adds the expected information.
    */
   public function testFormElement() {
-    list($parent, $mock) = $this->getBasicMocks();
-    /** @var ListWidget $mock */
-    /** @var WidgetBase $parent */
+    [$parent, $mock] = $this->getBasicMocks();
+    /** @var \Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget $mock */
+    /** @var \Drupal\select_or_other\Plugin\Field\FieldWidget\WidgetBase $parent */
     /** @var \Drupal\Core\Field\FieldItemListInterface $items */
     $items = $this->getMockForAbstractClass('Drupal\Core\Field\FieldItemListInterface');
     $delta = NULL;
@@ -79,17 +124,17 @@ class ListWidgetTest extends UnitTestBase {
       '#other_options' => [],
     ];
 
-    $this->assertArrayEquals($expected, $added);
+    $this->assertEquals($expected, $added);
   }
 
   /**
-   * @test
+   * Tests that massage form values returns the values passed to it.
    */
   public function massageFormValuesReturnsValuesPassedToIt() {
     $sut = $this->getNewSubjectUnderTest();
     $form = [];
     $form_state = new FormState();
-    /** @var ListWidget $mock */
+    /** @var \Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget $mock */
     $test_values = [
       [],
       ['value'],
@@ -98,35 +143,37 @@ class ListWidgetTest extends UnitTestBase {
 
     foreach ($test_values as $values) {
       $result = $sut->massageFormValues($values, $form, $form_state);
-      $this->assertArrayEquals($values, $result);
+      $this->assertEquals($values, $result);
     }
   }
 
   /**
-   * @test
+   * Tests that massage form values removes the select value if present.
    */
   public function massageFormValuesRemovesSelectValueIfPresent() {
     $sut = $this->getNewSubjectUnderTest();
     $form = [];
     $form_state = new FormState();
-    /** @var ListWidget $mock */
+    /** @var \Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget $mock */
     $result = $sut->massageFormValues(['select' => 'test'], $form, $form_state);
-    $this->assertArrayEquals([], $result);
+    $this->assertEquals([], $result);
   }
 
   /**
-   * @test
+   * Tests that massage form values removes the other value if present.
    */
   public function massageFormValuesRemovesOtherValueIfPresent() {
     $sut = $this->getNewSubjectUnderTest();
     $form = [];
     $form_state = new FormState();
-    /** @var ListWidget $mock */
+    /** @var \Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget $mock */
     $result = $sut->massageFormValues(['other' => 'test'], $form, $form_state);
-    $this->assertArrayEquals([], $result);
+    $this->assertEquals([], $result);
   }
 
   /**
+   * Tests that massage form values adds the new values to the allowed values.
+   *
    * @test
    * @covers Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget::extractNewValues
    * @covers Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget::AddNewValuesToAllowedValues
@@ -136,16 +183,7 @@ class ListWidgetTest extends UnitTestBase {
     $field_definition = $this->getMockForAbstractClass('\Drupal\Core\Field\FieldDefinitionInterface');
     $field_definition->method('getSetting')->willReturn($allowed_values);
     $sut = $this->getNewSubjectUnderTest($field_definition);
-
-    $field_storage_config = $this->getMockForAbstractClass('\Drupal\field\FieldStorageConfigInterface');
-    $field_storage_config->expects($this->once())->method('setSetting')->willReturnSelf();
-    $field_storage_config->expects($this->once())->method('save');
-
-    $entity_storage_methods = ['load' => $field_storage_config,];
-
-    $entity_type_manager_methods = ['getStorage' => $this->getMockForAbstractClassWithMethods('\Drupal\Core\Entity\EntityStorageInterface', $entity_storage_methods),];
-    $entity_type_manager_mock = $this->getMockForAbstractClassWithMethods('\Drupal\Core\Entity\EntityTypeManagerInterface', $entity_type_manager_methods);
-    $this->registerServiceWithContainerMock('entity_type.manager', $entity_type_manager_mock);
+    $this->setMock(['est' => 'est'], TRUE);
 
     $form = [];
     $form_state = new FormState();
@@ -157,6 +195,8 @@ class ListWidgetTest extends UnitTestBase {
   }
 
   /**
+   * Tests massage form values do not adds other values to the allowed values.
+   *
    * @test
    * @covers Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget::extractNewValues
    * @covers Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget::AddNewValuesToAllowedValues
@@ -171,9 +211,9 @@ class ListWidgetTest extends UnitTestBase {
     $field_storage_config->expects($this->never())->method('setSetting')->willReturnSelf();
     $field_storage_config->expects($this->never())->method('save');
 
-    $entity_storage_methods = ['load' => $field_storage_config,];
+    $entity_storage_methods = ['load' => $field_storage_config];
 
-    $entity_type_manager_methods = ['getStorage' => $this->getMockForAbstractClassWithMethods('\Drupal\Core\Entity\EntityStorageInterface', $entity_storage_methods),];
+    $entity_type_manager_methods = ['getStorage' => $this->getMockForAbstractClassWithMethods('\Drupal\Core\Entity\EntityStorageInterface', $entity_storage_methods)];
     $entity_type_manager_mock = $this->getMockForAbstractClassWithMethods('\Drupal\Core\Entity\EntityTypeManagerInterface', $entity_type_manager_methods);
     $this->registerServiceWithContainerMock('entity_type.manager', $entity_type_manager_mock);
 
@@ -188,6 +228,15 @@ class ListWidgetTest extends UnitTestBase {
     $sut->massageFormValues(['t', 'est'], $form, $form_state);
   }
 
+  /**
+   * Creates a new subject under test.
+   *
+   * @param \Drupal\Core\Field\FieldDefinitionInterface|\PHPUnit\Framework\MockObject\MockObject|null $fieldDefinition
+   *   The field definitions or NULL.
+   *
+   * @return \Drupal\select_or_other\Plugin\Field\FieldWidget\ListWidget
+   *   The new subject under test.
+   */
   protected function getNewSubjectUnderTest(FieldDefinitionInterface $fieldDefinition = NULL) {
     $widget_id = 'widget_id';
     $plugin_definition = 'plugin_definition';
@@ -196,7 +245,7 @@ class ListWidgetTest extends UnitTestBase {
     }
     $settings = [];
     $third_party_settings = [];
-    return new ListWidget($widget_id, $plugin_definition, $fieldDefinition, $settings, $third_party_settings);
+    return new ListWidget($widget_id, $plugin_definition, $fieldDefinition, $settings, $third_party_settings, $this->currentUser, $this->entityTypeManager);
   }
 
 }

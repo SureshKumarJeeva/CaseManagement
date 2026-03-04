@@ -79,8 +79,8 @@ class Buttons extends ElementBase {
    *   The select or other element.
    */
   protected static function addEmptyOption(array &$element) {
-    if (!isset($element['#no_empty_option']) || !$element['#no_empty_option']) {
-      if (!$element['#multiple'] && !$element['#required'] && !empty($element['#default_value'])) {
+    if ((!isset($element['#no_empty_option']) || !$element['#no_empty_option']) && !$element['#multiple']) {
+      if (!$element['#required'] && !empty($element['#default_value'])) {
         $element['select']['#options'] = ['' => t('- None -')] + $element['select']['#options'];
       }
       else {

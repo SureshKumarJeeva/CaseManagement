@@ -165,6 +165,17 @@ class EmailTemplateController {
             if ($content_type === 'job') {
               $job_list->set('field_case_status_value', $case_status);
               $job_list->save();
+
+              // Store mailto data so the browser can also open the
+              // user's default email client after the page reloads.
+              $plain_body = strip_tags($msg);
+              \Drupal::service('tempstore.private')
+                ->get('associatedps_email_template')
+                ->set('mailto_data', [
+                  'to' => $email,
+                  'subject' => $subject,
+                  'body' => $plain_body,
+                ]);
             }
             else {
               if ($job_list->hasField('field_last_mail_time')) {

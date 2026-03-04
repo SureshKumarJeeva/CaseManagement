@@ -91,7 +91,7 @@ third_party_settings:
       label: 'Job Details'
       region: content
       parent_name: group_job_detail
-      weight: 11
+      weight: 1
       format_type: fieldset
       format_settings:
         classes: job-page-section-title
@@ -109,7 +109,7 @@ third_party_settings:
       label: 'Court Details'
       region: content
       parent_name: group_court_detail
-      weight: 62
+      weight: 2
       format_type: fieldset
       format_settings:
         classes: job-page-section-title
@@ -124,7 +124,7 @@ third_party_settings:
       label: Parties
       region: content
       parent_name: group_party
-      weight: 10
+      weight: 12
       format_type: fieldset
       format_settings:
         classes: job-page-section-title
@@ -137,7 +137,7 @@ third_party_settings:
       label: 'Documents to be served'
       region: content
       parent_name: group_documents
-      weight: 12
+      weight: 14
       format_type: fieldset
       format_settings:
         classes: job-page-section-title
@@ -153,7 +153,7 @@ third_party_settings:
       label: 'Party to Serve Details'
       region: content
       parent_name: group_party_to_serve
-      weight: 13
+      weight: 15
       format_type: fieldset
       format_settings:
         classes: 'party-served-details job-page-section-title'
@@ -176,16 +176,13 @@ third_party_settings:
       label: 'Job Status'
       region: content
       parent_name: group_job__status
-      weight: 12
+      weight: 16
       format_type: fieldset
       format_settings:
         classes: job-page-section-title
-        show_empty_fields: false
         id: ''
-        label_as_html: false
         description: ''
         required_fields: true
-        formatter: closed
     group_service_details:
       children:
         - field_served_by
@@ -199,24 +196,34 @@ third_party_settings:
       label: 'Service Details'
       region: content
       parent_name: group_job__status
-      weight: 13
+      weight: 17
       format_type: fieldset
       format_settings:
         classes: 'service-details job-page-section-title'
-        show_empty_fields: false
         id: service-details
-        label_as_html: false
         description: ''
         required_fields: true
-        formatter: closed
+    group_attendance_note_details:
+      children:
+        - field_attendance_notes
+      label: 'Attendance Note Details'
+      region: content
+      parent_name: group_attendance_note
+      weight: 12
+      format_type: fieldset
+      format_settings:
+        classes: job-page-section-title
+        id: attendance-note-panel
+        description: ''
+        required_fields: true
     group_reporting:
       children:
         - field_affidavits
         - field_cover_letters
       label: Reporting
-      region: hidden
+      region: content
       parent_name: group_hidden
-      weight: 11
+      weight: 14
       format_type: fieldset
       format_settings:
         classes: job-page-section-title
@@ -225,38 +232,44 @@ third_party_settings:
         required_fields: true
     group_hidden:
       children:
-        - field_agreed_discount
-        - field_allocated_to_first_name
-        - field_allocated_to_full_name
-        - field_allocated_to_last_name
-        - field_business_name_value
-        - field_business_other
-        - field_case_status_value
-        - field_client_cid
-        - field_last_mail_time
-        - field_name_to_other
+        - group_reporting
         - field_name_to_server_value
+        - field_business_name_value
+        - field_person_delivered_value
+        - field_agreed_discount
+        - field_last_mail_time
+        - field_case_status_value
+        - field_allocated_to_first_name
+        - field_allocated_to_last_name
+        - field_allocated_to_full_name
+        - field_served_by_first_name
+        - field_served_by_last_name
+        - field_served_by_full_name
         - field_person_delivered_to_fname
         - field_person_delivered_to_lname
         - field_person_delivered_to_other
-        - field_person_delivered_value
+        - field_business_other
+        - field_name_to_other
+        - field_client_cid
         - field_primary_postal_code
-        - field_served_by_first_name
-        - field_served_by_full_name
-        - field_served_by_last_name
-        - field_served_date
-        - group_test
-        - group_reporting
       label: hidden
-      region: hidden
+      region: content
       parent_name: ''
       weight: 1
       format_type: fieldset
       format_settings:
         classes: hidden
+        show_empty_fields: false
         id: ''
+        label_as_html: false
         description: ''
         required_fields: true
+        show_step_title: true
+        step_description: ''
+        back_button_show: false
+        back_button_text: Back
+        next_button_text: Next
+        step_help: ''
     group_client_detail:
       children:
         - field_client_address
@@ -275,13 +288,26 @@ third_party_settings:
         id: ''
         description: ''
         required_fields: false
+    group_job_fees:
+      children:
+        - field_job_fees
+      label: 'Job Fees'
+      region: content
+      parent_name: group_job__fees
+      weight: 18
+      format_type: fieldset
+      format_settings:
+        classes: job-page-section-title
+        id: job-fees-panel
+        description: ''
+        required_fields: true
     group_job_detail:
       children:
         - group_job_details
       label: 'Job Detail'
       region: content
       parent_name: group_job
-      weight: 12
+      weight: 1
       format_type: tab
       format_settings:
         classes: ''
@@ -297,56 +323,7 @@ third_party_settings:
       label: Party
       region: content
       parent_name: group_job
-      weight: 6
-      format_type: tab
-      format_settings:
-        classes: ''
-        show_empty_fields: false
-        id: ''
-        label_as_html: false
-        formatter: closed
-        description: ''
-        required_fields: true
-    group_documents:
-      children:
-        - group_documents_to_be_served
-      label: Documents
-      region: content
-      parent_name: group_job
-      weight: 7
-      format_type: tab
-      format_settings:
-        classes: ''
-        show_empty_fields: false
-        id: ''
-        label_as_html: false
-        formatter: closed
-        description: ''
-        required_fields: true
-    group_party_to_serve:
-      children:
-        - group_party_to_serve_details
-      label: 'Party To Serve'
-      region: content
-      parent_name: group_job
-      weight: 8
-      format_type: tab
-      format_settings:
-        classes: ''
-        show_empty_fields: false
-        id: ''
-        label_as_html: false
-        formatter: closed
-        description: ''
-        required_fields: true
-    group_job__status:
-      children:
-        - group_job_status
-        - group_service_details
-      label: 'Job Status'
-      region: content
-      parent_name: group_job
-      weight: 9
+      weight: 3
       format_type: tab
       format_settings:
         classes: ''
@@ -357,18 +334,77 @@ third_party_settings:
         description: ''
         required_fields: true
         show_step_title: true
-        step_description: ''
         back_button_show: false
         back_button_text: Back
         next_button_text: Next
-        step_help: ''
+    group_documents:
+      children:
+        - group_documents_to_be_served
+      label: Documents
+      region: content
+      parent_name: group_job
+      weight: 4
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
+        show_step_title: true
+        back_button_show: false
+        back_button_text: Back
+        next_button_text: Next
+    group_party_to_serve:
+      children:
+        - group_party_to_serve_details
+      label: 'Party To Serve'
+      region: content
+      parent_name: group_job
+      weight: 5
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
+        show_step_title: true
+        back_button_show: false
+        back_button_text: Back
+        next_button_text: Next
+    group_job__status:
+      children:
+        - group_job_status
+        - group_service_details
+      label: 'Job Status'
+      region: content
+      parent_name: group_job
+      weight: 6
+      format_type: tab
+      format_settings:
+        classes: ''
+        show_empty_fields: false
+        id: ''
+        label_as_html: false
+        formatter: closed
+        description: ''
+        required_fields: true
+        show_step_title: true
+        back_button_show: false
+        back_button_text: Back
+        next_button_text: Next
     group_job__fees:
       children:
         - group_job_fees
       label: 'Job Fees'
       region: content
       parent_name: group_job
-      weight: 10
+      weight: 7
       format_type: tab
       format_settings:
         classes: ''
@@ -388,7 +424,7 @@ third_party_settings:
       label: 'Attendance Note'
       region: content
       parent_name: group_job
-      weight: 11
+      weight: 8
       format_type: tab
       format_settings:
         classes: ''
@@ -398,13 +434,17 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
+        show_step_title: true
+        back_button_show: false
+        back_button_text: Back
+        next_button_text: Next
     group_court_detail:
       children:
         - group_court_details
       label: 'Court Detail'
       region: content
       parent_name: group_job
-      weight: 5
+      weight: 2
       format_type: tab
       format_settings:
         classes: ''
@@ -414,8 +454,13 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
+        show_step_title: true
+        back_button_show: false
+        back_button_text: Back
+        next_button_text: Next
     group_job:
       children:
+        - group_job_detail
         - group_court_detail
         - group_party
         - group_documents
@@ -423,7 +468,6 @@ third_party_settings:
         - group_job__status
         - group_job__fees
         - group_attendance_note
-        - group_job_detail
       label: Job
       region: content
       parent_name: ''
@@ -435,52 +479,7 @@ third_party_settings:
         id: ''
         label_as_html: false
         direction: horizontal
-        width_breakpoint: 740
-    group_test:
-      children: {  }
-      label: Test
-      region: hidden
-      parent_name: group_hidden
-      weight: 8
-      format_type: tab
-      format_settings:
-        classes: ''
-        show_empty_fields: false
-        id: ''
-        label_as_html: false
-        formatter: closed
-        description: ''
-        required_fields: true
-    group_job_fees:
-      children:
-        - field_job_fees
-      label: 'Job Fees'
-      region: content
-      parent_name: group_job__fees
-      weight: 20
-      format_type: fieldset
-      format_settings:
-        classes: job-page-section-title
-        show_empty_fields: false
-        id: ''
-        label_as_html: false
-        description: ''
-        required_fields: true
-    group_attendance_note_details:
-      children:
-        - field_attendance_notes
-      label: 'Attendance Note Details'
-      region: content
-      parent_name: group_attendance_note
-      weight: 20
-      format_type: fieldset
-      format_settings:
-        classes: ''
-        show_empty_fields: false
-        id: ''
-        label_as_html: false
-        description: ''
-        required_fields: true
+        width_breakpoint: 640
 id: node.job.default
 targetEntityType: node
 bundle: job
@@ -488,46 +487,69 @@ mode: default
 content:
   field_admin_affidavit_date:
     type: datetime_default
-    weight: 19
+    weight: 22
     region: content
     settings: {  }
     third_party_settings: {  }
   field_admin_cover_letter_date:
     type: datetime_default
-    weight: 20
+    weight: 24
     region: content
     settings: {  }
     third_party_settings: {  }
   field_admin_email_update_date:
     type: datetime_default
-    weight: 21
+    weight: 25
     region: content
     settings: {  }
     third_party_settings: {  }
   field_admin_invoiced_date:
     type: datetime_default
-    weight: 22
+    weight: 26
     region: content
     settings: {  }
     third_party_settings: {  }
   field_admin_send_to_client_date:
     type: datetime_default
-    weight: 23
+    weight: 27
     region: content
     settings: {  }
     third_party_settings: {  }
   field_admin_status:
-    type: select_or_other_list
-    weight: 17
+    type: options_select
+    weight: 20
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_affidavits:
+    type: paragraphs
+    weight: 59
     region: content
     settings:
-      select_element_type: select_or_other_select
-      sort_options: ''
-      add_other_value_to_allowed_values: true
+      title: Affidavit
+      title_plural: Affidavits
+      edit_mode: closed_expand_nested
+      closed_mode: summary
+      autocollapse: none
+      closed_mode_threshold: 0
+      add_mode: button
+      form_display_mode: default
+      default_paragraph_type: _none
+      features:
+        add_above: '0'
+        collapse_edit_all: '0'
+        duplicate: duplicate
+    third_party_settings: {  }
+  field_agreed_discount:
+    type: number
+    weight: 18
+    region: content
+    settings:
+      placeholder: ''
     third_party_settings: {  }
   field_allocated_to:
     type: entity_reference_autocomplete
-    weight: 18
+    weight: 21
     region: content
     settings:
       match_operator: CONTAINS
@@ -535,15 +557,39 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
+  field_allocated_to_first_name:
+    type: string_textfield
+    weight: 21
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_allocated_to_full_name:
+    type: string_textfield
+    weight: 23
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_allocated_to_last_name:
+    type: string_textfield
+    weight: 22
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   field_allocation_date:
     type: datetime_default
-    weight: 24
+    weight: 28
     region: content
     settings: {  }
     third_party_settings: {  }
   field_attendance_notes:
     type: inline_entity_form_complex_table_view_mode
-    weight: 21
+    weight: 13
     region: content
     settings:
       form_mode: default
@@ -560,14 +606,36 @@ content:
       removed_reference: optional
     third_party_settings: {  }
   field_business_name:
-    type: chosen_select
-    weight: 5
+    type: select_or_other_list
+    weight: 6
     region: content
-    settings: {  }
+    settings:
+      select_element_type: select_or_other_select
+      sort_options: ''
+      other_placeholder: ''
+      other_option: ''
+      other_field_label: ''
+      add_other_value_to_allowed_values: true
+    third_party_settings: {  }
+  field_business_name_value:
+    type: string_textfield
+    weight: 16
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_business_other:
+    type: string_textfield
+    weight: 30
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_case_no:
     type: string_textfield
-    weight: 67
+    weight: 55
     region: content
     settings:
       size: 60
@@ -575,19 +643,35 @@ content:
     third_party_settings: {  }
   field_case_status:
     type: options_select
-    weight: 15
+    weight: 18
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_case_status_value:
+    type: string_textfield
+    weight: 20
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_client:
     type: chosen_select
-    weight: 12
+    weight: 6
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_client_cid:
+    type: string_textfield
+    weight: 32
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   field_client_ref:
     type: string_textfield
-    weight: 14
+    weight: 8
     region: content
     settings:
       size: 60
@@ -595,7 +679,7 @@ content:
     third_party_settings: {  }
   field_client_s_job_email:
     type: email_default
-    weight: 15
+    weight: 9
     region: content
     settings:
       placeholder: ''
@@ -603,25 +687,46 @@ content:
     third_party_settings: {  }
   field_court:
     type: options_select
-    weight: 63
+    weight: 50
     region: content
     settings: {  }
+    third_party_settings: {  }
+  field_cover_letters:
+    type: paragraphs
+    weight: 61
+    region: content
+    settings:
+      title: 'Cover Letter'
+      title_plural: 'Cover Letters'
+      edit_mode: closed_expand_nested
+      closed_mode: summary
+      autocollapse: none
+      closed_mode_threshold: 0
+      add_mode: button
+      form_display_mode: default
+      default_paragraph_type: _none
+      features:
+        add_above: '0'
+        collapse_edit_all: '0'
+        duplicate: duplicate
     third_party_settings: {  }
   field_date_service:
     type: datetime_default
-    weight: 7
+    weight: 8
     region: content
     settings: {  }
-    third_party_settings: {  }
+    third_party_settings:
+      datetimehideseconds:
+        hide: true
   field_deadline:
     type: datetime_default
-    weight: 25
+    weight: 29
     region: content
     settings: {  }
     third_party_settings: {  }
   field_division:
     type: string_textfield
-    weight: 64
+    weight: 51
     region: content
     settings:
       size: 60
@@ -629,7 +734,7 @@ content:
     third_party_settings: {  }
   field_documents:
     type: paragraphs
-    weight: 13
+    weight: 11
     region: content
     settings:
       title: Document
@@ -648,19 +753,19 @@ content:
     third_party_settings: {  }
   field_hearing_date:
     type: datetime_default
-    weight: 68
+    weight: 56
     region: content
     settings: {  }
     third_party_settings: {  }
   field_instruction_received:
     type: datetime_default
-    weight: 13
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
   field_job_fees:
     type: inline_entity_form_complex_table_view_mode
-    weight: 21
+    weight: 59
     region: content
     settings:
       form_mode: default
@@ -678,27 +783,55 @@ content:
     third_party_settings: {  }
   field_job_types:
     type: chosen_select
-    weight: 16
+    weight: 19
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_last_mail_time:
+    type: datetime_default
+    weight: 19
     region: content
     settings: {  }
     third_party_settings: {  }
   field_list:
     type: string_textfield
-    weight: 65
+    weight: 53
     region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
   field_method_of_service:
-    type: options_select
-    weight: 2
+    type: select_or_other_list
+    weight: 3
     region: content
-    settings: {  }
+    settings:
+      select_element_type: select_or_other_select
+      sort_options: ''
+      other_placeholder: ''
+      other_option: ''
+      other_field_label: ''
+      add_other_value_to_allowed_values: true
+    third_party_settings: {  }
+  field_name_to_other:
+    type: string_textfield
+    weight: 31
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_name_to_server_value:
+    type: string_textfield
+    weight: 15
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_notes2:
     type: string_textarea
-    weight: 6
+    weight: 7
     region: content
     settings:
       rows: 5
@@ -706,7 +839,7 @@ content:
     third_party_settings: {  }
   field_other_parties:
     type: paragraphs
-    weight: 13
+    weight: 6
     region: content
     settings:
       title: Party
@@ -725,7 +858,7 @@ content:
     third_party_settings: {  }
   field_para_address:
     type: inline_entity_form_complex_table_view_mode
-    weight: 1
+    weight: 2
     region: content
     settings:
       form_mode: default
@@ -743,7 +876,7 @@ content:
     third_party_settings: {  }
   field_parties:
     type: paragraphs
-    weight: 11
+    weight: 4
     region: content
     settings:
       title: Party
@@ -762,7 +895,7 @@ content:
     third_party_settings: {  }
   field_party_2:
     type: paragraphs
-    weight: 12
+    weight: 5
     region: content
     settings:
       title: Party
@@ -781,52 +914,118 @@ content:
     third_party_settings: {  }
   field_party_to_serve_phone:
     type: telephone_default
-    weight: 16
+    weight: 11
     region: content
     settings:
-      placeholder: ''
+      placeholder: 'Phone Number'
     third_party_settings: {  }
   field_person_delivered_to:
     type: options_select
-    weight: 3
+    weight: 4
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_person_delivered_to_fname:
+    type: string_textfield
+    weight: 27
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_person_delivered_to_lname:
+    type: string_textfield
+    weight: 28
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_person_delivered_to_other:
+    type: string_textfield
+    weight: 29
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_person_delivered_value:
+    type: string_textfield
+    weight: 17
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_primary_postal_code:
+    type: string_textfield
+    weight: 33
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
   field_registry:
     type: string_textfield
-    weight: 66
+    weight: 54
     region: content
     settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
   field_served_by:
-    type: entity_reference_autocomplete
+    type: chosen_select
     weight: 0
     region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_served_by_first_name:
+    type: string_textfield
+    weight: 24
+    region: content
     settings:
-      match_operator: CONTAINS
-      match_limit: 10
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_served_by_full_name:
+    type: string_textfield
+    weight: 26
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_served_by_last_name:
+    type: string_textfield
+    weight: 25
+    region: content
+    settings:
       size: 60
       placeholder: ''
     third_party_settings: {  }
   field_served_notes:
     type: string_textarea
-    weight: 17
+    weight: 12
     region: content
     settings:
       rows: 5
       placeholder: ''
     third_party_settings: {  }
   field_served_party:
-    type: options_select
-    weight: 14
+    type: select_or_other_list
+    weight: 8
     region: content
-    settings: {  }
+    settings:
+      select_element_type: select_or_other_select
+      sort_options: ''
+      other_placeholder: ''
+      other_option: ''
+      other_field_label: ''
+      add_other_value_to_allowed_values: true
     third_party_settings: {  }
   field_service_address:
     type: inline_entity_form_complex_table_view_mode
-    weight: 15
+    weight: 9
     region: content
     settings:
       form_mode: default
@@ -844,7 +1043,7 @@ content:
     third_party_settings: {  }
   field_service_details_position:
     type: string_textfield
-    weight: 4
+    weight: 5
     region: content
     settings:
       size: 60
@@ -852,7 +1051,7 @@ content:
     third_party_settings: {  }
   title:
     type: string_textfield
-    weight: 16
+    weight: 10
     region: content
     settings:
       size: 60
@@ -860,32 +1059,11 @@ content:
     third_party_settings: {  }
 hidden:
   created: true
-  field_affidavits: true
-  field_agreed_discount: true
-  field_allocated_to_first_name: true
-  field_allocated_to_full_name: true
-  field_allocated_to_last_name: true
-  field_business_name_value: true
-  field_business_other: true
-  field_case_status_value: true
   field_client_address: true
-  field_client_cid: true
   field_client_name: true
-  field_cover_letters: true
   field_email: true
   field_job_client_id: true
-  field_last_mail_time: true
-  field_name_to_other: true
-  field_name_to_server_value: true
   field_notes: true
-  field_person_delivered_to_fname: true
-  field_person_delivered_to_lname: true
-  field_person_delivered_to_other: true
-  field_person_delivered_value: true
-  field_primary_postal_code: true
-  field_served_by_first_name: true
-  field_served_by_full_name: true
-  field_served_by_last_name: true
   field_served_date: true
   field_telephone: true
   path: true

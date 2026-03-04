@@ -566,8 +566,9 @@ input[type=checkbox]:checked, input[type=checkbox]:disabled:checked, input[type=
 
 .field--label-inline {
   margin: 10px 0;
-  clear: left;
+  clear: both;
   min-height: 20px;
+  overflow: hidden;
 }
 
 .field--label-above {
@@ -647,8 +648,26 @@ summary {
   max-width: 200px;
 }
 
-label[for='edit-field-served-date-value-max'] {
-  visibility: hidden;
+/* Service Date filter - remove fieldset box and display inline */
+.service-date-filter-wrapper {
+  border: 0 !important;
+  padding: 0 !important;
+  margin: 0;
+  float: left;
+  min-height: 54px;
+}
+.service-date-filter-wrapper > legend {
+  display: none;
+}
+.service-date-filter-wrapper > .fieldset-wrapper,
+.service-date-filter-wrapper > div {
+  display: flex;
+  gap: 10px;
+  position: relative;
+}
+.service-date-filter-wrapper .form-item {
+  margin-top: 0;
+  position: relative;
 }
 
 .form-type-checkbox {
@@ -796,11 +815,13 @@ input[name="field_documents_document_add_more"] {
 }
 
 .job-page-section-title >legend {
-  width: 96%;
+  width: 100%;
   background-color: #a9a9a9;
-  display: inline-block;
+  display: block;
+  float: none;
   padding: 5px;
   height: 20px;
+  box-sizing: border-box;
 }
 
 .job-page-section-title >legend span {
@@ -810,8 +831,30 @@ input[name="field_documents_document_add_more"] {
   display: inline-block;
 }
 
-.job-page-section-title .fieldset-wrapper {
+.job-page-section-title > .fieldset-wrapper {
+  clear: both;
   padding-top: 20px;
+}
+
+/* Clearfix: contain floats within each job section */
+.job-page-section-title > .fieldset-wrapper::after {
+  content: '';
+  display: table;
+  clear: both;
+}
+
+/* Ensure label-above fields clear preceding inline-label floats */
+.job-page-section-title .field--label-above {
+  clear: both;
+}
+
+/* Ensure party, job fees and attendance note rendered entities don't shift right */ 
+.party-side-one-rendered-entity,
+.party-side-two-rendered-entity,
+.party-other-rendered-entity,
+.job-fees-rendered-entity,
+.attendance-notes-rendered-entity {
+  clear: both;
 }
 
 .paragraph--type--document, .paragraph--type--cover-letter, .paragraph--type--affidavit  {

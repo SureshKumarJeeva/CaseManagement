@@ -9,6 +9,7 @@ dependencies:
     - field.field.node.library.field_case_status
     - field.field.node.library.field_category
     - field.field.node.library.field_email_subject
+    - field.field.node.library.field_import_template
     - field.field.node.library.field_job_types
     - node.type.library
   module:
@@ -40,4 +41,5 @@ hidden:
   field_case_status: true
   field_category: true
   field_email_subject: true
+  field_import_template: true
   field_job_types: true

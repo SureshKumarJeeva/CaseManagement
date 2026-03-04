@@ -3,10 +3,10 @@ _core:
 module:
   address: 0
   admin_toolbar: 0
-  admin_toolbar_links_access_filter: 0
   admin_toolbar_search: 0
   admin_toolbar_tools: 0
   adminimal_admin_toolbar: 0
+  associatedps_affidavit_template: 0
   associatedps_case_status_template: 0
   associatedps_email_template: 0
   associatedps_forms: 0
@@ -25,6 +25,7 @@ module:
   ckeditor5: 0
   comment: 0
   conditional_fields: 0
+  config: 0
   contact: 0
   contextual: 0
   csv_serialization: 0
@@ -82,6 +83,7 @@ module:
   serialization: 0
   shortcut: 0
   simple_multistep: 0
+  smtp: 0
   system: 0
   taxonomy: 0
   telephone: 0

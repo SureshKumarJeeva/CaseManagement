@@ -15,3 +15,6 @@ remove_repeated_segments: true
 language_path_prefix_as_segment: false
 absolute_paths: false
 hide_single_home_item: false
+capitalizator_ignored_words: {  }
+capitalizator_forced_words: {  }
+segment_display_minimum: 1

@@ -7,6 +7,7 @@ use Drupal\Core\Form\OptGroup;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\Core\TypedData\Validation\TypedDataAwareValidatorTrait;
+use Drupal\Core\Validation\Plugin\Validation\Constraint\AllowedValuesConstraintValidator as CoreAllowedValuesConstraintValidator;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\options\Plugin\Field\FieldType\ListItemBase;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -50,7 +51,7 @@ class AllowedValuesConstraintValidator extends ChoiceValidator implements Contai
   /**
    * {@inheritdoc}
    */
-  public function validate($value, Constraint $constraint) {
+  public function validate(mixed $value, Constraint $constraint): void {
     $typed_data = $this->getTypedData();
 
     if ($this->mustBeValidatedByCore($typed_data)) {
@@ -76,16 +77,42 @@ class AllowedValuesConstraintValidator extends ChoiceValidator implements Contai
     }
   }
 
+  /**
+   * Assert whether or not a given typed data must be validated by core.
+   *
+   * @param \Drupal\Core\TypedData\TypedDataInterface $typed_data
+   *   The typed data.
+   *
+   * @return bool
+   *   Whether or not it should be validated.
+   */
   private function mustBeValidatedByCore(TypedDataInterface $typed_data) {
     return !($typed_data instanceof ListItemBase) || $typed_data->getFieldDefinition()->getFieldStorageDefinition()->isBaseField();
   }
 
+  /**
+   * Validates a value against core's values constraint validator.
+   *
+   * @param mixed $value
+   *   The value to validate.
+   * @param \Symfony\Component\Validator\Constraint $constraint
+   *   The constraint.
+   */
   private function validateUsingCoreValidation($value, Constraint $constraint) {
-    $core_validator = new \Drupal\Core\Validation\Plugin\Validation\Constraint\AllowedValuesConstraintValidator($this->currentUser);
+    $core_validator = new CoreAllowedValuesConstraintValidator($this->currentUser);
     $core_validator->context = $this->context;
     $core_validator->validate($value, $constraint);
   }
 
+  /**
+   * Retrieves the valid choices.
+   *
+   * @param \Drupal\Core\TypedData\TypedDataInterface $typed_data
+   *   The typed data.
+   *
+   * @return array
+   *   The valid choices.
+   */
   private function getValidChoices(TypedDataInterface $typed_data) {
     $allowed_options = [];
     if ($typed_data instanceof ListItemBase) {
@@ -97,7 +124,16 @@ class AllowedValuesConstraintValidator extends ChoiceValidator implements Contai
     return OptGroup::flattenOptions($allowed_options);
   }
 
-  private function getMainPropertyValue($typed_data) {
+  /**
+   * Retrieves the main property value.
+   *
+   * @param \Drupal\Core\TypedData\TypedDataInterface $typed_data
+   *   The typed data.
+   *
+   * @return mixed
+   *   The main property value.
+   */
+  private function getMainPropertyValue(TypedDataInterface $typed_data) {
     $name = $typed_data->getDataDefinition()->getMainPropertyName();
     if (!isset($name)) {
       throw new \LogicException('Cannot validate allowed values for complex data without a main property.');

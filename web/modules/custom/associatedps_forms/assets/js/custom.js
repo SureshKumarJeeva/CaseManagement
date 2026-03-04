@@ -1,5 +1,37 @@
-(function ($, Drupal, drupalSettings) {
+(function ($, Drupal, drupalSettings, once) {
   "use strict";
+
+  /**
+   * Opens the default email client when an automated email was just sent
+   * (e.g. case status change triggered a server-side email for a Job).
+   * Uses once() so the mailto fires exactly once per page load.
+   */
+  Drupal.behaviors.associatedpsMailtoTrigger = {
+    attach: function (context) {
+      $(once('mailto-trigger', 'body', context)).each(function () {
+        console.log("Before mailto trigger");
+        var mailtoData = (drupalSettings.associatedps_forms || {}).mailto_trigger;
+        if (mailtoData && mailtoData.to) {
+          console.log("mail data present");
+          var mailto = 'mailto:' + encodeURIComponent(mailtoData.to)
+            + '?subject=' + encodeURIComponent(mailtoData.subject || '');
+          if (mailtoData.body) {
+            mailto += '&body=' + encodeURIComponent(mailtoData.body);
+          }
+          delete drupalSettings.associatedps_forms.mailto_trigger;
+          // Use a hidden iframe to trigger mailto without causing
+          // the browser to show a loading spinner on the current page.
+          var $iframe = $('<iframe>', {
+            src: mailto,
+            style: 'display:none;'
+          }).appendTo('body');
+          // Remove the iframe after the email client has had time to open.
+          setTimeout(function () { $iframe.remove(); }, 2000);
+        }
+      });
+    }
+  };
+
   Drupal.behaviors.associatedps_forms = {
     attach:function (context, settings) {
       $('.paragraph-type--document a.use-ajax').bind('click', function() {
@@ -68,4 +100,4 @@
       });
     }
   }
-})(jQuery, Drupal, drupalSettings);
+})(jQuery, Drupal, drupalSettings, once);

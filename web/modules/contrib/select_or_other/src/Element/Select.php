@@ -2,7 +2,6 @@
 
 namespace Drupal\select_or_other\Element;
 
-
 use Drupal\Core\Form\FormStateInterface;
 
 /**
@@ -23,6 +22,7 @@ class Select extends ElementBase {
     static::setSelectType($element);
     static::addEmptyOption($element);
     static::addStatesHandling($element);
+    static::addAjaxHandling($element);
 
     return $element;
   }
@@ -68,8 +68,20 @@ class Select extends ElementBase {
       // to simulate #states using our own javascript until #1149078 is
       // resolved. @see https://www.drupal.org/node/1149078
       $element['select']['#attached'] = [
-        'library' => ['select_or_other/multiple_select_states_hack']
+        'library' => ['select_or_other/multiple_select_states_hack'],
       ];
+    }
+  }
+
+  /**
+   * Adds a #ajax array to select field to make Form API ajax callbacks work.
+   *
+   * @param array $element
+   *   The select or other element.
+   */
+  protected static function addAjaxHandling(array &$element) {
+    if (isset($element['#ajax'])) {
+      $element['select']['#ajax'] = $element['#ajax'];
     }
   }
 

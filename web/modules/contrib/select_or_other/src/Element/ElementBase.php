@@ -18,14 +18,18 @@ use Drupal\Core\Render\Element\FormElement;
  *   each option, and the values are the options to be presented to the user.
  * - #empty_option: The label that will be displayed to denote no selection.
  * - #empty_value: The value of the option that is used to denote no selection.
+ * - #input_type: The element type to be used in the 'other' field.
  */
 abstract class ElementBase extends FormElement {
 
   /**
-   * Adds an 'other' option to the selectbox.
+   * Adds an '- Other -' option to the selectbox.
    */
-  protected static function addOtherOption($options) {
-    $options['select_or_other'] = t('Other');
+  protected static function addOtherOption($options, $other_option = '') {
+    if (empty($other_option)) {
+      $other_option = t('- Other -');
+    }
+    $options['select_or_other'] = $other_option;
 
     return $options;
   }
@@ -54,24 +58,28 @@ abstract class ElementBase extends FormElement {
   }
 
   /**
+   * Check whether or not the element is disabled.
+   *
    * @param array $element
    *   The element to check for enabled state.
    *
    * @return bool
    *   Whether or not the element is disabled.
    */
-  private static function elementIsDisabled($element) {
+  private static function elementIsDisabled(array $element) {
     return isset($element['#disabled']) && $element['#disabled'];
   }
 
   /**
+   * Check whether or not the element may be accessed.
+   *
    * @param array $element
    *   The element to check for access.
    *
    * @return bool
    *   Whether or not the element may be accessed.
    */
-  private static function noElementAccess($element) {
+  private static function noElementAccess(array $element) {
     return isset($element['#access']) && !$element['#access'];
   }
 
@@ -82,7 +90,7 @@ abstract class ElementBase extends FormElement {
    */
   public function getInfo() {
     $class = get_class($this);
-    return array(
+    return [
       '#input' => TRUE,
       '#process' => [[$class, 'processSelectOrOther']],
       '#multiple' => FALSE,
@@ -91,7 +99,8 @@ abstract class ElementBase extends FormElement {
       '#theme_wrappers' => ['form_element'],
       '#options' => [],
       '#tree' => TRUE,
-    );
+      '#input_type' => 'textfield',
+    ];
   }
 
   /**
@@ -121,12 +130,16 @@ abstract class ElementBase extends FormElement {
       '#default_value' => $element['#default_value'],
       '#required' => $element['#required'],
       '#multiple' => $element['#multiple'],
-      '#options' => static::addOtherOption($element['#original_options'] ?? $element['#options']),
+      '#options' => $element['#original_options'] ?? $element['#options'],
       '#attributes' => [
-        'aria-label' => isset($element['#title']) ? $element['#title'] : $element['#name'],
+        'aria-label' => $element['#title'] ?? $element['#name'],
       ],
       '#weight' => 10,
     ];
+
+    if ($element['#other_allowed'] ?? TRUE) {
+      $element['select']['#options'] = static::addOtherOption($element['select']['#options'], $element['#other_option']);
+    }
   }
 
   /**
@@ -136,19 +149,27 @@ abstract class ElementBase extends FormElement {
    *   The select or other element.
    */
   protected static function addOtherField(array &$element) {
-    $element['other'] = [
-      '#type' => 'textfield',
-      '#attributes' => [
-        'aria-label' => isset($element['#title']) ? $element['#title'] . ' Other' : $element['#name'] . ' Other',
-      ],
-      '#weight' => 20,
-      '#attributes' => [
-        'placeholder' => t('Other: please specify here'),
-      ],
-    ];
+    if ($element['#other_allowed'] ?? TRUE) {
+      $element['other'] = [
+        '#type' => $element['#input_type'] ?? 'textfield',
+        '#attributes' => [
+          'aria-label' => isset($element['#title']) ? $element['#title'] . ' Other' : $element['#name'] . ' Other',
+        ],
+        '#weight' => 20,
+      ];
+    }
+
+    if (isset($element['#other_field_label']) && !empty($element['#other_field_label'])) {
+      $element['other']['#title'] = $element['#other_field_label'];
+      $element['other']['#attributes']['aria-label'] = $element['#other_field_label'];
+    }
 
     if (isset($element['#other_options'])) {
       $element['other']['#default_value'] = $element['#other_options'];
+    }
+
+    if (isset($element['#other_placeholder'])) {
+      $element['other']['#attributes']['placeholder'] = $element['#other_placeholder'];
     }
   }
 
@@ -180,7 +201,7 @@ abstract class ElementBase extends FormElement {
         if (isset($element['#merged_values']) && $element['#merged_values']) {
           if (!empty($values['other'])) {
             if (is_array($values['select']) && array_key_exists('select_or_other', $values['select'])) {
-              $select = array_pop($values['select']) !== NULL ? array_pop($values['select']) : [];
+              $select = array_pop($values['select']) ?? [];
               $values = array_values(array_merge($select, $values['other']));
             }
             else {

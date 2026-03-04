@@ -15,7 +15,6 @@ dependencies:
     - paragraphs.paragraphs_type.attendance_note
   module:
     - address
-    - chosen_field
     - datetime
     - datetimehideseconds
     - select_or_other
@@ -32,10 +31,14 @@ content:
       wrapper_type: details
     third_party_settings: {  }
   field_by:
-    type: chosen_select
+    type: entity_reference_autocomplete
     weight: 0
     region: content
-    settings: {  }
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_date_time:
     type: datetime_default
@@ -55,7 +58,7 @@ content:
     third_party_settings: {  }
   field_employee_full_name:
     type: string_textfield
-    weight: 9
+    weight: 8
     region: content
     settings:
       size: 60
@@ -84,6 +87,9 @@ content:
     settings:
       select_element_type: select_or_other_select
       sort_options: ''
+      other_placeholder: ''
+      other_option: ''
+      other_field_label: ''
       add_other_value_to_allowed_values: true
     third_party_settings: {  }
   field_selected_address:

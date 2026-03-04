@@ -10,7 +10,6 @@ dependencies:
     - field.field.paragraph.job_fees.field_units
     - paragraphs.paragraphs_type.job_fees
   module:
-    - chosen_field
     - field_group
 third_party_settings:
   field_group:
@@ -56,10 +55,14 @@ content:
       placeholder: ''
     third_party_settings: {  }
   field_type_of_service:
-    type: chosen_select
+    type: entity_reference_autocomplete
     weight: 0
     region: content
-    settings: {  }
+    settings:
+      match_operator: CONTAINS
+      match_limit: 10
+      size: 60
+      placeholder: ''
     third_party_settings: {  }
   field_units:
     type: number

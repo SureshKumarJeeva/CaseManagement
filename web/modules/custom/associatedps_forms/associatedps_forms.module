@@ -5,6 +5,7 @@
  * Contains associatedps_forms.module.
  */
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\user\Entity\Role;
 use Drupal\user\Entity\User;
@@ -18,15 +19,78 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\associatedps_email_template\Controller\EmailTemplateController;
 use Drupal\Core\Datetime\DrupalDateTime;
+use Drupal\Component\Utility\NestedArray;
+use Drupal\Component\Utility\Tags;
 
 /**
  * Implements hook_form_alter().
  */
 function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  /*Condition that checks for Job Edit Form and adds Invoice generation opton in the Job edit form Invoice tab*/
+  if ($form_id == 'node_job_edit_form') {
+    $path = \Drupal::service('path.current')->getPath();
+    $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
+    $form['action']['generate_invoice'] = [
+        '#type' => 'link',
+        '#title' => t('Generate Invoice'),
+        '#url' => Url::fromUri('base://xero/generate-invoice/' . $nid),
+        '#attributes' => [
+          'class' => [
+            'use-ajax',
+            'button',
+          ],
+        ],
+        '#weight' => '10',
+      ];
+
+      // Email Client button in actions area.
+      $email_node = Node::load(abs($nid));
+      $client_email = '';
+      if ($email_node) {
+        if (!empty($email_node->field_client_s_job_email->value)) {
+          $client_email = $email_node->field_client_s_job_email->value;
+        }
+        elseif (!empty($email_node->field_client->target_id)) {
+          $client_ref = Node::load($email_node->field_client->target_id);
+          if ($client_ref && !empty($client_ref->field_email->value)) {
+            $client_email = $client_ref->field_email->value;
+          }
+        }
+      }
+      if (!empty($client_email)) {
+        $safe_email = Html::escape($client_email);
+        $job_title = $email_node->getTitle() ?: '';
+        $job_status = $email_node->field_case_status->value ?: '';
+        $subject = $nid . ' - ' . $job_title . ' : ' . $job_status;
+        $mailto = 'mailto:' . rawurlencode($client_email) . '?subject=' . rawurlencode($subject);
+        $form['action']['email_client'] = [
+          '#markup' => '<a href="' . Html::escape($mailto) . '" class="button" style="margin-left:10px;" title="Open email client to ' . $safe_email . '">' . t('Email Client') . '</a>',
+          '#weight' => '11',
+        ];
+      }
+
+      $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
+      $form['#attached']['library'][] = 'associatedps_forms/global';
+
+      // Check if an automated email was just sent (case status change).
+      // If so, pass the email data to JS to also open the default email client.
+      $tempstore = \Drupal::service('tempstore.private')->get('associatedps_email_template');
+      $mailto_data = $tempstore->get('mailto_data');
+      if ($mailto_data) {
+        $form['#attached']['drupalSettings']['associatedps_forms']['mailto_trigger'] = $mailto_data;
+        $tempstore->delete('mailto_data');
+      }
+  }
 
   /* Job Edit/Add form overrides. */
 
   if (($form_id == 'node_job_edit_form') || ($form_id == 'node_job_form')) {
+
+    // Fix horizontal tabs default state: set #group_exists so the group
+    // mechanism properly renders tab members inside the tabs container
+    // and enables default tab selection.
+    $form['#after_build'][] = '_associatedps_forms_job_form_after_build';
+    $form['#attached']['library'][] = 'associatedps_forms/job_form_tabs';
 
     /* Prevent agents from editing jobs to which they are not assigned. */
     $roles = Role::loadMultiple();
@@ -70,7 +134,8 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
       $form['field_served_party']['#disabled'] = TRUE;
       $form['field_served_notes']['#disabled'] = TRUE;
 
-      $allocated_to = $form["field_allocated_to"]["widget"]["#default_value"][0];
+      $node = $form_state->getFormObject()->getEntity();
+      $allocated_to = $node->get('field_allocated_to')->target_id;
       if ($allocated_to != $userCurrent->id()) {
         die();
       }
@@ -100,13 +165,70 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     $form['field_client_s_job_email']['widget'][0]['value']['#attributes']['id'] = 'change-client-email';
     $form['field_agreed_discount']['widget'][0]['value']['#attributes']['id'] = 'change-client-discount';
 
+    /* Sync Side Two party names into the Name to Serve dropdown. */
+    $form['#attached']['library'][] = 'associatedps_forms/party_to_serve_sync';
+
+    /* Sync Party to Serve addresses into Attendance Note paragraphs. */
+    $form['#attached']['library'][] = 'associatedps_forms/attendance_address_sync';
+
+    /* Preload service term fees for JS-based standard fee population.
+     * The #ajax Form API approach does not work reliably for autocomplete
+     * fields inside IEF paragraph subforms (generated via AJAX), so we
+     * pass the fee map to JS and let a Drupal behavior handle it. */
+    $form['#attached']['library'][] = 'associatedps_forms/service_fee_sync';
+    $service_terms = \Drupal::entityTypeManager()
+      ->getStorage('taxonomy_term')
+      ->loadByProperties(['vid' => 'services']);
+    $service_fees = [];
+    foreach ($service_terms as $term) {
+      $service_fees[$term->id()] = $term->field_standard_fee->value ?? '';
+    }
+    $form['#attached']['drupalSettings']['associatedps_forms']['service_fees'] = $service_fees;
+
+    /* Allow dynamically-added values in select_or_other fields. */
+    $form['field_served_party']['widget']['#after_build'][] = '_associatedps_forms_after_build_select_or_other';
+    $form['field_business_name']['widget']['#after_build'][] = '_associatedps_forms_after_build_select_or_other';
+
+    /* field_person_delivered_to is now a standard select list. */
+    $form['field_person_delivered_to']['widget']['#after_build'][] = '_associatedps_forms_after_build_standard_select';
+
+    /* Ensure dynamically-set values pass entity validation. */
+    array_unshift($form['#validate'], '_associatedps_forms_validate_dynamic_select_options');
+
+    /* Fix dynamically-added address values in IEF paragraph subforms.
+     * hook_field_widget_single_element_form_alter does NOT fire for IEF
+     * attendance_note paragraphs during AJAX, so we use a form-level
+     * #after_build that runs after the entire form tree (including all
+     * IEF subforms) is built but before validation. */
+    $form['#after_build'][] = '_associatedps_forms_after_build_fix_ief_address_selects';
+
     /* set Full name of user in allocated_to/served_by */
 
     $query = \Drupal::entityQuery('user')->accessCheck(FALSE);
     $uids = $query->execute();
     $options = _associatedps_forms_get_users($uids);
-    $form['field_allocated_to']['widget']['#options'] = $options;
     $form['field_served_by']['widget']['#options'] = $options;
+
+    /* Preload user details for JS-based Employee field sync.
+     * When Allocated To changes after a paragraph is already generated,
+     * JS uses this map to populate empty Employee autocomplete fields. */
+    $form['#attached']['library'][] = 'associatedps_forms/employee_sync';
+    $user_details = [];
+    foreach ($uids as $uid) {
+      $user_obj = User::load($uid);
+      if ($user_obj) {
+        $addr = $user_obj->field_address->getValue();
+        $addr = reset($addr);
+        if ($addr && isset($addr['given_name']) && isset($addr['family_name'])) {
+          $user_details[$uid] = [
+            'label' => $user_obj->label(),
+            'given_name' => $addr['given_name'],
+            'family_name' => $addr['family_name'],
+          ];
+        }
+      }
+    }
+    $form['#attached']['drupalSettings']['associatedps_forms']['user_details'] = $user_details;
 
   }
 
@@ -114,7 +236,14 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
     $path = \Drupal::service('path.current')->getPath();
     $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
-    $form['group_job_details']['open_modal_client'] = [
+    // Wrap Edit Client and Email Client buttons in a container so they
+    // appear side by side, above Instruction Received.
+    $form['group_job_details']['client_actions'] = [
+      '#type' => 'container',
+      '#attributes' => ['style' => 'display:flex;gap:10px;align-items:flex-start;margin-bottom:1em;', 'class' => ['client-actions-wrapper']],
+      '#weight' => '6',
+    ];
+    $form['group_job_details']['client_actions']['open_modal_client'] = [
       '#type' => 'link',
       '#title' => 'Edit Client',
       '#url' => Url::fromUri('base://add-client/' . $nid),
@@ -126,8 +255,29 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         'data-dialog-type' => 'modal',
         'data-dialog-options' => '{"width":800}',
       ],
+    ];
+    if (!empty($client_email)) {
+      $safe_email = Html::escape($client_email);
+      $form['group_job_details']['client_actions']['email_client'] = [
+        '#markup' => '<a href="' . Html::escape($mailto) . '" class="button" title="Open email client to ' . $safe_email . '">' . t('Email Client') . '</a>',
+      ];
+    }
+
+    $form['group_court_details']['open_modal_court'] = [
+      '#type' => 'link',
+      '#title' => 'Edit Court',
+      '#url' => Url::fromUri('base://add-court/' . $nid),
+      '#attributes' => [
+        'class' => [
+          'use-ajax',
+          'button',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => '{"width":800}',
+      ],
       '#weight' => '7',
     ];
+
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
     $form['#attached']['library'][] = 'associatedps_forms/global';
 
@@ -141,6 +291,38 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     $nid = abs($nid);
     if (!empty($nid)) {
       $node = Node::load($nid);
+
+      /* Pass saved service addresses to JS for attendance address sync.
+       * When saved IEF paragraphs are in table/collapsed mode their form
+       * fields are not in the DOM, so JS cannot read them directly. */
+      $saved_service_addresses = [];
+      if (!empty($node->field_service_address->getValue())) {
+        foreach ($node->field_service_address as $addr_ref) {
+          $addr_para = Paragraph::load($addr_ref->target_id);
+          if (!$addr_para) {
+            continue;
+          }
+          $address = $addr_para->field_service_address->first();
+          if (!$address) {
+            continue;
+          }
+          $vals = $address->getValue();
+          $has_value = !empty($vals['address_line1']) || !empty($vals['locality'])
+            || !empty($vals['administrative_area']) || !empty($vals['postal_code']);
+          if ($has_value) {
+            $saved_service_addresses[] = [
+              'address_line1' => $vals['address_line1'] ?? '',
+              'address_line3' => $vals['address_line3'] ?? '',
+              'locality' => $vals['locality'] ?? '',
+              'administrative_area' => $vals['administrative_area'] ?? '',
+              'postal_code' => $vals['postal_code'] ?? '',
+              'organization' => $vals['organization'] ?? '',
+              'isPrimary' => (bool) $addr_para->field_primary_address->value,
+            ];
+          }
+        }
+      }
+      $form['#attached']['drupalSettings']['associatedps_forms']['service_addresses'] = $saved_service_addresses;
 
       /* Start Name To Serve and Person Delivered options and default value */
       $party_list = [];
@@ -197,8 +379,24 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         $business_list[$business_other] = $business_other;
         $form["field_business_name"]["widget"]["#options"] = $business_list;
       }
+      // Add the currently saved field_served_party value back into options
+      // so the Select or Other widget doesn't strip it as an unknown value.
+      $saved_served_party = $node->field_served_party->value ?? '';
+      if (!empty($saved_served_party) && !isset($party_list[$saved_served_party])) {
+        $party_list[$saved_served_party] = $saved_served_party;
+      }
+      // Add the currently saved field_person_delivered_to value back into options.
+      $saved_person_delivered = $node->field_person_delivered_to->value ?? '';
+      if (!empty($saved_person_delivered) && !isset($person_list[$saved_person_delivered])) {
+        $person_list[$saved_person_delivered] = $saved_person_delivered;
+      }
+      // Add the currently saved field_business_name value back into options.
+      $saved_business_name = $node->field_business_name->value ?? '';
+      if (!empty($saved_business_name) && !isset($business_list[$saved_business_name])) {
+        $business_list[$saved_business_name] = $saved_business_name;
+      }
       $form["field_served_party"]["widget"]["#options"] = $party_list;
-      $form["field_person_delivered_to"]["widget"]["#options"] = $person_list;
+      $form["field_person_delivered_to"]["widget"]["#options"] = ['_none' => '- None -'] + $person_list;
       $form["field_business_name"]["widget"]["#options"] = $business_list;
       /* Finish Name To Serve and Person Delivered options and default value */
 
@@ -270,9 +468,88 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
       ],
       '#weight' => '7',
     ];
+
+    $form['group_court_details']['open_modal_court'] = [
+      '#type' => 'link',
+      '#title' => 'Add New Court',
+      '#url' => Url::fromUri('base://add-court/0'),
+      '#attributes' => [
+        'class' => [
+          'use-ajax',
+          'button',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => '{"width":800}',
+      ],
+      '#weight' => '7',
+    ];
+
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
     $form['#attached']['library'][] = 'associatedps_forms/global';
+
+    // Pre-populate client field if a client was just created via modal.
+    $cookie_client_nid = isset($_COOKIE['Drupal_visitor_node_id']) ? $_COOKIE['Drupal_visitor_node_id'] : '';
+    $cookie_client_submit = isset($_COOKIE['Drupal_visitor_client_submit']) ? $_COOKIE['Drupal_visitor_client_submit'] : 0;
+    if (!empty($cookie_client_nid) && $cookie_client_submit != 0) {
+      if (isset($form['field_client']['widget']['#default_value']) && ($form['field_client']['widget']['#default_value'] === [])) {
+        $form['field_client']['widget']['#default_value'][] = $cookie_client_nid;
+      }
+      $client_node = Node::load($cookie_client_nid);
+      if ($client_node) {
+        $client_email = !empty($client_node->get('field_email')->getValue()) ? $client_node->get('field_email')->getValue()[0]['value'] : '';
+        $client_discount = !empty($client_node->get('field_agreed_discount')->getValue()) ? $client_node->get('field_agreed_discount')->getValue()[0]['value'] : '';
+        $form['field_client_s_job_email']['widget'][0]['value']['#default_value'] = $client_email;
+        $form['field_agreed_discount']['widget'][0]['value']['#default_value'] = $client_discount;
+      }
+      // Reset cookies immediately so they don't leak into other forms
+      // (e.g. editing a different job or revisiting /node/add/job later).
+      user_cookie_save([
+        'client_submit' => 0,
+        'client_name' => '',
+        'client_id' => '',
+        'telephone' => '',
+        'generic_email' => '',
+        'discount' => '',
+        'notes' => '',
+        'sa_address_line1' => '',
+        'sa_address_line2' => '',
+        'sa_locality' => '',
+        'sa_postal_code' => '',
+        'sa_administrative_area' => '',
+        'node_id' => '',
+      ]);
+    }
+
+    // Pre-populate court field if a court was just created via modal.
+    $cookie_court_tid = isset($_COOKIE['Drupal_visitor_court_term_id']) ? $_COOKIE['Drupal_visitor_court_term_id'] : '';
+    $cookie_court_submit = isset($_COOKIE['Drupal_visitor_court_submit']) ? $_COOKIE['Drupal_visitor_court_submit'] : 0;
+    if (!empty($cookie_court_tid) && $cookie_court_submit != 0) {
+      $form['field_court']['widget']['#default_value'][] = $cookie_court_tid;
+      // Reset cookies immediately so they don't leak into other forms.
+      user_cookie_save([
+        'court_submit' => 0,
+        'court_term_id' => '',
+      ]);
+    }
+
+    // Reset document cookies on page load so they don't leak if user
+    // navigates away without saving. The presave hook will also clear
+    // them, but this covers the case where the user never saves.
+    $cookie_doc_submit = isset($_COOKIE['Drupal_visitor_document_submit']) ? $_COOKIE['Drupal_visitor_document_submit'] : 0;
+    if ($cookie_doc_submit != 0) {
+      user_cookie_save([
+        'document_submit' => 0,
+        'node_doc_id' => '',
+        'document_title' => '',
+        'notice_period' => '',
+        'court_name' => '',
+        'affidavit_template' => '',
+      ]);
+      setcookie('create_doc_for_job', '', time() - 3600, '/');
+    }
   }
+
+  //var_dump("node job form initialized<br/>");
 
   /* Client Edit/Add form field_email_template field overrides. */
 
@@ -339,9 +616,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
   }
 
   /* Alter View form filter. */
-
-  if (($form['#id'] == 'views-exposed-form-job-page-job-list') || ($form['#id'] == 'views-exposed-form-job-page-per-agent-job-page-per-agent') || ($form['#id'] == 'views-exposed-form-job-page-per-user-job-page-per-user')) {
-
+  if (($form['#id'] == 'views-exposed-form-content-jobs--page-1') || ($form['#id'] == 'views-exposed-form-job-page-job-list') || ($form['#id'] == 'views-exposed-form-job-page-per-agent-job-page-per-agent') || ($form['#id'] == 'views-exposed-form-job-page-per-user-job-page-per-user')) {
     /* Allocated To filter */
     $query = \Drupal::entityQuery('user')->accessCheck(FALSE);
     $uids = $query->execute();
@@ -423,6 +698,13 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         '#size' => 1,
       ];
     }
+
+    /* Service Date filter - restyle only, keep original BEF processing intact. */
+    if (isset($form['field_served_date_value_wrapper'])) {
+      $form['field_served_date_value_wrapper']['#attributes']['class'][] = 'service-date-filter-wrapper';
+      $form['field_served_date_value_wrapper']['field_served_date_value']['min']['#title'] = t('Service From');
+      $form['field_served_date_value_wrapper']['field_served_date_value']['max']['#title'] = t('Service To');
+    }
   }
 
 }
@@ -447,10 +729,9 @@ function associatedps_forms_change_client_email($form, &$form_state) {
 }
 
 /**
- * Implements hook_field_widget_form_alter().
+ * Implements hook_field_widget_single_element_form_alter().
  */
-function associatedps_forms_field_widget_form_alter(&$element, FormStateInterface $form_state, $context) {
-
+function associatedps_forms_field_widget_single_element_form_alter(&$element, FormStateInterface $form_state, $context) {
   $field_definition = $context['items']->getFieldDefinition();
   if ($field_definition->getType() == 'entity_reference_revisions') {
     $path = \Drupal::service('path.current')->getPath();
@@ -458,11 +739,23 @@ function associatedps_forms_field_widget_form_alter(&$element, FormStateInterfac
 
     if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'document') {
 
-      if ($nid > 0 && isset($element['subform']['field_document'])) {
+      // For edit mode, get the document node ID from the paragraph entity.
+      $doc_node_id = 0;
+      if ($nid > 0) {
+        $paragraph_entity = $context['items'][$context['delta']]->entity ?? NULL;
+        if ($paragraph_entity && $paragraph_entity->id()) {
+          $doc_value = $paragraph_entity->get('field_document')->getValue();
+          if (!empty($doc_value) && isset($doc_value[0]['target_id'])) {
+            $doc_node_id = (int) $doc_value[0]['target_id'];
+          }
+        }
+      }
+
+      if ($doc_node_id > 0) {
         $element['subform']['open_modal_document'] = [
           '#type' => 'link',
           '#title' => 'Edit Document',
-          '#url' => Url::fromUri('base://add-document/' . $nid),
+          '#url' => Url::fromUri('base://add-document/' . $doc_node_id, ['query' => ['job_nid' => $nid]]),
           '#attributes' => [
             'class' => [
               'use-ajax',
@@ -478,7 +771,7 @@ function associatedps_forms_field_widget_form_alter(&$element, FormStateInterfac
         $element['subform']['open_modal_document'] = [
           '#type' => 'link',
           '#title' => 'Create New Document',
-          '#url' => Url::fromUri('base://add-document/0'),
+          '#url' => Url::fromUri('base://add-document/0', ['query' => ['job_nid' => $nid]]),
           '#attributes' => [
             'class' => [
               'use-ajax',
@@ -489,6 +782,20 @@ function associatedps_forms_field_widget_form_alter(&$element, FormStateInterfac
           ],
           '#weight' => '0',
         ];
+      }
+
+      // For add mode, pre-populate field_document from cookie on the first
+      // empty paragraph. Cookies are cleared in form_alter (Fix 4b) so
+      // the presave cookie-based paragraph creation won't duplicate this.
+      if ($nid == 0 && $context['delta'] == 0) {
+        $cookie_doc_nid = isset($_COOKIE['Drupal_visitor_node_doc_id']) ? $_COOKIE['Drupal_visitor_node_doc_id'] : '';
+        $cookie_doc_submit = isset($_COOKIE['Drupal_visitor_document_submit']) ? $_COOKIE['Drupal_visitor_document_submit'] : 0;
+        if (!empty($cookie_doc_nid) && $cookie_doc_submit != 0) {
+          $doc_node = Node::load($cookie_doc_nid);
+          if ($doc_node && isset($element['subform']['field_document'])) {
+            $element['subform']['field_document']['widget'][0]['target_id']['#default_value'] = $doc_node;
+          }
+        }
       }
 
       /* Notice Period based on selected document before save node. */
@@ -523,51 +830,20 @@ function associatedps_forms_field_widget_form_alter(&$element, FormStateInterfac
         '#weight' => '2',
       ];
 
-      $ajax_id = 'edit-field-job-fees';
-      foreach ($element['subform']['field_standard_fee']['widget']['#parents'] as $value) {
-        $ajax_id .= is_int($value) ? "-" . $value : "";
-      }
-      $ajax_id .= "-subform-field-standard-fee-0-value";
-
-      $element['subform']['field_standard_fee']['widget'][0]['value']['#attributes']['id'] = $ajax_id;
-
-      $element['subform']['field_type_of_service']['widget']['#ajax'] = [
-        'event' => 'change',
-        'wrapper' => $ajax_id,
-        'callback' => 'associatedps_forms_change_standard_fees',
-      ];
+      // Standard fee population is handled client-side by the
+      // service_fee_sync JS library via drupalSettings.
     }
 
-    /* Employee default value based on allocated to */
+    /* Employee default value based on Allocated To.
+     * Handled entirely client-side by the employee_sync JS library
+     * via drupalSettings. Covers both scenarios:
+     * - Allocated To selected before paragraph is generated
+     * - Allocated To changed after paragraph is already open */
     if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'attendance_note') {
-      $node = Node::load($nid);
-      if ($nid > 0 && isset($element['subform']['field_by'])) {
-
-        $query = \Drupal::entityQuery('user')->accessCheck(FALSE);
-        $uids = $query->execute();
-        $options = _associatedps_forms_get_users($uids);
-        $element['subform']['field_by']['widget']['#options'] = $options;
-
-        $user_id = '';
-        $user_address = [];
-        if (!empty($node->field_allocated_to->getValue())) {
-          $allocated_to = $node->field_allocated_to->getValue();
-          $allocated_to = reset($allocated_to);
-          $user_id = $allocated_to['target_id'];
-          $user = User::load($user_id);
-          $user_address = $user->field_address->getValue();
-          $user_address = reset($user_address);
-          if ($element['subform']['field_by']['widget']['#default_value'] == []) {
-            $element['subform']['field_by']['widget']['#default_value'] = $user_id;
-            $element['subform']['field_employee_full_name']['widget'][0]['value']['#default_value'] = $user_address['given_name'] . ' ' . $user_address['family_name'];
-            $element['subform']['field_employee_first_name']['widget'][0]['value']['#default_value'] = $user_address['given_name'];
-            $element['subform']['field_employee_last_name']['widget'][0]['value']['#default_value'] = $user_address['family_name'];
-          }
-        }
-      }
 
       if ($nid > 0 && isset($element['subform']['field_party_to_serve_addresses'])) {
-        if (!empty($node->field_service_address->getValue())) {
+        $node = Node::load($nid);
+        if ($node && !empty($node->field_service_address->getValue())) {
           $address = [];
           $default = [];
           $addresses = $node->field_service_address->getValue();
@@ -588,6 +864,7 @@ function associatedps_forms_field_widget_form_alter(&$element, FormStateInterfac
             $element['subform']['field_address_attendance']['widget'][0]['address']['#default_value']['postal_code'] = $add[3];
           }
           $element['subform']['field_party_to_serve_addresses']['widget']['#options'] = $address;
+          $element['subform']['field_party_to_serve_addresses']['widget']['#after_build'][] = '_associatedps_forms_after_build_paragraph_select_or_other';
         }
       }
     }
@@ -743,6 +1020,36 @@ function associatedps_forms_node_presave(NodeInterface $node) {
       $node->field_client[] = ['target_id' => $node->field_client_cid->value];
     }
 
+    // Attach document created via modal to the job as a new paragraph.
+    $cookie_doc_nid = isset($_COOKIE['Drupal_visitor_node_doc_id']) ? $_COOKIE['Drupal_visitor_node_doc_id'] : '';
+    $cookie_doc_submit = isset($_COOKIE['Drupal_visitor_document_submit']) ? $_COOKIE['Drupal_visitor_document_submit'] : 0;
+    if (!empty($cookie_doc_nid) && $cookie_doc_submit != 0) {
+      $doc_node = Node::load($cookie_doc_nid);
+      if ($doc_node) {
+        $paragraph = Paragraph::create(['type' => 'document']);
+        $paragraph->set('field_document', ['target_id' => $cookie_doc_nid]);
+        $paragraph->set('field_document_title', $doc_node->getTitle());
+        $paragraph->set('field_notice_period', $doc_node->field_notice_period->value ?? '');
+        $paragraph->set('field_court_name', $doc_node->field_court_name->target_id ? ['target_id' => $doc_node->field_court_name->target_id] : []);
+        $paragraph->set('field_affidavit_template', $doc_node->field_affidavit_template->target_id ? ['target_id' => $doc_node->field_affidavit_template->target_id] : []);
+        $paragraph->save();
+        $node->field_documents[] = [
+          'target_id' => $paragraph->id(),
+          'target_revision_id' => $paragraph->getRevisionId(),
+        ];
+      }
+      user_cookie_save([
+        'document_submit' => 0,
+        'node_doc_id' => '',
+        'document_title' => '',
+        'notice_period' => '',
+        'court_name' => '',
+        'affidavit_template' => '',
+      ]);
+      // Clear the raw cookie set by CustomAddDocument.
+      setcookie('create_doc_for_job', '', time() - 3600, '/');
+    }
+
     $document = $node->get('field_documents')->getValue();
     foreach ($document as $dc) {
       if ((int) $dc['target_id'] > 0) {
@@ -763,6 +1070,304 @@ function associatedps_forms_node_presave(NodeInterface $node) {
             $prag->save();
           }
         }
+      }
+    }
+  }
+  //var_dump("end of associatedps_forms_node_presave"."<br/>");
+}
+
+/**
+ * After build callback to fix horizontal tabs group mechanism.
+ *
+ * Sets #group_exists on the 'group_job' horizontal tabs container so that
+ * Drupal's group mechanism properly injects tab members into the container
+ * and suppresses duplicate rendering at the original location.
+ */
+function _associatedps_forms_job_form_after_build($form, FormStateInterface $form_state) {
+  $groups = &$form_state->getGroups();
+  if (isset($groups['group_job'])) {
+    $groups['group_job']['#group_exists'] = TRUE;
+  }
+  return $form;
+}
+
+/**
+ * Form-level #after_build: fix dynamically-added address values in IEF
+ * paragraph subforms.
+ *
+ * hook_field_widget_single_element_form_alter does NOT fire for IEF
+ * attendance_note/address paragraphs during AJAX. This callback runs after
+ * the entire form tree is built (including all IEF subforms) but before
+ * validation. It recursively finds field_party_to_serve_addresses select
+ * elements and injects their submitted value into #options so that
+ * performRequiredValidation() accepts them.
+ */
+function _associatedps_forms_after_build_fix_ief_address_selects($form, FormStateInterface $form_state) {
+  _associatedps_forms_recurse_fix_address_selects($form);
+  return $form;
+}
+
+/**
+ * Recursively walk the form tree looking for field_party_to_serve_addresses
+ * select elements and inject the submitted value into #options.
+ */
+function _associatedps_forms_recurse_fix_address_selects(&$elements) {
+  foreach (\Drupal\Core\Render\Element::children($elements) as $key) {
+    if ($key === 'field_party_to_serve_addresses') {
+      // Found the field — look for widget > select inside it.
+      _associatedps_forms_inject_address_option($elements[$key]);
+    }
+    // Recurse into children.
+    if (is_array($elements[$key])) {
+      _associatedps_forms_recurse_fix_address_selects($elements[$key]);
+    }
+  }
+}
+
+/**
+ * For a field_party_to_serve_addresses render array, inject the submitted
+ * value into the inner select's #options so form validation passes.
+ */
+function _associatedps_forms_inject_address_option(&$field_element) {
+  // The widget is at ['widget'] (WidgetBase::form wraps in a container).
+  // Inside, the select_or_other element has a 'select' child.
+  $widget = &$field_element;
+  if (isset($field_element['widget'])) {
+    $widget = &$field_element['widget'];
+  }
+
+  // The inner select created by processSelectOrOther().
+  if (!isset($widget['select']['#value']) || !isset($widget['select']['#options'])) {
+    return;
+  }
+
+  $value = $widget['select']['#value'];
+  if (empty($value) || !is_string($value) || $value === '_none' || $value === 'select_or_other') {
+    return;
+  }
+
+  // Inject into inner select's #options.
+  if (!isset($widget['select']['#options'][$value])) {
+    $widget['select']['#options'][$value] = $value;
+  }
+  // Inject into parent widget's #options.
+  if (isset($widget['#options']) && !isset($widget['#options'][$value])) {
+    $widget['#options'][$value] = $value;
+  }
+  // Also ensure field storage allowed_values has this value.
+  _associatedps_forms_ensure_party_address_allowed($value);
+}
+
+/**
+ * Generic after-build callback for select_or_other widgets.
+ *
+ * Reads the submitted select value from user input and adds it to BOTH the
+ * parent widget's #options and the inner select's #options so that Drupal's
+ * performRequiredValidation() accepts values dynamically added by JS.
+ *
+ * Works for any select_or_other field by reading the field name from #parents.
+ */
+function _associatedps_forms_after_build_select_or_other($element, FormStateInterface $form_state) {
+  $input = $form_state->getUserInput();
+  $field_name = $element['#parents'][0] ?? '';
+  $value = $input[$field_name]['select'] ?? '';
+  if (!empty($value) && $value !== 'select_or_other') {
+    // Add to parent widget's #options (validates as array #value).
+    if (isset($element['#options']) && !isset($element['#options'][$value])) {
+      $element['#options'][$value] = $value;
+    }
+    // Add to inner select's #options (validates as select #value).
+    if (isset($element['select']['#options']) && !isset($element['select']['#options'][$value])) {
+      $element['select']['#options'][$value] = $value;
+    }
+  }
+  return $element;
+}
+
+/**
+ * After-build callback for select_or_other fields inside paragraph subforms.
+ *
+ * Unlike _associatedps_forms_after_build_select_or_other() which only works
+ * for top-level form fields, this uses NestedArray::getValue() to traverse
+ * the full #parents path, so it works for deeply nested paragraph subform
+ * fields like field_party_to_serve_addresses inside attendance_note/address
+ * paragraphs.
+ */
+function _associatedps_forms_after_build_paragraph_select_or_other($element, FormStateInterface $form_state) {
+  // --- TEMPORARY DEBUG: log to file so we can trace the issue ---
+  $debug = [];
+  $debug['parents'] = $element['#parents'] ?? 'NOT SET';
+  $debug['has_select_child'] = isset($element['select']);
+  $debug['select_value'] = $element['select']['#value'] ?? 'NOT SET';
+  $debug['select_options_keys'] = isset($element['select']['#options']) ? array_keys($element['select']['#options']) : 'NO OPTIONS';
+  $debug['parent_value'] = $element['#value'] ?? 'NOT SET';
+  $debug['parent_options_keys'] = isset($element['#options']) ? array_keys($element['#options']) : 'NO OPTIONS';
+
+  $input = $form_state->getUserInput();
+  $select_parents = array_merge($element['#parents'] ?? [], ['select']);
+  $debug['input_via_parents'] = NestedArray::getValue($input, $select_parents);
+
+  // Also check element type and children keys.
+  $debug['element_type'] = $element['#type'] ?? 'NOT SET';
+  $children = [];
+  foreach ($element as $key => $val) {
+    if ($key[0] !== '#') {
+      $children[] = $key;
+    }
+  }
+  $debug['children_keys'] = $children;
+
+  \Drupal::logger('associatedps_debug')->notice('after_build_paragraph_select_or_other: @debug', [
+    '@debug' => print_r($debug, TRUE),
+  ]);
+  // --- END TEMPORARY DEBUG ---
+
+  // Collect submitted values from multiple sources for robustness.
+  $values = [];
+
+  // Method 1: Read the inner select's #value directly.
+  // By the time #after_build fires, doBuildForm() has already processed the
+  // inner 'select' child and set its #value from POST data.
+  if (isset($element['select']['#value'])) {
+    $v = $element['select']['#value'];
+    if (!empty($v) && is_string($v)) {
+      $values[] = $v;
+    }
+    elseif (is_array($v)) {
+      $values = array_merge($values, array_filter($v));
+    }
+  }
+
+  // Method 2: Read the parent widget's #value (set by valueCallback).
+  if (empty($values) && !empty($element['#value'])) {
+    $vals = is_array($element['#value']) ? $element['#value'] : [$element['#value']];
+    $values = array_merge($values, array_filter($vals, 'is_string'));
+  }
+
+  // Method 3: Fall back to parsing user input via #parents.
+  if (empty($values)) {
+    $v = NestedArray::getValue($input, $select_parents);
+    if (!empty($v) && is_string($v)) {
+      $values[] = $v;
+    }
+  }
+
+  \Drupal::logger('associatedps_debug')->notice('after_build values resolved: @values', [
+    '@values' => print_r($values, TRUE),
+  ]);
+
+  foreach ($values as $value) {
+    if ($value === '' || $value === '_none' || $value === 'select_or_other') {
+      continue;
+    }
+    // Add to parent widget's #options so Drupal's form validation accepts it.
+    if (isset($element['#options']) && !isset($element['#options'][$value])) {
+      $element['#options'][$value] = $value;
+    }
+    // Add to inner select's #options so performRequiredValidation() passes.
+    if (isset($element['select']['#options']) && !isset($element['select']['#options'][$value])) {
+      $element['select']['#options'][$value] = $value;
+    }
+    // Add to field storage allowed_values so entity-level validation passes.
+    _associatedps_forms_ensure_party_address_allowed($value);
+  }
+
+  return $element;
+}
+
+/**
+ * Ensures a dynamically-set address value exists in field storage
+ * allowed_values for paragraph.field_party_to_serve_addresses.
+ *
+ * This covers entity-level validation (AllowedValuesConstraint) which checks
+ * the field storage config independently of the form element's #options.
+ */
+function _associatedps_forms_ensure_party_address_allowed($value) {
+  // Use a static cache to avoid redundant config loads/saves per request.
+  static $checked = [];
+  if (isset($checked[$value])) {
+    return;
+  }
+  $checked[$value] = TRUE;
+
+  $storage = \Drupal::entityTypeManager()
+    ->getStorage('field_storage_config')
+    ->load('paragraph.field_party_to_serve_addresses');
+  if (!$storage) {
+    return;
+  }
+
+  // getSetting() returns the simplified flat format: [value => label, ...].
+  $allowed_values = $storage->getSetting('allowed_values');
+
+  if (isset($allowed_values[$value])) {
+    return;
+  }
+
+  $allowed_values[$value] = $value;
+  $storage->setSetting('allowed_values', $allowed_values)->save();
+  drupal_static_reset('options_allowed_values');
+}
+
+/**
+ * After-build callback for standard select widgets (e.g. field_person_delivered_to).
+ *
+ * Reads the submitted value from user input and adds it to #options so
+ * Drupal's form-level select validation accepts values set by JavaScript.
+ */
+function _associatedps_forms_after_build_standard_select($element, FormStateInterface $form_state) {
+  $input = $form_state->getUserInput();
+  $field_name = $element['#parents'][0] ?? '';
+  $value = $input[$field_name] ?? '';
+  if (!empty($value) && $value !== '_none') {
+    if (isset($element['#options']) && !isset($element['#options'][$value])) {
+      $element['#options'][$value] = $value;
+    }
+  }
+  return $element;
+}
+
+/**
+ * Validate callback: ensure dynamically-set select values exist in field
+ * storage allowed_values before entity validation runs.
+ *
+ * Handles:
+ * - field_person_delivered_to (node-level field)
+ * - field_party_to_serve_addresses (paragraph-level, nested inside IEF)
+ */
+function _associatedps_forms_validate_dynamic_select_options(&$form, FormStateInterface $form_state) {
+  $input = $form_state->getUserInput();
+
+  // --- field_person_delivered_to (node-level) ---
+  $value = $input['field_person_delivered_to'] ?? '';
+  if (!empty($value) && $value !== '_none') {
+    $storage = \Drupal::entityTypeManager()
+      ->getStorage('field_storage_config')
+      ->load('node.field_person_delivered_to');
+    if ($storage) {
+      // getSetting() returns the simplified flat format: [value => label, ...].
+      $allowed_values = $storage->getSetting('allowed_values');
+      if (!isset($allowed_values[$value])) {
+        $allowed_values[$value] = $value;
+        $storage->setSetting('allowed_values', $allowed_values)->save();
+        drupal_static_reset('options_allowed_values');
+      }
+    }
+  }
+
+  // --- field_party_to_serve_addresses (paragraph-level, inside IEF) ---
+  // Traverse the nested IEF input to find any dynamically-set address values.
+  foreach (['field_attendance_notes', 'field_para_address'] as $ief_field) {
+    if (!isset($input[$ief_field]['form']) || !is_array($input[$ief_field]['form'])) {
+      continue;
+    }
+    foreach ($input[$ief_field]['form'] as $delta => $subform_input) {
+      if (!is_array($subform_input)) {
+        continue;
+      }
+      $addr_value = $subform_input['field_party_to_serve_addresses']['select'] ?? '';
+      if (!empty($addr_value) && $addr_value !== '_none' && $addr_value !== 'select_or_other') {
+        _associatedps_forms_ensure_party_address_allowed($addr_value);
       }
     }
   }
@@ -813,9 +1418,9 @@ function associatedps_forms_node_update(NodeInterface $node) {
     /*get client details*/
     $nid = $node->id();
     $job_node = Node::load($nid);
-    $client_items = $job_node->get('field_client')[0]->entity;
+    $client_items = $job_node->get('field_client')[0]->entity ?? NULL;
     //check if send auto email is enabled for client.
-    if($client_items->get('field_send_auto_email')->value != 1){
+    if($client_items && $client_items->get('field_send_auto_email')->value != 1){
       Drupal::logger('associatedps_forms')->notice('Auto email is disabled for client: @client. So, email will not be sent.', ['@client' => $client_items->id()]);
       return;
     }

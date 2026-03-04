@@ -6,6 +6,7 @@ dependencies:
     - field.storage.node.field_affidavit_template
     - node.type.document
     - node.type.library
+    - node.type.template
 id: node.document.field_affidavit_template
 field_name: field_affidavit_template
 entity_type: node
@@ -21,8 +22,10 @@ settings:
   handler_settings:
     target_bundles:
       library: library
+      template: template
     sort:
       field: _none
+      direction: ASC
     auto_create: false
-    auto_create_bundle: ''
+    auto_create_bundle: library
 field_type: entity_reference

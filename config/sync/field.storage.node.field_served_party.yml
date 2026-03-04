@@ -24,6 +24,36 @@ settings:
     -
       value: 'asdlj asdlfj'
       label: 'asdlj asdlfj'
+    -
+      value: ' '
+      label: ' '
+    -
+      value: 'Lorenzo Dominico Guiseppe Cazzola'
+      label: 'Lorenzo Dominico Guiseppe Cazzola'
+    -
+      value: 'Sandra Carrera'
+      label: 'Sandra Carrera'
+    -
+      value: 'Beverley Dew'
+      label: 'Beverley Dew'
+    -
+      value: 'New '
+      label: 'New '
+    -
+      value: 'new suresh kumar'
+      label: 'new suresh kumar'
+    -
+      value: 'Suresh Kumar Kokila'
+      label: 'Suresh Kumar Kokila'
+    -
+      value: 'New 2 fname new 2 lname'
+      label: 'New 2 fname new 2 lname'
+    -
+      value: '2 2'
+      label: '2 2'
+    -
+      value: 'Suresh Kumar J'
+      label: 'Suresh Kumar J'
   allowed_values_function: ''
 module: options
 locked: false

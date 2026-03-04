@@ -4245,31 +4245,34 @@
         },
         {
             "name": "drupal/node_save_redirect",
-            "version": "2.0",
+            "version": "2.0.0",
             "version_normalized": "2.0.0.0",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/node_save_redirect.git",
-                "reference": "3b217ca8c5ecafdb1dbe160e43526708370e3b98"
+                "reference": "2.0.0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/node_save_redirect-2.0.0.zip",
+                "reference": "2.0.0",
+                "shasum": "e9440e4b3a9e84b913a5d0632ce16f8e80cc522d"
             },
             "require": {
                 "drupal/core": "^10.3 || ^11"
             },
             "type": "drupal-module",
             "extra": {
-                "branch-alias": {
-                    "dev-1.x": "1.x-dev"
-                },
                 "drupal": {
-                    "version": "8.x-1.x-dev",
-                    "datestamp": "1632408322",
+                    "version": "2.0.0",
+                    "datestamp": "1745003695",
                     "security-coverage": {
-                        "status": "not-covered",
-                        "message": "Dev releases are not covered by Drupal security advisories."
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
                     }
                 }
             },
-            "installation-source": "source",
+            "installation-source": "dist",
             "notification-url": "https://packages.drupal.org/8/downloads",
             "license": [
                 "GPL-2.0-or-later"
@@ -4888,27 +4891,30 @@
         },
         {
             "name": "drupal/select_or_other",
-            "version": "4.2",
+            "version": "4.2.0",
             "version_normalized": "4.2.0.0",
             "source": {
                 "type": "git",
                 "url": "https://git.drupalcode.org/project/select_or_other.git",
-                "reference": "f7dd92bdf7d1a4ba22572564feefb63e1bd1b1b1"
+                "reference": "4.2.0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://ftp.drupal.org/files/projects/select_or_other-4.2.0.zip",
+                "reference": "4.2.0",
+                "shasum": "1e33d196a7bc6116c66d5e77b53e2fee6f1e62d9"
             },
             "require": {
-                "drupal/core": "^8 || ^9 || ^10.1 || ^11"
+                "drupal/core": "^10.1 || ^11"
             },
             "type": "drupal-module",
             "extra": {
-                "branch-alias": {
-                    "dev-1.x": "1.x-dev"
-                },
                 "drupal": {
-                    "version": "8.x-1.0-alpha4+11-dev",
-                    "datestamp": "1627314470",
+                    "version": "4.2.0",
+                    "datestamp": "1733203728",
                     "security-coverage": {
-                        "status": "not-covered",
-                        "message": "Dev releases are not covered by Drupal security advisories."
+                        "status": "covered",
+                        "message": "Covered by Drupal's security advisory policy"
                     }
                 }
             },
