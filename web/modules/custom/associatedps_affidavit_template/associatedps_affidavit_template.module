@@ -73,3 +73,130 @@ function associatedps_affidavit_template_form_node_template_form_alter(array &$f
   \Drupal::logger('associatedps_affidavit_template')->notice("Reached associatedps_affidavit_template_form_node_template_form_alter - $form_id");
   form_handler($form);
 }
+
+/**
+ * Implements hook_form_FORM_ID_alter() for node_library_form.
+ */
+function associatedps_affidavit_template_form_node_library_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  _associatedps_affidavit_template_library_form_alter($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for node_library_edit_form.
+ */
+function associatedps_affidavit_template_form_node_library_edit_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
+  _associatedps_affidavit_template_library_form_alter($form, $form_state);
+}
+
+/**
+ * Shared form alter for Library add/edit forms (PandaDoc integration).
+ */
+function _associatedps_affidavit_template_library_form_alter(array &$form, FormStateInterface $form_state) {
+  // Hide fields not relevant to Library.
+  if (isset($form['field_case_status'])) {
+    $form['field_case_status']['#access'] = FALSE;
+  }
+  if (isset($form['field_job_types'])) {
+    $form['field_job_types']['#access'] = FALSE;
+  }
+
+  // Category-based field visibility via #states.
+  // Email → show email_subject + body, hide import/tokens/pandadoc_template_id.
+  // Affidavit/Correspondence → show import/tokens/pandadoc_template_id, hide email fields.
+  if (isset($form['field_email_subject'])) {
+    $form['field_email_subject']['#states'] = [
+      'visible' => [
+        ':input[name="field_category"]' => ['value' => 'Email'],
+      ],
+    ];
+  }
+  if (isset($form['body'])) {
+    $form['body']['#states'] = [
+      'visible' => [
+        ':input[name="field_category"]' => ['value' => 'Email'],
+      ],
+    ];
+  }
+  if (isset($form['field_import_template'])) {
+    $form['field_import_template']['#states'] = [
+      'visible' => [
+        [':input[name="field_category"]' => ['value' => 'Affidavit']],
+        [':input[name="field_category"]' => ['value' => 'Correspondence']],
+      ],
+    ];
+  }
+  if (isset($form['field_available_tokens'])) {
+    $form['field_available_tokens']['#states'] = [
+      'visible' => [
+        ':input[name="field_category"]' => ['value' => 'Email'],
+      ],
+    ];
+  }
+  if (isset($form['field_pandadoc_template_id'])) {
+    $form['field_pandadoc_template_id']['#states'] = [
+      'visible' => [
+        [':input[name="field_category"]' => ['value' => 'Affidavit']],
+        [':input[name="field_category"]' => ['value' => 'Correspondence']],
+      ],
+    ];
+    // Make PandaDoc template ID readonly (populated automatically).
+    $form['field_pandadoc_template_id']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+  }
+
+  // On return from PandaDoc editor: populate template ID and category from query params.
+  $request = \Drupal::request();
+  $pandadoc_template_id = $request->query->get('pandadoc_template_id');
+  if ($pandadoc_template_id && isset($form['field_pandadoc_template_id'])) {
+    $form['field_pandadoc_template_id']['widget'][0]['value']['#default_value'] = $pandadoc_template_id;
+  }
+  $category_param = $request->query->get('category');
+  if ($category_param && isset($form['field_category'])) {
+    $form['field_category']['widget']['#default_value'] = $category_param;
+  }
+
+  $node = $form_state->getFormObject()->getEntity();
+  $nid = $node->id() ?: 0;
+  $existingTemplateId = '';
+  if ($node->hasField('field_pandadoc_template_id')) {
+    $existingTemplateId = $node->get('field_pandadoc_template_id')->value ?: '';
+  }
+
+  // Add "Update at PandaDoc" button — only when template ID already exists.
+  if (!empty($existingTemplateId)) {
+    $form['pandadoc_update_btn'] = [
+      '#type' => 'container',
+      '#weight' => 99,
+      '#states' => [
+        'visible' => [
+          [':input[name="field_category"]' => ['value' => 'Affidavit']],
+          [':input[name="field_category"]' => ['value' => 'Correspondence']],
+        ],
+      ],
+      'button' => [
+        '#type' => 'html_tag',
+        '#tag' => 'button',
+        '#value' => 'Update at PandaDoc',
+        '#attributes' => [
+          'type' => 'button',
+          'id' => 'pandadoc-update-btn',
+          'class' => ['button', 'button--primary'],
+          'data-template-id' => $existingTemplateId,
+          'data-nid' => $nid,
+          'style' => 'margin-top:10px;',
+        ],
+      ],
+    ];
+  }
+
+  // Pass settings to JS.
+  $form['#attached']['drupalSettings']['pandadocLibrary'] = [
+    'ajaxUploadUrl' => '/admin/content/pandadoc/ajax-upload',
+    'ajaxSessionUrl' => '/admin/content/pandadoc/ajax-session',
+    'editorPageBaseUrl' => '/admin/content/pandadoc/editor',
+    'existingTemplateId' => $existingTemplateId,
+    'nid' => $nid,
+  ];
+
+  // Attach PandaDoc library form JS.
+  $form['#attached']['library'][] = 'associatedps_affidavit_template/pandadoc-library-form';
+}

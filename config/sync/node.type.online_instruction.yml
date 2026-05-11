@@ -11,12 +11,12 @@ third_party_settings:
       - main
     parent: 'main:'
   node_save_redirect:
-    save_type: '4'
+    save_type: 4
     save_location: /online-instruction
-    save_destination: 0
-    edit_type: '4'
+    save_destination: false
+    edit_type: 4
     edit_location: /online-instruction
-    edit_destination: 0
+    edit_destination: false
 name: 'Online Instruction'
 type: online_instruction
 description: null

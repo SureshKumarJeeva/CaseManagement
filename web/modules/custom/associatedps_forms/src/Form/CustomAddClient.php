@@ -50,33 +50,6 @@ class CustomAddClient extends FormBase {
       $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
       $nid = abs($nid);
 
-      if ($nid > 0) {
-        $job_node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
-        if ($job_node) {
-          // Load client data from the actual client node for fresh data.
-          $client_ref = $job_node->get('field_client')->getValue();
-          if (!empty($client_ref)) {
-            $client_node = Node::load($client_ref[0]['target_id']);
-            if ($client_node) {
-              $client_name = $client_node->getTitle();
-              $client_id = !empty($client_node->get('field_client_id')->getValue()) ? $client_node->get('field_client_id')->getValue()[0]['value'] : '';
-              $telephone = !empty($client_node->get('field_telephone')->getValue()) ? $client_node->get('field_telephone')->getValue()[0]['value'] : '';
-              $generic_email = !empty($client_node->get('field_email')->getValue()) ? $client_node->get('field_email')->getValue()[0]['value'] : '';
-              $discount = !empty($client_node->get('field_agreed_discount')->getValue()) ? $client_node->get('field_agreed_discount')->getValue()[0]['value'] : '0';
-              $notes = !empty($client_node->get('field_notes')->getValue()) ? $client_node->get('field_notes')->getValue()[0]['value'] : '';
-              $address = $client_node->get('field_client_address')->getValue();
-              if (!empty($address)) {
-                $sa_address_line1 = $address[0]['address_line1'] ?? '';
-                $sa_address_line2 = $address[0]['address_line2'] ?? '';
-                $sa_locality = $address[0]['locality'] ?? '';
-                $sa_postal_code = $address[0]['postal_code'] ?? '';
-                $sa_administrative_area = $address[0]['administrative_area'] ?? '';
-              }
-            }
-          }
-        }
-      }
-
       if ($client_id == '') {
         $connection = \Drupal::database();
         $query = $connection->query("SELECT field_client_id_value AS cid FROM {node__field_client_id} ORDER BY entity_id DESC");

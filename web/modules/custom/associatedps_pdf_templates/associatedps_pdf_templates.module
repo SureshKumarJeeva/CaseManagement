@@ -163,6 +163,7 @@ function _associatedps_pdf_templates_custom_data($library_id) {
  */
 function _associatedps_pdf_templates_replace_value($elements, $data, $template) {
   foreach ($template['tokens'] as $field_token) {
+    \Drupal::logger('associatedps_email_template')->notice('Field Token: @token', ['@token' => $field_token]);
     $value = '';
     $token = str_replace('[node:', '', $field_token);
     $token = trim(str_replace(']', '', $token));
@@ -257,26 +258,31 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
                 $values[] = rtrim($value, ' ');
               }
               elseif (strpos($in_token, 'address') == TRUE && !empty($paragraph->$in_token->getValue())) {
+                \Drupal::logger('associatedps_email_template')->notice('Entity Reference Revisions Data: address <pre>@address</pre>', ['@address' => print_r($paragraph->$in_token->getValue(), TRUE)]);
                 $address = $paragraph->$in_token->getValue();
-                if (!empty($address)) {
-                  $value = '';
-                  $address = reset($address);
-                  if (!empty($address['address_line1'])) {
-                    $value .= $address['address_line1'] . ' ';
+                $value = '';
+                if(count($address) > 1){
+                  if (!empty($address)) {
+                    $address = reset($address);
+                    if (!empty($address['address_line1'])) {
+                      $value .= $address['address_line1'] . ' ';
+                    }
+                    if (!empty($address['address_line2'])) {
+                      $value .= $address['address_line2'] . ' ';
+                    }
+                    if (!empty($address['locality'])) {
+                      $value .= $address['locality'] . ' ';
+                    }
+                    if (!empty($address['administrative_area'])) {
+                      $value .= $address['administrative_area'] . ' ';
+                    }
+                    if (!empty($address['postal_code'])) {
+                      $value .= $address['postal_code'] . ' ';
+                    }
+                    $value .= \Drupal::service('country_manager')->getList()[$address['country_code']]->__toString();
                   }
-                  if (!empty($address['address_line2'])) {
-                    $value .= $address['address_line2'] . ' ';
-                  }
-                  if (!empty($address['locality'])) {
-                    $value .= $address['locality'] . ' ';
-                  }
-                  if (!empty($address['administrative_area'])) {
-                    $value .= $address['administrative_area'] . ' ';
-                  }
-                  if (!empty($address['postal_code'])) {
-                    $value .= $address['postal_code'] . ' ';
-                  }
-                  $value .= \Drupal::service('country_manager')->getList()[$address['country_code']]->__toString();
+                }else if(count($address) == 1){
+                  $value = $address[0];
                 }
                 $values[] = $value;
               }
@@ -318,6 +324,8 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
           }
         }
       }
+      \Drupal::logger('associatedps_email_template')->notice('Entity Reference Revisions Data: $value <pre>@entity_reference_data</pre>', ['@entity_reference_data' => $value]);
+      $value = $value ?? '';
       $template['body'] = str_replace(trim($field_token), $value, $template['body']);
       if (!empty($template['subject'])) {
         $template['subject'] = str_replace(trim($field_token), $value, $template['subject']);
@@ -329,7 +337,7 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
       $type = $target_type = '';
       if ($token !== 'address') {
         $type = trim($elements[$token]['type']);
-        $target_type = trim($elements[$token]['target_type']);
+        $target_type = $elements[$token]['target_type'] ? trim($elements[$token]['target_type']) : '';
       }
       \Drupal::logger('associatedps_email_template')->notice('Token: @token, Type: @type, Target Type: @target_type', ['@token' => $token, '@type' => $type, '@target_type' => $target_type]);
       if ($type == 'entity_reference') {
@@ -510,6 +518,7 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
       else {
         $value = '';
       }
+      $value = $value ?? '';
       $template['body'] = str_replace(trim($field_token), $value, $template['body']);
       if (!empty($template['subject'])) {
         $template['subject'] = str_replace(trim($field_token), $value, $template['subject']);

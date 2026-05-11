@@ -18,3 +18,10 @@ associatedps_affidavit_template.xero_account_config:
   route_name: associatedps_affidavit_template.xero_account_config
   parent: system.admin_config   # shows under "Configuration"
   weight: 30
+
+associatedps_affidavit_template.pandadoc_config:
+  title: 'PandaDoc Configuration'
+  description: 'Configure PandaDoc API Settings'
+  route_name: associatedps_affidavit_template.pandadoc_config
+  parent: system.admin_config   # shows under "Configuration"
+  weight: 35

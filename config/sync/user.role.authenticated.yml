@@ -4,6 +4,7 @@ status: true
 dependencies:
   module:
     - contact
+    - field_permissions
     - search
     - shortcut
     - system
@@ -17,4 +18,6 @@ permissions:
   - 'access content'
   - 'access shortcuts'
   - 'access site-wide contact form'
+  - 'create field_pandadoc_template_id'
   - 'search content'
+  - 'view own field_pandadoc_template_id'

@@ -47,3 +47,31 @@ attendance_address_sync:
     - core/jquery
     - core/once
     - core/drupalSettings
+
+client_email_events:
+  js:
+    assets/js/client_email_events.js: {}
+  css:
+    theme:
+      assets/css/form.css: {}
+  dependencies:
+    - core/jquery
+    - core/once
+    - core/drupalSettings
+
+date_autofill:
+  js:
+    assets/js/date_autofill.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+
+job_filter:
+  css:
+    theme:
+      assets/css/job_filter.css: {}
+  js:
+    assets/js/job_filter.js: {}
+  dependencies:
+    - core/drupal.ajax
+    - core/once

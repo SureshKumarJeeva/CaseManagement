@@ -22,6 +22,14 @@ associatedps_forms.form_add_document:
   requirements:
     _permission: 'access content'
 
+associatedps_forms.form_add_user:
+  path: '/add-user/{id}'
+  defaults:
+    _form: '\Drupal\associatedps_forms\Form\CustomAddUser'
+    _title: 'Add New User'
+  requirements:
+    _permission: 'administer users'
+
 associatedps_forms.open_modal:
   path: '/ajax-open-modal'
   defaults:
@@ -35,5 +43,13 @@ associatedps_forms.get_node_content:
   defaults:
     _controller: '\Drupal\associatedps_forms\Controller\GetContentNode::getContent'
     _title: 'Get Content'
+  requirements:
+    _permission: 'access content'
+
+associatedps_forms.job_filter:
+  path: '/jobs/filter'
+  defaults:
+    _controller: '\Drupal\associatedps_forms\Controller\JobFilterController::page'
+    _title: 'Jobs - Advanced Filter'
   requirements:
     _permission: 'access content'

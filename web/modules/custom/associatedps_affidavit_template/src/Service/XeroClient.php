@@ -17,6 +17,11 @@ class XeroClient {
   protected string $authorizeUrl;
   protected string $tokenUrl;
   protected string $connectionsUrl;
+  protected string $servicesAPIBase;
+  protected string $servicesAPIPath;
+  protected string $connectionsPath;
+  protected string $invoicesPath;
+  protected string $contactsPath;
 
   /** OAuth credentials */
   protected string $clientId;
@@ -293,7 +298,7 @@ class XeroClient {
     try{
       $tokenData = $this->getValidAccessToken();
 
-      $response = $this->httpClient->get($this->servicesAPIBase . $this->servicesAPIPath . $this->invoicesPath, [
+      $response = $this->httpClient->put($this->servicesAPIBase . $this->servicesAPIPath . $this->invoicesPath, [
         'headers' => [
           'Authorization' => 'Bearer ' . $tokenData['access_token'],
           'xero-tenant-id' => $tokenData['tenant_id'],
@@ -305,10 +310,22 @@ class XeroClient {
       $json_response_invoices = $response->getBody();
       $invoices = json_decode($json_response_invoices, TRUE);
       \Drupal::logger('associatedps_affidavit_template_Xero')->notice('Invoice generated with ID: @id', ['@id' => print_r($invoices, TRUE)]);
-      return ['message' => 'Invoice generated with ID: ' . $invoices['Invoices'][0]['InvoiceID']];
+      $invoiceId = $invoices['Invoices'][0]['InvoiceID'];
+      return [
+        'message' => 'Invoice generated with ID: ' . $invoiceId,
+        'invoiceId' => $invoiceId,
+      ];
+    }catch (\GuzzleHttp\Exception\RequestException $e) {
+      $responseBody = $e->hasResponse() ? (string) $e->getResponse()->getBody() : 'No response body';
+      $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
+      \Drupal::logger('associatedps_affidavit_template_Xero')->error('Xero generatePaidInvoice HTTP @status: @body', [
+        '@status' => $statusCode,
+        '@body' => $responseBody,
+      ]);
+      return ['error' => 'Unable to generate paid invoice (HTTP ' . $statusCode . '): ' . $responseBody];
     }catch (\Exception $e) {
       \Drupal::logger('associatedps_affidavit_template_Xero')->error('Xero generatePaidInvoice Exception: @msg', ['@msg' => $e->getMessage()]);
-        return ['error' => 'Unable to generate paid invoice'];
+        return ['error' => 'Unable to generate paid invoice: ' . $e->getMessage()];
     }
   }
 

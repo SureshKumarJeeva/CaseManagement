@@ -32,24 +32,34 @@
     }
   };
 
-  Drupal.behaviors.associatedps_forms = {
-    attach:function (context, settings) {
-      $('.paragraph-type--document a.use-ajax').bind('click', function() {
-        var dc_title = $(this).parent().find('.field--name-field-document-title input').val();
-        var dc_notice = $(this).parent().find('.field--name-field-notice-period input').val();
-        var dc_court_name = $(this).parent().find('.field--name-field-court-name input').val();
-        var dc_aff_template = $(this).parent().find('.field--name-field-affidavit-template input').val();
-        var field_dc = $(this).parent().attr('id');
-        setCookie("field_dc", field_dc, 30);
-        $(document).ajaxComplete(function(event, xhr, settings) {
-          if(settings.url.indexOf('add-document') != -1){
-            $('.wrapper-form-add-document').find('.form-item-document-title input').val(dc_title);
-            $('.wrapper-form-add-document').find('.form-item-notice-period input').val(dc_notice);
-            $('.wrapper-form-add-document').find('.form-item-document-court input').val(dc_court_name);
-            $('.wrapper-form-add-document').find('.form-item-document-affidavit input').val(dc_aff_template);
+  // Generate dropdown toggle.
+  Drupal.behaviors.generateDropdown = {
+    attach: function (context) {
+      $(once('generate-dropdown', '.generate-dropdown__toggle', context)).each(function () {
+        var $toggle = $(this);
+        var $dropdown = $toggle.closest('.generate-dropdown');
+
+        $toggle.on('click', function (e) {
+          e.preventDefault();
+          $dropdown.toggleClass('open');
+        });
+
+        // Close when clicking outside or on a menu item.
+        $(document).on('click', function (e) {
+          if (!$(e.target).closest('.generate-dropdown').length) {
+            $dropdown.removeClass('open');
           }
         });
+
+        $dropdown.on('click', '.generate-dropdown__item', function () {
+          $dropdown.removeClass('open');
+        });
       });
+    }
+  };
+
+  Drupal.behaviors.associatedps_forms = {
+    attach:function (context, settings) {
       $(document).ajaxComplete(function(event, xhr, settings) {
         if(typeof settings.extraData != 'undefined' && settings.extraData._triggering_element_name == 'field_documents_document_add_more') {
           $('.field--name-field-documents .paragraph-type--document:last-child').find('a.use-ajax').text('Create New Document');

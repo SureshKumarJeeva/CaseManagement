@@ -10,10 +10,10 @@ dependencies:
     - field.field.node.client.field_email
     - field.field.node.client.field_email_interval
     - field.field.node.client.field_email_template
+    - field.field.node.client.field_mail_events
     - field.field.node.client.field_notes
     - field.field.node.client.field_send_auto_email
     - field.field.node.client.field_telephone
-    - field.field.node.client.field_user
     - node.type.client
   module:
     - user
@@ -37,7 +37,7 @@ hidden:
   field_email: true
   field_email_interval: true
   field_email_template: true
+  field_mail_events: true
   field_notes: true
   field_send_auto_email: true
   field_telephone: true
-  field_user: true

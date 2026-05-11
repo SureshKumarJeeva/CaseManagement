@@ -11,6 +11,7 @@ dependencies:
     - field.field.node.library.field_email_subject
     - field.field.node.library.field_import_template
     - field.field.node.library.field_job_types
+    - field.field.node.library.field_pandadoc_template_id
     - node.type.library
   module:
     - text
@@ -43,3 +44,4 @@ hidden:
   field_email_subject: true
   field_import_template: true
   field_job_types: true
+  field_pandadoc_template_id: true

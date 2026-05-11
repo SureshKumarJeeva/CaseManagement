@@ -54,6 +54,9 @@ settings:
     -
       value: 'Suresh Kumar J'
       label: 'Suresh Kumar J'
+    -
+      value: 'Denis Gerald Crawford'
+      label: 'Denis Gerald Crawford'
   allowed_values_function: ''
 module: options
 locked: false

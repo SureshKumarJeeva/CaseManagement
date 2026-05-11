@@ -304,7 +304,7 @@ third_party_settings:
     group_job_detail:
       children:
         - group_job_details
-      label: 'Job Detail'
+      label: Client
       region: content
       parent_name: group_job
       weight: 1
@@ -320,7 +320,7 @@ third_party_settings:
     group_party:
       children:
         - group_parties
-      label: Party
+      label: Parties
       region: content
       parent_name: group_job
       weight: 3
@@ -333,10 +333,6 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
-        show_step_title: true
-        back_button_show: false
-        back_button_text: Back
-        next_button_text: Next
     group_documents:
       children:
         - group_documents_to_be_served
@@ -441,7 +437,7 @@ third_party_settings:
     group_court_detail:
       children:
         - group_court_details
-      label: 'Court Detail'
+      label: Court
       region: content
       parent_name: group_job
       weight: 2
@@ -454,10 +450,6 @@ third_party_settings:
         formatter: closed
         description: ''
         required_fields: true
-        show_step_title: true
-        back_button_show: false
-        back_button_text: Back
-        next_button_text: Next
     group_job:
       children:
         - group_job_detail

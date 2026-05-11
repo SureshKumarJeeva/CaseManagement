@@ -100,3 +100,141 @@ associatedps_affidavit_template.xero_generate_invoice:
     _controller: '\Drupal\associatedps_affidavit_template\Controller\XeroServices::generateInvoice'
   requirements:
     _access: 'TRUE'
+
+# --- PandaDoc Routes ---
+
+associatedps_affidavit_template.pandadoc_upload:
+  path: '/admin/content/pandadoc/upload/{nid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::uploadToPandaDoc'
+    _title: 'Upload to PandaDoc'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_editor:
+  path: '/admin/content/pandadoc/editor/{pandadocTemplateId}/{nid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::editorPage'
+    _title: 'PandaDoc Template Editor'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_editor_callback:
+  path: '/admin/content/pandadoc/editor-callback'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::editorCallback'
+    _title: 'PandaDoc Editor Callback'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_generate_affidavit:
+  path: '/pandadoc/generate-affidavit/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::generateAffidavit'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_generate_correspondence:
+  path: '/pandadoc/generate-correspondence/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::generateCorrespondence'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_status:
+  path: '/pandadoc/status/{documentId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::checkStatus'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_download:
+  path: '/pandadoc/download/{documentId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::downloadPdf'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_document_editor:
+  path: '/pandadoc/document-editor/{documentId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::documentEditorPage'
+    _title: 'PandaDoc Document Editor'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_document_session:
+  path: '/pandadoc/document-session/{documentId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::createDocumentSessionAjax'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.pandadoc_templates_list:
+  path: '/admin/content/pandadoc-templates'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::listPandaDocTemplates'
+    _title: 'PandaDoc Templates'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_webhook:
+  path: '/pandadoc/webhook'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocWebhookController::handle'
+  requirements:
+    _access: 'TRUE'
+  methods: [POST]
+
+associatedps_affidavit_template.pandadoc_ajax_upload:
+  path: '/admin/content/pandadoc/ajax-upload'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::ajaxUploadToPandaDoc'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.pandadoc_ajax_session:
+  path: '/admin/content/pandadoc/ajax-session'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::ajaxCreateEditingSession'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.pandadoc_email_token_list:
+  path: '/pandadoc/email-token-list'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::listEmailTokens'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_email_templates:
+  path: '/pandadoc/email-templates'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::listEmailTemplates'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_resolve_email_template:
+  path: '/pandadoc/resolve-email-template/{templateNid}/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::resolveEmailTemplate'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_templates_by_category:
+  path: '/pandadoc/templates-by-category/{category}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\PandaDocController::listTemplatesByCategory'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.pandadoc_config:
+  path: '/admin/config/associatedps/pandadoc'
+  defaults:
+    _form: '\Drupal\associatedps_affidavit_template\Form\PandaDocConfigForm'
+    _title: 'PandaDoc Configuration'
+  requirements:
+    _permission: 'administer site configuration'

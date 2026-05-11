@@ -9,15 +9,16 @@ dependencies:
     - field.field.node.client.field_email
     - field.field.node.client.field_email_interval
     - field.field.node.client.field_email_template
+    - field.field.node.client.field_mail_events
     - field.field.node.client.field_notes
     - field.field.node.client.field_send_auto_email
     - field.field.node.client.field_telephone
-    - field.field.node.client.field_user
     - node.type.client
   module:
     - address
     - field_formatter_class
     - field_group
+    - options
     - telephone
     - text
     - user
@@ -96,6 +97,13 @@ content:
     third_party_settings: {  }
     weight: 10
     region: content
+  field_mail_events:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 11
+    region: content
   field_notes:
     type: text_default
     label: inline
@@ -124,14 +132,6 @@ content:
       field_formatter_class:
         class: client-phone
     weight: 3
-    region: content
-  field_user:
-    type: entity_reference_label
-    label: inline
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 0
     region: content
   links:
     settings: {  }

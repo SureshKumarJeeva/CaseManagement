@@ -1,0 +1,48 @@
+/* Job Filter Form Styles */
+.job-filter-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.job-filter-row .form-item {
+  margin: 0;
+  flex: 1;
+}
+
+.job-filter-row .form-item label {
+  font-size: 0.85em;
+  margin-bottom: 4px;
+}
+
+.job-filter-row .button--danger {
+  flex: 0 0 auto;
+}
+
+.form-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-actions .form-item {
+  margin: 0;
+}
+
+.form-actions .form-item--per-page {
+  margin-left: auto;
+}
+
+.job-filter-count {
+  font-weight: bold;
+  margin: 15px 0 10px;
+}
+
+.job-filter-results {
+  margin-top: 10px;
+}

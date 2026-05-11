@@ -1,3 +1,106 @@
+/* Client email events */
+.email-event-pairs-wrapper {
+  margin: 10px 0;
+}
+.email-event-pair {
+  display: flex;
+  gap: 16px;
+  align-items: flex-end;
+  margin-bottom: 12px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background: #f9f9f9;
+}
+.email-event-pair .form-item {
+  flex: 1;
+  margin: 0;
+}
+.email-update-add-wrapper {
+  margin: 10px 0;
+}
+.email-update-add-btn {
+  cursor: pointer;
+}
+
+/* Date autofill checkboxes */
+.date-autofill-wrapper {
+  margin-bottom: 4px;
+}
+.date-autofill-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85em;
+  cursor: pointer;
+  color: #555;
+}
+.date-autofill-checkbox {
+  margin: 0;
+  cursor: pointer;
+  width: 20px;
+  height: 20px;
+  accent-color: #0073e6;
+}
+
+/* Generate dropdown button */
+.generate-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.generate-dropdown__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.generate-dropdown__arrow {
+  font-size: 0.65em;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.2s;
+}
+
+.generate-dropdown.open .generate-dropdown__arrow {
+  transform: rotate(180deg);
+}
+
+.generate-dropdown__menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  min-width: 200px;
+  margin-top: 2px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.generate-dropdown.open .generate-dropdown__menu {
+  display: flex;
+  flex-direction: column;
+}
+
+.generate-dropdown__item {
+  display: block;
+  padding: 8px 14px;
+  color: #333;
+  text-decoration: none;
+  white-space: nowrap;
+  font-size: 0.9em;
+}
+
+.generate-dropdown__item:hover {
+  background: #f0f0f0;
+  color: #0074bd;
+  text-decoration: none;
+}
+
 #node-job-form a.use-ajax,
 #node-job-edit-form a.use-ajax {
   margin: 0;

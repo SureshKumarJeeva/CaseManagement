@@ -17,3 +17,12 @@ services:
     class: Drupal\associatedps_affidavit_template\Service\TokenCrypto
     arguments:
       - '@settings'
+  associatedps_affidavit_template.pandadoc_client:
+    class: Drupal\associatedps_affidavit_template\Service\PandaDocClient
+    arguments:
+      - '@http_client'
+      - '@database'
+  associatedps_affidavit_template.pandadoc_token_mapper:
+    class: Drupal\associatedps_affidavit_template\Service\PandaDocTokenMapper
+    arguments:
+      - '@entity_field.manager'

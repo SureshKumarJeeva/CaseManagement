@@ -9,10 +9,10 @@ dependencies:
     - field.field.node.client.field_email
     - field.field.node.client.field_email_interval
     - field.field.node.client.field_email_template
+    - field.field.node.client.field_mail_events
     - field.field.node.client.field_notes
     - field.field.node.client.field_send_auto_email
     - field.field.node.client.field_telephone
-    - field.field.node.client.field_user
     - node.type.client
   module:
     - address
@@ -26,113 +26,25 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 8
+    weight: 7
     region: content
     settings: {  }
     third_party_settings: {  }
   field_agreed_discount:
     type: number
-    weight: 6
+    weight: 5
     region: content
     settings:
       placeholder: ''
     third_party_settings: {  }
   field_client_address:
     type: address_default
-    weight: 3
+    weight: 2
     region: content
     settings:
       wrapper_type: details
     third_party_settings: {  }
   field_client_id:
-    type: string_textfield
-    weight: 2
-    region: content
-    settings:
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  field_email:
-    type: email_default
-    weight: 5
-    region: content
-    settings:
-      placeholder: ''
-      size: 60
-    third_party_settings: {  }
-  field_email_interval:
-    type: number
-    weight: 15
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-  field_email_template:
-    type: options_select
-    weight: 16
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  field_notes:
-    type: text_textarea
-    weight: 7
-    region: content
-    settings:
-      rows: 5
-      placeholder: ''
-    third_party_settings: {  }
-  field_send_auto_email:
-    type: boolean_checkbox
-    weight: 14
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  field_telephone:
-    type: telephone_default
-    weight: 4
-    region: content
-    settings:
-      placeholder: ''
-    third_party_settings: {  }
-  field_user:
-    type: entity_reference_autocomplete
-    weight: 0
-    region: content
-    settings:
-      match_operator: CONTAINS
-      match_limit: 10
-      size: 60
-      placeholder: ''
-    third_party_settings: {  }
-  path:
-    type: path
-    weight: 11
-    region: content
-    settings: {  }
-    third_party_settings: {  }
-  promote:
-    type: boolean_checkbox
-    weight: 9
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  status:
-    type: boolean_checkbox
-    weight: 12
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  sticky:
-    type: boolean_checkbox
-    weight: 10
-    region: content
-    settings:
-      display_label: true
-    third_party_settings: {  }
-  title:
     type: string_textfield
     weight: 1
     region: content
@@ -140,10 +52,88 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-  uid:
+  field_email:
+    type: email_default
+    weight: 4
+    region: content
+    settings:
+      placeholder: ''
+      size: 60
+    third_party_settings: {  }
+  field_email_template:
     type: options_select
-    weight: 13
+    weight: 15
     region: content
     settings: {  }
     third_party_settings: {  }
-hidden: {  }
+  field_mail_events:
+    type: options_select
+    weight: 14
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  field_notes:
+    type: text_textarea
+    weight: 6
+    region: content
+    settings:
+      rows: 5
+      placeholder: ''
+    third_party_settings: {  }
+  field_send_auto_email:
+    type: boolean_checkbox
+    weight: 13
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  field_telephone:
+    type: telephone_default
+    weight: 3
+    region: content
+    settings:
+      placeholder: ''
+    third_party_settings: {  }
+  path:
+    type: path
+    weight: 10
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+  promote:
+    type: boolean_checkbox
+    weight: 8
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  status:
+    type: boolean_checkbox
+    weight: 11
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  sticky:
+    type: boolean_checkbox
+    weight: 9
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  title:
+    type: string_textfield
+    weight: 0
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  uid:
+    type: options_select
+    weight: 12
+    region: content
+    settings: {  }
+    third_party_settings: {  }
+hidden:
+  field_email_interval: true

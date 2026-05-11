@@ -117,9 +117,39 @@
             }, 50);
           });
 
-          // Also save on form submit for normal save flow.
-          $tabsWrapper.closest('form').on('submit', function () {
+          // Save tab state when any modal button is clicked (e.g. Add Court,
+          // Create New Document), so the active tab persists through the
+          // modal's redirect after save. Uses event delegation to cover
+          // dynamically added paragraph buttons.
+          $tabsWrapper.closest('form').on('click', 'a.use-ajax[data-dialog-type="modal"]', function () {
             saveTabState($tabsWrapper, pageId);
+          });
+
+          // Track whether "Save & Next" was clicked.
+          var saveNextClicked = false;
+
+          // "Save & Next" — set flag and write next-tab cookie before submit fires.
+          $tabsWrapper.closest('form').find('.save-next-btn').on('mousedown', function () {
+            saveNextClicked = true;
+            var $allPanes = $tabsWrapper
+              .find('> [data-horizontal-tabs-panes] > .horizontal-tabs-pane');
+            var currentIndex = getActiveTabIndex($tabsWrapper);
+            var nextIndex = currentIndex + 1;
+            if (nextIndex >= $allPanes.length) {
+              nextIndex = 0;
+            }
+            setCookie(COOKIE_TAB, nextIndex);
+            setCookie(COOKIE_PAGE, pageId);
+          });
+
+          // Save on form submit for normal save flow,
+          // but skip if "Save & Next" already set the cookie.
+          $tabsWrapper.closest('form').on('submit', function () {
+            if (!saveNextClicked) {
+              saveTabState($tabsWrapper, pageId);
+            } else {
+              saveNextClicked = false;
+            }
           });
         }
       );

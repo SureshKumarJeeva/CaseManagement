@@ -1,0 +1,6 @@
+associatedps_forms.job_filter:
+  title: 'Jobs - Advanced Filter'
+  route_name: associatedps_forms.job_filter
+  menu_name: admin
+  parent: system.admin_content
+  weight: 3

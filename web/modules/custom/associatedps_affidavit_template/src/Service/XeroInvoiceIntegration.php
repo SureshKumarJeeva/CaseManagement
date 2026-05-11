@@ -48,34 +48,39 @@ class XeroInvoiceIntegration {
             \Drupal::logger('associatedps_affidavit_template_Xero')->info('Fetched contacts from Xero: @contacts', ['@contacts' => $xml_contacts->asXML()]);
             \Drupal::logger('associatedps_affidavit_template_Xero')->info('Fetched contactid from Xero: @contactid', ['@contactid' => (string)$xml_contacts->Contacts->Contact[0]->ContactID]);
             $now = new \DateTime();
-            $formattedCurrentDate = $now->format('Y-m-d\TH:i:s');
-            $formattedDueDate = $now->modify('+30 days')->format('Y-m-d\TH:i:s');
+            $currentDate = $now->format('Y-m-d');
+            $dueDate = (clone $now)->modify('+30 days')->format('Y-m-d');
             $invoice_payload = [
-                'Invoice' => [
+                'Invoices' => [
+                  [
                     'Type' => 'ACCREC',
                     'Contact' => [
                         'ContactID' => (string)$xml_contacts->Contacts->Contact[0]->ContactID,
                     ],
-                    'Date' => '\/Date(' . strtotime(date('Y-m-d')) * 1000 . '+0000)\/',
-                    "DateString" => $formattedCurrentDate,
-                    'DueDate' => '\/Date(' . strtotime(date('Y-m-d', strtotime('+30 days'))) * 1000 . '+0000)\/',
-                    "DueDateString" => $formattedDueDate,
+                    'Date' => $currentDate,
+                    'DueDate' => $dueDate,
                     "LineAmountTypes" => "Exclusive",
                     'LineItems' => [
-                                'Description' => 'Service for Job ID: ' . $jobId,
-                                'Quantity' => 1,
-                                'UnitAmount' => 100.00,
-                                'AccountCode' => '200',
-                                "DiscountRate" => "20"
+                        [
+                            'Description' => 'Service for Job ID: ' . $jobId,
+                            'Quantity' => 1,
+                            'UnitAmount' => 100.00,
+                            'AccountCode' => '200',
+                            'DiscountRate' => '20',
+                        ],
                     ],
-                    'Status' => 'AUTHORISED',
+                    'Status' => 'DRAFT',
+                  ],
                 ],
             ];
             $json_invoiceID = $this->xeroService->generatePaidInvoice(json_encode($invoice_payload));
             if(isset($json_invoiceID['error'])){
                 return ['error' => 'Unable to create invoice in Xero: ' . (string)$json_invoiceID['error']];
             }
-            return ['message' => $json_invoiceID['message']];
+            return [
+                'message' => $json_invoiceID['message'],
+                'invoiceId' => $json_invoiceID['invoiceId'],
+            ];
         }catch (\Exception $e) {
             \Drupal::logger('associatedps_affidavit_template_Xero')->error('Xero createInvoice error: @msg', ['@msg' => $e->getMessage()]);
             return ['error' => 'Unable to create invoice: ' . $e->getMessage()];

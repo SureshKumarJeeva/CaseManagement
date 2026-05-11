@@ -41,19 +41,6 @@ class CustomAddCourt extends FormBase {
       $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
       $nid = abs($nid);
 
-      if ($nid > 0) {
-        $job_node = \Drupal::entityTypeManager()->getStorage('node')->load($nid);
-        if ($job_node) {
-          $court_ref = $job_node->get('field_court')->getValue();
-          if (!empty($court_ref)) {
-            $court_term = Term::load($court_ref[0]['target_id']);
-            if ($court_term) {
-              $court_name = $court_term->getName();
-            }
-          }
-        }
-      }
-
       $form = [];
 
       $form['court_name'] = [
@@ -155,6 +142,10 @@ class CustomAddCourt extends FormBase {
         'court_submit' => 1,
       ]);
     }
+
+    // Preserve the active tab (Court Details = index 1) across the redirect.
+    setcookie('job_form_active_tab', '1', 0, '/');
+    setcookie('job_form_active_page', $job_id > 0 ? (string) $job_id : 'add', 0, '/');
 
     // Close dialog and redirect back to the job form.
     $response->addCommand(new CloseDialogCommand());

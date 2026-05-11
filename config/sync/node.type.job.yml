@@ -10,12 +10,12 @@ third_party_settings:
     available_menus: {  }
     parent: ''
   node_save_redirect:
-    save_type: '1'
+    save_type: 1
     save_location: ''
-    save_destination: 0
-    edit_type: '1'
+    save_destination: false
+    edit_type: 1
     edit_location: ''
-    edit_destination: 0
+    edit_destination: false
 name: Job
 type: job
 description: null

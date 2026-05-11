@@ -36,14 +36,12 @@ class EmailTemplateController {
       $result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
 
       if ($result['result'] == TRUE) {
-        drupal_set_message(t('Your mail has been sent.'));
-        $response = new RedirectResponse("/node/$node_id");
-        $response->send();
+        \Drupal::messenger()->addMessage(t('Your mail has been sent.'));
+        return new RedirectResponse("/node/$node_id");
       }
       else {
-        drupal_set_message(t('There was a problem sending your message and it was not sent.'), 'error');
-        $response = new RedirectResponse("/node/$node_id");
-        $response->send();
+        \Drupal::messenger()->addError(t('There was a problem sending your message and it was not sent.'));
+        return new RedirectResponse("/node/$node_id");
       }
     }
 
@@ -68,14 +66,12 @@ class EmailTemplateController {
       $result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
 
       if ($result['result'] == TRUE) {
-        drupal_set_message(t('Your mail has been sent.'));
-        $response = new RedirectResponse("/node/$job_id");
-        $response->send();
+        \Drupal::messenger()->addMessage(t('Your mail has been sent.'));
+        return new RedirectResponse("/node/$job_id");
       }
       else {
-        drupal_set_message(t('There was a problem sending your message and it was not sent.'), 'error');
-        $response = new RedirectResponse("/node/$job_id");
-        $response->send();
+        \Drupal::messenger()->addError(t('There was a problem sending your message and it was not sent.'));
+        return new RedirectResponse("/node/$job_id");
       }
     }
 
@@ -102,14 +98,12 @@ class EmailTemplateController {
       $result = $mailManager->mail($module, $key, $to, $langcode, $params, NULL, $send);
 
       if ($result['result'] == TRUE) {
-        drupal_set_message(t('Your mail has been sent.'));
-        $response = ($roles[1] === 'client') ? new RedirectResponse("/online-instruction") : new RedirectResponse("/online_instruction");
-        $response->send();
+        \Drupal::messenger()->addMessage(t('Your mail has been sent.'));
+        return ($roles[1] === 'client') ? new RedirectResponse("/online-instruction") : new RedirectResponse("/online_instruction");
       }
       else {
-        drupal_set_message(t('There was a problem sending your message and it was not sent.'), 'error');
-        $response = ($roles[1] === 'client') ? new RedirectResponse("/online-instruction") : new RedirectResponse("/online_instruction");
-        $response->send();
+        \Drupal::messenger()->addError(t('There was a problem sending your message and it was not sent.'));
+        return ($roles[1] === 'client') ? new RedirectResponse("/online-instruction") : new RedirectResponse("/online_instruction");
       }
     }
 
@@ -186,7 +180,7 @@ class EmailTemplateController {
             \Drupal::messenger()->addMessage(t('Your mail has been sent.'));
           }
           else {
-            \Drupal::messenger()->addError(t('There was a problem sending your message and it was not sent.'), 'error');
+            \Drupal::messenger()->addError(t('There was a problem sending your message and it was not sent.'));
           }
         }
 

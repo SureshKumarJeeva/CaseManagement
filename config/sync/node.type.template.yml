@@ -11,12 +11,12 @@ third_party_settings:
       - main
     parent: 'main:'
   node_save_redirect:
-    save_type: '0'
+    save_type: 0
     save_location: ''
-    save_destination: 0
-    edit_type: '0'
+    save_destination: false
+    edit_type: 0
     edit_location: ''
-    edit_destination: 0
+    edit_destination: false
 name: Template
 type: template
 description: null

@@ -23,6 +23,26 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Tags;
 
 /**
+ * Implements hook_preprocess_HOOK() for page title templates.
+ */
+function associatedps_forms_preprocess_page_title(&$variables) {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  if ($route_name === 'user.login') {
+    $variables['title'] = t('User Login');
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK() for HTML templates (to change the browser tab title).
+ */
+function associatedps_forms_preprocess_html(&$variables) {
+  $route_name = \Drupal::routeMatch()->getRouteName();
+  if ($route_name === 'user.login') {
+    $variables['head_title']['title'] = t('User Login');
+  }
+}
+
+/**
  * Implements hook_form_alter().
  */
 function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $form_id) {
@@ -30,20 +50,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
   if ($form_id == 'node_job_edit_form') {
     $path = \Drupal::service('path.current')->getPath();
     $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
-    $form['action']['generate_invoice'] = [
-        '#type' => 'link',
-        '#title' => t('Generate Invoice'),
-        '#url' => Url::fromUri('base://xero/generate-invoice/' . $nid),
-        '#attributes' => [
-          'class' => [
-            'use-ajax',
-            'button',
-          ],
-        ],
-        '#weight' => '10',
-      ];
-
-      // Email Client button in actions area.
+    // Email Client button data.
       $email_node = Node::load(abs($nid));
       $client_email = '';
       if ($email_node) {
@@ -57,20 +64,43 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
           }
         }
       }
-      if (!empty($client_email)) {
-        $safe_email = Html::escape($client_email);
-        $job_title = $email_node->getTitle() ?: '';
-        $job_status = $email_node->field_case_status->value ?: '';
-        $subject = $nid . ' - ' . $job_title . ' : ' . $job_status;
-        $mailto = 'mailto:' . rawurlencode($client_email) . '?subject=' . rawurlencode($subject);
-        $form['action']['email_client'] = [
-          '#markup' => '<a href="' . Html::escape($mailto) . '" class="button" style="margin-left:10px;" title="Open email client to ' . $safe_email . '">' . t('Email Client') . '</a>',
-          '#weight' => '11',
-        ];
-      }
+
+      // Single "Generate" dropdown button combining all generate actions.
+      $invoice_url = Url::fromUri('base://xero/generate-invoice/' . $nid)->toString();
+      $affidavit_url = Url::fromUri('base://pandadoc/generate-affidavit/' . $nid)->toString();
+      $correspondence_url = Url::fromUri('base://pandadoc/generate-correspondence/' . $nid)->toString();
+
+      $generate_dropdown = [
+        '#type' => 'inline_template',
+        '#template' => '
+          <div class="generate-dropdown">
+            <a href="#" class="button generate-dropdown__toggle">
+              {{ label }}
+              <span class="generate-dropdown__arrow">&#9660;</span>
+            </a>
+            <div class="generate-dropdown__menu">
+              <a href="{{ invoice_url }}" class="generate-dropdown__item" target="_blank">{{ "Generate Invoice"|t }}</a>
+              <a href="#" class="generate-dropdown__item generate-email-btn" data-job-id="{{ nid }}">{{ "Generate Email"|t }}</a>
+              <a href="{{ affidavit_url }}" class="generate-dropdown__item pandadoc-generate-btn">{{ "Generate Affidavit"|t }}</a>
+              <a href="{{ correspondence_url }}" class="generate-dropdown__item pandadoc-generate-btn">{{ "Generate Correspondence"|t }}</a>
+            </div>
+          </div>',
+        '#context' => [
+          'label' => t('Generate'),
+          'invoice_url' => $invoice_url,
+          'affidavit_url' => $affidavit_url,
+          'correspondence_url' => $correspondence_url,
+          'nid' => $nid,
+        ],
+      ];
+
+      $form['action']['generate_dropdown'] = $generate_dropdown;
+      $form['action']['generate_dropdown']['#weight'] = '10';
 
       $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
       $form['#attached']['library'][] = 'associatedps_forms/global';
+      $form['#attached']['library'][] = 'associatedps_affidavit_template/pandadoc-generate';
+      $form['#attached']['library'][] = 'associatedps_affidavit_template/generate-email';
 
       // Check if an automated email was just sent (case status change).
       // If so, pass the email data to JS to also open the default email client.
@@ -91,6 +121,106 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     // and enables default tab selection.
     $form['#after_build'][] = '_associatedps_forms_job_form_after_build';
     $form['#attached']['library'][] = 'associatedps_forms/job_form_tabs';
+    $form['#attached']['library'][] = 'associatedps_forms/date_autofill';
+
+    // "Set to today" checkboxes for admin date fields.
+    $date_autofill_fields = [
+      'field_admin_affidavit_date' => t('Set Affidavit Drafted Date to today'),
+      'field_admin_cover_letter_date' => t('Set Cover Letter Drafted Date to today'),
+      'field_admin_email_update_date' => t('Set Email Update Sent Date to today'),
+      'field_admin_invoiced_date' => t('Set Invoiced Date to today'),
+      'field_admin_send_to_client_date' => t('Set Send to Client Date to today'),
+      'field_allocation_date' => t('Set Allocation Date to today'),
+      'field_deadline' => t('Set Deadline to today'),
+    ];
+
+    foreach ($date_autofill_fields as $field_name => $label) {
+      $form[$field_name]['autofill_today'] = [
+        '#type' => 'inline_template',
+        '#template' => '<div class="date-autofill-wrapper"><label class="date-autofill-label"><input type="checkbox" class="date-autofill-checkbox" data-date-field="{{ field_name }}" /> {{ label }}</label></div>',
+        '#context' => [
+          'field_name' => $field_name,
+          'label' => $label,
+        ],
+        '#weight' => -10,
+      ];
+    }
+
+    // "Create New Client" button — shared across add and edit forms.
+    $client_nid = ($form_id == 'node_job_edit_form')
+      ? (int) filter_var(\Drupal::service('path.current')->getPath(), FILTER_SANITIZE_NUMBER_INT)
+      : 0;
+    $form['group_job_details']['open_modal'] = [
+      '#type' => 'link',
+      '#title' => 'Create New Client',
+      '#url' => Url::fromUri('base://add-client/' . $client_nid),
+      '#attributes' => [
+        'class' => [
+          'use-ajax',
+          'button',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => '{"width":800}',
+      ],
+      '#weight' => '7',
+    ];
+
+    // "Add New Court" button — shared across add and edit forms.
+    $form['group_court_details']['open_modal_court'] = [
+      '#type' => 'link',
+      '#title' => 'Add New Court',
+      '#url' => Url::fromUri('base://add-court/' . $client_nid),
+      '#attributes' => [
+        'class' => [
+          'use-ajax',
+          'button',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => '{"width":800}',
+      ],
+      '#weight' => '7',
+    ];
+
+    // "Create New Document" button — shared across add and edit forms.
+    $form['group_documents_to_be_served']['open_modal_document'] = [
+      '#type' => 'link',
+      '#title' => 'Create New Document',
+      '#url' => Url::fromUri('base://add-document/0', ['query' => ['job_nid' => $client_nid]]),
+      '#attributes' => [
+        'class' => [
+          'use-ajax',
+          'button',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => '{"width":800}',
+      ],
+      '#weight' => '7',
+    ];
+
+    // "Add New User" button — placed right after the Allocated To field.
+    $form['group_job_status']['open_modal_user'] = [
+      '#type' => 'link',
+      '#title' => 'Add New User',
+      '#url' => Url::fromUri('base://add-user/' . $client_nid),
+      '#attributes' => [
+        'class' => [
+          'use-ajax',
+          'button',
+        ],
+        'data-dialog-type' => 'modal',
+        'data-dialog-options' => '{"width":800}',
+      ],
+      '#weight' => '22',
+    ];
+
+    // "Save & Next" button — saves the form and advances to the next tab.
+    $form['actions']['save_next'] = [
+      '#type' => 'submit',
+      '#value' => t('Save & Next'),
+      '#submit' => $form['actions']['submit']['#submit'] ?? [],
+      '#attributes' => ['class' => ['button', 'save-next-btn']],
+      '#weight' => 6,
+    ];
 
     /* Prevent agents from editing jobs to which they are not assigned. */
     $roles = Role::loadMultiple();
@@ -146,12 +276,42 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     $form["field_attendance_notes"]["widget"]["add_more"]["add_more_button_attendance_note"]["#value"] = 'Add Additional Attendance Note';
     $form["field_affidavits"]["widget"]["add_more"]["add_more_button_affidavit"]["#value"] = 'Add Additional Affidavit';
     $form["field_cover_letters"]["widget"]["add_more"]["add_more_button_cover_letter"]["#value"] = 'Add Additional Cover Letter';
-    $form["field_service_address"]["widget"]["add_more"]["add_more_button_address"]["#value"] = 'Add Additional Address';
+    $form["field_service_address"]["widget"]["#title"] = t('Address');
+    if (isset($form["field_service_address"]["widget"]["actions"]["ief_add"])) {
+      $form["field_service_address"]["widget"]["actions"]["ief_add"]["#value"] = t('Add Address');
+    }
+    // Replace internal DB ID with full address in the IEF table rows.
+    if (isset($form["field_service_address"]["widget"]["entities"])) {
+      foreach ($form["field_service_address"]["widget"]["entities"] as $key => &$entity_item) {
+        if (is_numeric($key) && isset($entity_item['#entity'])) {
+          $addr_entity = $entity_item['#entity'];
+          if ($addr_entity->hasField('field_service_address')) {
+            $addr_values = $addr_entity->get('field_service_address')->getValue();
+            if (!empty($addr_values)) {
+              $addr = reset($addr_values);
+              $parts = array_filter([
+                $addr['address_line1'] ?? '',
+                $addr['locality'] ?? '',
+                $addr['administrative_area'] ?? '',
+                $addr['postal_code'] ?? '',
+              ]);
+              if (!empty($parts)) {
+                $entity_item['#label'] = implode(', ', $parts);
+              }
+            }
+          }
+        }
+      }
+      unset($entity_item);
+    }
     $form["field_documents"]["widget"]["add_more"]["add_more_button_document"]["#value"] = 'Add Additional Document To Job';
     $form["field_parties"]["widget"]["add_more"]["add_more_button_party"]["#value"] = 'Add Additional Party (Side 1)';
     $form["field_party_2"]["widget"]["add_more"]["add_more_button_party_side_two_"]["#value"] = 'Add Additional Party (Side 2)';
     $form["field_other_parties"]["widget"]["add_more"]["add_more_button_party_other"]["#value"] = 'Add Additional Party (Other)';
     $form["field_job_fees"]["widget"]["add_more"]["add_more_button_job_fees"]["#value"] = 'Add Additional Service';
+    if (isset($form["field_job_fees"]["widget"]["actions"]["ief_add"])) {
+      $form["field_job_fees"]["widget"]["actions"]["ief_add"]["#value"] = t('Additional Fee');
+    }
     $form["field_client_actions_ief_add"]["#value"] = 'Save';
     /* Autocomplete Client */
     $form["field_client"]["widget"][0]["value"]["#ajax"]["event"] = 'autocomplete_select';
@@ -184,6 +344,17 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
       $service_fees[$term->id()] = $term->field_standard_fee->value ?? '';
     }
     $form['#attached']['drupalSettings']['associatedps_forms']['service_fees'] = $service_fees;
+
+    // Pass client discount to drupalSettings for fee total calculation.
+    $client_discount = 0;
+    $node = $form_state->getFormObject()->getEntity();
+    if ($node && !$node->isNew() && !$node->get('field_client')->isEmpty()) {
+      $client_node = Node::load($node->get('field_client')->target_id);
+      if ($client_node && $client_node->hasField('field_agreed_discount')) {
+        $client_discount = (float) ($client_node->get('field_agreed_discount')->value ?? 0);
+      }
+    }
+    $form['#attached']['drupalSettings']['associatedps_forms']['client_discount'] = $client_discount;
 
     /* Allow dynamically-added values in select_or_other fields. */
     $form['field_served_party']['widget']['#after_build'][] = '_associatedps_forms_after_build_select_or_other';
@@ -238,51 +409,18 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
     // Wrap Edit Client and Email Client buttons in a container so they
     // appear side by side, above Instruction Received.
-    $form['group_job_details']['client_actions'] = [
-      '#type' => 'container',
-      '#attributes' => ['style' => 'display:flex;gap:10px;align-items:flex-start;margin-bottom:1em;', 'class' => ['client-actions-wrapper']],
-      '#weight' => '6',
-    ];
-    $form['group_job_details']['client_actions']['open_modal_client'] = [
-      '#type' => 'link',
-      '#title' => 'Edit Client',
-      '#url' => Url::fromUri('base://add-client/' . $nid),
-      '#attributes' => [
-        'class' => [
-          'use-ajax',
-          'button',
-        ],
-        'data-dialog-type' => 'modal',
-        'data-dialog-options' => '{"width":800}',
-      ],
-    ];
-    if (!empty($client_email)) {
-      $safe_email = Html::escape($client_email);
-      $form['group_job_details']['client_actions']['email_client'] = [
-        '#markup' => '<a href="' . Html::escape($mailto) . '" class="button" title="Open email client to ' . $safe_email . '">' . t('Email Client') . '</a>',
-      ];
-    }
+    // Generate dropdown above the tab section.
+    $form['generate_dropdown_top'] = $generate_dropdown;
+    $form['generate_dropdown_top']['#weight'] = '-100';
 
-    $form['group_court_details']['open_modal_court'] = [
-      '#type' => 'link',
-      '#title' => 'Edit Court',
-      '#url' => Url::fromUri('base://add-court/' . $nid),
-      '#attributes' => [
-        'class' => [
-          'use-ajax',
-          'button',
-        ],
-        'data-dialog-type' => 'modal',
-        'data-dialog-options' => '{"width":800}',
-      ],
-      '#weight' => '7',
-    ];
+
+
 
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
     $form['#attached']['library'][] = 'associatedps_forms/global';
 
     /* Set Client after save last step. */
-    $client_cid = $form['field_client_cid']['widget'][0]['value']['#default_value'];
+    $client_cid = $form['field_client_cid']['widget'][0]['value']['#default_value'] ?? NULL;
     if (!empty($client_cid) && isset($form['field_client']['widget']['#default_value']) && ($form['field_client']['widget']['#default_value'] === [])) {
       $form['field_client']['widget']['#default_value'][] = $client_cid;
     }
@@ -442,6 +580,11 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     $count = (int) $result[0]->nodes + 1;
     /* Populates the client ID field when creating a new client. */
     $form["field_client_id"]["widget"][0]["value"]["#default_value"] = '54323' . $count;
+    $form['field_client_id']['#disabled'] = TRUE;
+  }
+
+  if ($form_id == 'node_client_edit_form') {
+    $form['field_client_id']['#disabled'] = TRUE;
   }
 
   /* Job form alterations. */
@@ -454,35 +597,6 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     /* Populates the job ID field when creating a new job. */
     $form["title"]["widget"][0]["value"]["#default_value"] = '09327' . $count;
 
-    $form['group_job_details']['open_modal'] = [
-      '#type' => 'link',
-      '#title' => 'Create New Client',
-      '#url' => Url::fromUri('base://add-client/0'),
-      '#attributes' => [
-        'class' => [
-          'use-ajax',
-          'button',
-        ],
-        'data-dialog-type' => 'modal',
-        'data-dialog-options' => '{"width":800}',
-      ],
-      '#weight' => '7',
-    ];
-
-    $form['group_court_details']['open_modal_court'] = [
-      '#type' => 'link',
-      '#title' => 'Add New Court',
-      '#url' => Url::fromUri('base://add-court/0'),
-      '#attributes' => [
-        'class' => [
-          'use-ajax',
-          'button',
-        ],
-        'data-dialog-type' => 'modal',
-        'data-dialog-options' => '{"width":800}',
-      ],
-      '#weight' => '7',
-    ];
 
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
     $form['#attached']['library'][] = 'associatedps_forms/global';
@@ -532,6 +646,23 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
       ]);
     }
 
+    // Pre-populate allocated_to field if a user was just created via modal.
+    $cookie_new_user_uid = isset($_COOKIE['Drupal_visitor_new_user_uid']) ? $_COOKIE['Drupal_visitor_new_user_uid'] : '';
+    $cookie_new_user_submit = isset($_COOKIE['Drupal_visitor_new_user_submit']) ? $_COOKIE['Drupal_visitor_new_user_submit'] : 0;
+    if (!empty($cookie_new_user_uid) && $cookie_new_user_submit != 0) {
+      $new_user = User::load($cookie_new_user_uid);
+      if ($new_user) {
+        if (isset($form['field_allocated_to']['widget']['#default_value'])) {
+          $form['field_allocated_to']['widget']['#default_value'][] = $cookie_new_user_uid;
+        }
+      }
+      // Reset cookies immediately so they don't leak into other forms.
+      user_cookie_save([
+        'new_user_submit' => 0,
+        'new_user_uid' => '',
+      ]);
+    }
+
     // Reset document cookies on page load so they don't leak if user
     // navigates away without saving. The presave hook will also clear
     // them, but this covers the case where the user never saves.
@@ -551,22 +682,97 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
   //var_dump("node job form initialized<br/>");
 
-  /* Client Edit/Add form field_email_template field overrides. */
+  /* Client Edit/Add form: email events and template configuration. */
 
   if (($form_id == 'node_client_form') || ($form_id == 'node_client_edit_form')) {
 
-    $db = Database::getConnection();
+    // Build email template options.
     $query = \Drupal::database()->select('node_field_data', 'n');
     $query->fields('n', ['nid', 'title']);
     $query->leftjoin('node__field_category', 'fc', 'fc.entity_id = n.nid');
     $query->fields('fc', ['field_category_value']);
     $query->condition('fc.field_category_value', 'Email', '=');
     $result = $query->execute();
-    $email_template['_none'] = '- None -';
+    $template_options = ['' => '- Select Template -'];
     foreach ($result as $email_value) {
-      $email_template[$email_value->nid] = $email_value->title;
+      $template_options[$email_value->nid] = $email_value->title;
     }
-    $form["field_email_template"]["widget"]["#options"] = $email_template;
+
+    // Build mail events options.
+    $mail_events_storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'field_mail_events');
+    $allowed_values = $mail_events_storage ? $mail_events_storage->getSetting('allowed_values') : [];
+    $event_options = ['' => '- Select Event -'];
+    foreach ($allowed_values as $item) {
+      if (is_array($item)) {
+        $event_options[$item['value']] = $item['label'];
+      }
+      else {
+        // When loaded from active config, allowed_values can be key => label.
+        $event_options[$item] = $item;
+      }
+    }
+    $max_events = count($allowed_values);
+
+    // Get saved values for edit page.
+    $saved_events = [];
+    $saved_templates = [];
+    $node = $form_state->getFormObject()->getEntity();
+    if ($node && !$node->isNew()) {
+      foreach ($node->get('field_mail_events')->getValue() as $val) {
+        $saved_events[] = $val['value'];
+      }
+      foreach ($node->get('field_email_template')->getValue() as $val) {
+        $saved_templates[] = $val['target_id'];
+      }
+    }
+    $saved_count = max(count($saved_events), count($saved_templates));
+
+    // Hide the original field widgets — we replace them with custom dropdowns.
+    $form['field_mail_events']['#access'] = FALSE;
+    $form['field_email_template']['#access'] = FALSE;
+
+    // Build custom paired dropdown container.
+    $form['email_event_pairs'] = [
+      '#type' => 'container',
+      '#attributes' => ['class' => ['email-event-pairs-wrapper']],
+      '#weight' => 15,
+      '#tree' => TRUE,
+    ];
+
+    for ($i = 0; $i < $max_events; $i++) {
+      $form['email_event_pairs'][$i] = [
+        '#type' => 'container',
+        '#attributes' => ['class' => ['email-event-pair', 'email-event-pair--' . $i]],
+      ];
+      $form['email_event_pairs'][$i]['mail_event'] = [
+        '#type' => 'select',
+        '#title' => t('Mail Event'),
+        '#options' => $event_options,
+        '#default_value' => $saved_events[$i] ?? '',
+      ];
+      $form['email_event_pairs'][$i]['email_template'] = [
+        '#type' => 'select',
+        '#title' => t('Email Template'),
+        '#options' => $template_options,
+        '#default_value' => $saved_templates[$i] ?? '',
+      ];
+    }
+
+    // "Add email update" button.
+    $form['email_update_add_btn'] = [
+      '#type' => 'inline_template',
+      '#template' => '<div class="email-update-add-wrapper"><button type="button" class="button email-update-add-btn">{{ label }}</button></div>',
+      '#context' => ['label' => t('Add email update')],
+      '#weight' => 16,
+    ];
+
+    // Pass settings to JS.
+    $form['#attached']['library'][] = 'associatedps_forms/client_email_events';
+    $form['#attached']['drupalSettings']['associatedps_forms']['max_mail_events'] = $max_events;
+    $form['#attached']['drupalSettings']['associatedps_forms']['saved_event_count'] = $saved_count;
+
+    // Custom submit handler to map paired dropdowns back to fields.
+    array_unshift($form['actions']['submit']['#submit'], '_associatedps_forms_client_email_events_submit');
   }
 
   /* Hide preview button from Email Preview and Preview node. */
@@ -725,6 +931,8 @@ function associatedps_forms_change_client_email($form, &$form_state) {
   $response = new AjaxResponse();
   $response->addCommand(new InvokeCommand("#change-client-email", 'val', [$client_email]));
   $response->addCommand(new InvokeCommand("#change-client-discount", 'val', [$client_dis]));
+  // Update drupalSettings so fee calculation JS picks up the new discount.
+  $response->addCommand(new \Drupal\Core\Ajax\SettingsCommand(['associatedps_forms' => ['client_discount' => (float) $client_dis]], TRUE));
   return $response;
 }
 
@@ -737,51 +945,12 @@ function associatedps_forms_field_widget_single_element_form_alter(&$element, Fo
     $path = \Drupal::service('path.current')->getPath();
     $nid = (int) filter_var($path, FILTER_SANITIZE_NUMBER_INT);
 
-    if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'document') {
+    if (isset($element['#paragraph_type']) && $element['#paragraph_type'] == 'document') {
 
-      // For edit mode, get the document node ID from the paragraph entity.
-      $doc_node_id = 0;
-      if ($nid > 0) {
-        $paragraph_entity = $context['items'][$context['delta']]->entity ?? NULL;
-        if ($paragraph_entity && $paragraph_entity->id()) {
-          $doc_value = $paragraph_entity->get('field_document')->getValue();
-          if (!empty($doc_value) && isset($doc_value[0]['target_id'])) {
-            $doc_node_id = (int) $doc_value[0]['target_id'];
-          }
-        }
-      }
-
-      if ($doc_node_id > 0) {
-        $element['subform']['open_modal_document'] = [
-          '#type' => 'link',
-          '#title' => 'Edit Document',
-          '#url' => Url::fromUri('base://add-document/' . $doc_node_id, ['query' => ['job_nid' => $nid]]),
-          '#attributes' => [
-            'class' => [
-              'use-ajax',
-              'button',
-            ],
-            'data-dialog-type' => 'modal',
-            'data-dialog-options' => '{"width":800}',
-          ],
-          '#weight' => '0',
-        ];
-      }
-      else {
-        $element['subform']['open_modal_document'] = [
-          '#type' => 'link',
-          '#title' => 'Create New Document',
-          '#url' => Url::fromUri('base://add-document/0', ['query' => ['job_nid' => $nid]]),
-          '#attributes' => [
-            'class' => [
-              'use-ajax',
-              'button',
-            ],
-            'data-dialog-type' => 'modal',
-            'data-dialog-options' => '{"width":800}',
-          ],
-          '#weight' => '0',
-        ];
+      // Hide "Add another item" inside field_document so users add
+      // documents only via the paragraph-level "Add Additional Document To Job".
+      if (isset($element['subform']['field_document']['widget']['add_more'])) {
+        $element['subform']['field_document']['widget']['add_more']['#access'] = FALSE;
       }
 
       // For add mode, pre-populate field_document from cookie on the first
@@ -816,7 +985,7 @@ function associatedps_forms_field_widget_single_element_form_alter(&$element, Fo
     }
 
     /* standard fee base on types of service's standard fee.*/
-    if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'job_fees') {
+    if (isset($element['#paragraph_type']) && $element['#paragraph_type'] == 'job_fees') {
 
       $element['subform']['calculate_button'] = [
         '#type' => 'html_tag',
@@ -839,7 +1008,7 @@ function associatedps_forms_field_widget_single_element_form_alter(&$element, Fo
      * via drupalSettings. Covers both scenarios:
      * - Allocated To selected before paragraph is generated
      * - Allocated To changed after paragraph is already open */
-    if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'attendance_note') {
+    if (isset($element['#paragraph_type']) && $element['#paragraph_type'] == 'employee') {
 
       if ($nid > 0 && isset($element['subform']['field_party_to_serve_addresses'])) {
         $node = Node::load($nid);
@@ -869,7 +1038,31 @@ function associatedps_forms_field_widget_single_element_form_alter(&$element, Fo
       }
     }
 
-    if ($element['#paragraph_type'] && $element['#paragraph_type'] == 'address') {
+    if (isset($element['#paragraph_type']) && $element['#paragraph_type'] == 'addresses') {
+      // Override the paragraph summary to show the full address instead of
+      // the internal DB ID.
+      $paragraph_entity = $context['items'][$context['delta']]->entity ?? NULL;
+      if ($paragraph_entity && $paragraph_entity->id()) {
+        $addr_values = $paragraph_entity->get('field_service_address')->getValue();
+        if (!empty($addr_values)) {
+          $addr = reset($addr_values);
+          $parts = array_filter([
+            $addr['address_line1'] ?? '',
+            $addr['locality'] ?? '',
+            $addr['administrative_area'] ?? '',
+            $addr['postal_code'] ?? '',
+          ]);
+          if (!empty($parts)) {
+            $summary_text = implode(', ', $parts);
+            $element['top']['summary']['fields_info'] = [
+              '#markup' => '<span class="summary-content">' . htmlspecialchars($summary_text) . '</span>',
+            ];
+          }
+        }
+      }
+    }
+
+    if (isset($element['#paragraph_type']) && $element['#paragraph_type'] == 'address') {
       $node = Node::load($nid);
       if ($nid > 0 && isset($element['subform']['field_party_to_serve_addresses'])) {
         if (!empty($node->field_service_address->getValue())) {
@@ -896,6 +1089,31 @@ function associatedps_forms_field_widget_single_element_form_alter(&$element, Fo
         }
       }
     }
+  }
+}
+
+/**
+ * Implements hook_inline_entity_form_table_fields_alter().
+ */
+function associatedps_forms_inline_entity_form_table_fields_alter(&$fields, $context) {
+  if ($context['field_name'] == 'field_service_address' && isset($fields['label'])) {
+    $fields['label']['label'] = t('Address');
+  }
+}
+
+/**
+ * Implements hook_inline_entity_form_entity_form_alter().
+ */
+function associatedps_forms_inline_entity_form_entity_form_alter(array &$entity_form, FormStateInterface &$form_state) {
+  if ($entity_form['#entity_type'] == 'paragraph' && isset($entity_form['#ief_labels']) && in_array('field_service_address', $entity_form['#parents'], TRUE)) {
+    $entity_form['#ief_labels']['singular'] = t('Address');
+    $entity_form['#ief_labels']['plural'] = t('Addresses');
+  }
+  // Rename IEF labels for Job Fees and add after_build to override button text.
+  if ($entity_form['#entity_type'] == 'paragraph' && in_array('field_job_fees', $entity_form['#parents'], TRUE)) {
+    $entity_form['#ief_labels']['singular'] = t('Fee');
+    $entity_form['#ief_labels']['plural'] = t('Fees');
+    $entity_form['#after_build'][] = '_associatedps_forms_after_build_ief_job_fees';
   }
 }
 
@@ -1082,6 +1300,38 @@ function associatedps_forms_node_presave(NodeInterface $node) {
  * Sets #group_exists on the 'group_job' horizontal tabs container so that
  * Drupal's group mechanism properly injects tab members into the container
  * and suppresses duplicate rendering at the original location.
+ */
+function _associatedps_forms_client_email_events_submit(array &$form, FormStateInterface $form_state) {
+  $pairs = $form_state->getValue('email_event_pairs') ?? [];
+  $events = [];
+  $templates = [];
+  foreach ($pairs as $pair) {
+    $event = $pair['mail_event'] ?? '';
+    $template = $pair['email_template'] ?? '';
+    if (!empty($event)) {
+      $events[] = ['value' => $event];
+      $templates[] = ['target_id' => $template ?: NULL];
+    }
+  }
+  $form_state->setValue('field_mail_events', $events);
+  $form_state->setValue('field_email_template', $templates);
+}
+
+/**
+ * After build: rename IEF "Create Paragraph" to "Save Fee" for Job Fees.
+ */
+function _associatedps_forms_after_build_ief_job_fees($element, FormStateInterface $form_state) {
+  if (isset($element['actions']['ief_add_save'])) {
+    $element['actions']['ief_add_save']['#value'] = t('Save Fee');
+  }
+  if (isset($element['actions']['ief_edit_save'])) {
+    $element['actions']['ief_edit_save']['#value'] = t('Save Fee');
+  }
+  return $element;
+}
+
+/**
+ * After build callback to fix horizontal tabs group mechanism.
  */
 function _associatedps_forms_job_form_after_build($form, FormStateInterface $form_state) {
   $groups = &$form_state->getGroups();
@@ -1433,9 +1683,22 @@ function associatedps_forms_node_update(NodeInterface $node) {
     if (!empty($case_status) && ($email_template !== '_none')) {
       \Drupal::logger('associatedps_forms')->notice('inside 1st condition');
       if ($case_status !== 'Ongoing' && $case_status !== $case_status_value) {
-
-        \Drupal::logger('associatedps_forms')->notice('inside 2nd condition Job node case status changed with NID: @nid', ['@nid' => $nid]);
-        EmailTemplateController::createEmailTemplate($email_template, $nid, 'job');
+        if('logged' == trim(strtolower($case_status))){
+          //fetch email template from library section where category is email and title is logged.
+          $email_template_logged = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'library', 'field_category' => 'Email', 'title' => 'Logged']);
+          if(!empty($email_template_logged)){
+            $email_template_id = array_key_first($email_template_logged);
+            \Drupal::logger('associatedps_forms')->notice('inside logged condition Job node case status changed with NID: @nid', ['@nid' => $nid]);
+            EmailTemplateController::createEmailTemplate($email_template_id, $nid, 'job');
+          }else{
+            \Drupal::messenger()->addWarning(t('No email template found with category "Email" and title "Logged". Email was not sent.'));
+            \Drupal::logger('associatedps_forms')->notice('No email template found for logged case status with NID: @nid', ['@nid' => $nid]);
+          }
+        }
+        else{
+          \Drupal::logger('associatedps_forms')->notice('inside 2nd condition Job node case status changed with NID: @nid', ['@nid' => $nid]);
+          EmailTemplateController::createEmailTemplate($email_template, $nid, 'job');
+        }
       }
     }
   }

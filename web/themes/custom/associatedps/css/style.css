@@ -47,24 +47,21 @@ p, .field__item, .field__label, .inline-entity-form-node-label {
 }
 
 .logo-wrapper {
-  height: auto;
   position: relative;
   left: -33px;
-  height: 76px;
   width: 76px;
   float: left;
-  background-color: white;
 }
 
 .logo {
   overflow: hidden;
   position: absolute;
   height: auto;
-  background-color: white;
 }
 
 .content-header .layout-container {
   margin: 0;
+  display:flex;
 }
 .content-header .logo-wrapper {
   left: 0;
@@ -74,6 +71,7 @@ p, .field__item, .field__label, .inline-entity-form-node-label {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex: 1;
 }
 .content-header .page-title-header .block-page-title-block {
   margin: 0;
@@ -113,16 +111,17 @@ p, .field__item, .field__label, .inline-entity-form-node-label {
 }
 .page-title-header .login-btn h2 {
   /*display: flex;*/
+  color:#a7a9ac;
 }
 .page-title-header .login-btn h2 a {
-  color:white;
+  color:#a7a9ac;
   text-decoration: none;
 }
 .page-title-header .login-btn h2 .dropdown-menu {
   text-align: right;
 }
 .page-title-header .login-btn h2 .dropdown-menu a {
-  color:white;
+  color:#a7a9ac;
 }
 .page-title-header .login-btn h2:before {
   background-image: url(../images/person.svg);
@@ -258,7 +257,7 @@ text-decoration: underline;
 #block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul {
   display: none;
   position: absolute;
-  top: 36px;
+  top: 100%;
   left: 0;
   margin: 0;
   padding: 0;

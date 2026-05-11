@@ -9,3 +9,52 @@ template-handler:
     - core/once
     - core/drupalSettings
     - core/ckeditor5
+
+token-picker:
+  version: 1.x
+  js:
+    assets/js/token_picker.js: {}
+
+pandadoc-editor:
+  version: 1.x
+  js:
+    assets/js/pandadoc_editor.js: { attributes: { type: module } }
+  dependencies:
+    - associatedps_affidavit_template/token-picker
+
+pandadoc-generate:
+  version: 1.x
+  js:
+    assets/js/pandadoc_generate.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+
+pandadoc-document-editor:
+  version: 1.x
+  js:
+    assets/js/pandadoc_document_editor.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+
+generate-email:
+  version: 1.x
+  js:
+    assets/js/generate_email.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+
+pandadoc-library-form:
+  version: 1.x
+  js:
+    assets/js/pandadoc_library_form.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+    - core/drupalSettings
+    - associatedps_affidavit_template/token-picker

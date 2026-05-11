@@ -64,3 +64,97 @@ function associatedps_affidavit_template_update_8002() {
     ]);
   }
 }
+
+/**
+ * Create pandadoc_documents tracking table.
+ */
+function associatedps_affidavit_template_update_8003() {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('pandadoc_documents')) {
+    $schema->createTable('pandadoc_documents', [
+      'description' => 'Tracks PandaDoc document generation.',
+      'fields' => [
+        'id' => [
+          'type' => 'serial',
+          'not null' => TRUE,
+          'description' => 'Primary key.',
+        ],
+        'pandadoc_document_id' => [
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => FALSE,
+          'description' => 'PandaDoc document UUID.',
+        ],
+        'pandadoc_template_id' => [
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'description' => 'PandaDoc template UUID.',
+        ],
+        'job_nid' => [
+          'type' => 'int',
+          'not null' => FALSE,
+          'description' => 'Job node ID that triggered generation.',
+        ],
+        'library_nid' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Library node ID used as template.',
+        ],
+        'status' => [
+          'type' => 'varchar',
+          'length' => 50,
+          'not null' => TRUE,
+          'default' => 'created',
+          'description' => 'Document lifecycle status.',
+        ],
+        'created' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Created timestamp.',
+        ],
+        'updated' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Updated timestamp.',
+        ],
+      ],
+      'primary key' => ['id'],
+      'unique keys' => [
+        'pandadoc_document_id' => ['pandadoc_document_id'],
+      ],
+      'indexes' => [
+        'job_nid' => ['job_nid'],
+      ],
+    ]);
+  }
+}
+
+/**
+ * Allow NULL for pandadoc_document_id in pandadoc_documents table.
+ */
+function associatedps_affidavit_template_update_8004() {
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('pandadoc_documents')) {
+    $schema->changeField('pandadoc_documents', 'pandadoc_document_id', 'pandadoc_document_id', [
+      'type' => 'varchar',
+      'length' => 255,
+      'not null' => FALSE,
+      'description' => 'PandaDoc document UUID.',
+    ]);
+  }
+}
+
+/**
+ * Allow NULL for job_nid in pandadoc_documents table.
+ */
+function associatedps_affidavit_template_update_8005() {
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('pandadoc_documents')) {
+    $schema->changeField('pandadoc_documents', 'job_nid', 'job_nid', [
+      'type' => 'int',
+      'not null' => FALSE,
+      'description' => 'Job node ID that triggered generation.',
+    ]);
+  }
+}

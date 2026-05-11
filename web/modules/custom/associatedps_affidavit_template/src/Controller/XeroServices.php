@@ -5,18 +5,14 @@ namespace Drupal\associatedps_affidavit_template\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Routing\TrustedRedirectResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Drupal\associatedps_affidavit_template\Service\XeroClient;
 use Drupal\associatedps_affidavit_template\Service\XeroInvoiceIntegration;
-use Drupal\Core\Ajax\AjaxResponse;
-use Drupal\Core\Ajax\OpenModalDialogCommand;
 
-/** 
- * Acts as Xero services controller
- * 
-*/
+/**
+ * Acts as Xero services controller.
+ */
 class XeroServices extends ControllerBase {
 
     /**
@@ -25,6 +21,7 @@ class XeroServices extends ControllerBase {
      * @var \Drupal\associatedps_affidavit_template\Service\XeroInvoiceIntegration
      */
     protected XeroInvoiceIntegration $xeroInvoiceIntegration;
+
     /**
      * Constructor.
      */
@@ -42,37 +39,26 @@ class XeroServices extends ControllerBase {
     }
 
     /**
-     * Generates an invoice in Xero.
+     * Generates an invoice in Xero and redirects to the invoice edit page.
      */
-    public function generateInvoice(Request $request): AjaxResponse {
-        $response = new AjaxResponse();
+    public function generateInvoice(Request $request, $jobId): Response {
         try {
-            $jobId = $request->get('jobId');
-            $this->messenger()->addStatus($this->t('Attempting to generate invoice for job ID: @jobId', [
-                '@jobId' => $jobId,
-            ]));
             $response_msg = $this->xeroInvoiceIntegration->createInvoice($jobId);
-            if(isset($response_msg['error'])){
-                $response->addCommand(new OpenModalDialogCommand(
-                    'Invoice',
-                    ['#markup' => $response_msg['error']]
-                ));
-            }else{
-                $response->addCommand(new OpenModalDialogCommand(
-                    'Invoice',
-                    ['#markup' => 'Invoice generated for Job ID: ' . $response_msg['message']]
-                ));
+
+            if (isset($response_msg['error'])) {
+                $this->messenger()->addError($response_msg['error']);
+                return $this->redirect('entity.node.edit_form', ['node' => $jobId]);
             }
+
+            $invoiceId = $response_msg['invoiceId'];
+            $xeroUrl = 'https://go.xero.com/AccountsReceivable/Edit.aspx?InvoiceID=' . $invoiceId;
+
+            return new TrustedRedirectResponse($xeroUrl);
         }
         catch (\Exception $e) {
-            $response->addCommand(new OpenModalDialogCommand(
-                'Invoice',
-                ['#markup' => 'Failed to generate invoice for Job ID: ' . $jobId.$e->getMessage()]
-            ));
+            $this->messenger()->addError('Failed to generate invoice: ' . $e->getMessage());
+            return $this->redirect('entity.node.edit_form', ['node' => $jobId]);
         }
-        return $response;
-
     }
 
-   
 }
