@@ -58,3 +58,41 @@ pandadoc-library-form:
     - core/once
     - core/drupalSettings
     - associatedps_affidavit_template/token-picker
+
+docusign-editor:
+  version: 1.x
+  js:
+    assets/js/docusign_editor.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+    - associatedps_affidavit_template/token-picker
+
+docusign-library-form:
+  version: 1.x
+  js:
+    assets/js/docusign_library_form.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+    - core/drupalSettings
+
+docusign-generate:
+  version: 1.x
+  js:
+    assets/js/docusign_generate.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+
+docusign-envelope-editor:
+  version: 1.x
+  js:
+    assets/js/docusign_envelope_editor.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings

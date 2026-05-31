@@ -330,7 +330,74 @@ class XeroClient {
   }
 
 
-  /* 
+  /*
+  * Whether the site has been authorized against Xero (i.e. a token row exists).
+  *
+  * Used by callers (e.g. hook_node_insert auto-sync) to skip silently when
+  * Xero hasn't been connected yet, instead of generating a noisy HTTP error.
+  */
+  public function isConnected(): bool {
+    try {
+      $count = (int) $this->database
+        ->select('xero_tokens', 'x')
+        ->condition('id', 1)
+        ->countQuery()
+        ->execute()
+        ->fetchField();
+      return $count > 0;
+    }
+    catch (\Exception $e) {
+      return FALSE;
+    }
+  }
+
+  /*
+  * Create or update contacts in Xero (bulk).
+  *
+  * Uses POST with summarizeErrors=false so a single invalid row does not
+  * abort the whole batch — Xero returns per-contact ValidationErrors that
+  * the caller can surface to the user.
+  *
+  * @param array $contacts
+  *   Associative array of Xero Contact rows (see Xero "Contacts" API).
+  *
+  * @return array
+  *   Decoded JSON response from Xero, or ['error' => '...'] on failure.
+  */
+  public function createContacts(array $contacts): array {
+    \Drupal::logger('associatedps_affidavit_template_Xero')->notice('Create contacts: @count rows', ['@count' => count($contacts)]);
+    try {
+      $tokenData = $this->getValidAccessToken();
+
+      $url = $this->servicesAPIBase . $this->servicesAPIPath . $this->contactsPath . '?summarizeErrors=false';
+      $response = $this->httpClient->post($url, [
+        'headers' => [
+          'Authorization' => 'Bearer ' . $tokenData['access_token'],
+          'xero-tenant-id' => $tokenData['tenant_id'],
+          'Accept' => 'application/json',
+          'Content-Type' => 'application/json',
+        ],
+        'body' => json_encode(['Contacts' => $contacts]),
+      ]);
+
+      return json_decode($response->getBody(), TRUE) ?? [];
+    }
+    catch (\GuzzleHttp\Exception\RequestException $e) {
+      $responseBody = $e->hasResponse() ? (string) $e->getResponse()->getBody() : 'No response body';
+      $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
+      \Drupal::logger('associatedps_affidavit_template_Xero')->error('Xero createContacts HTTP @status: @body', [
+        '@status' => $statusCode,
+        '@body' => $responseBody,
+      ]);
+      return ['error' => 'HTTP ' . $statusCode . ': ' . $responseBody];
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('associatedps_affidavit_template_Xero')->error('Xero createContacts error: @msg', ['@msg' => $e->getMessage()]);
+      return ['error' => $e->getMessage()];
+    }
+  }
+
+  /*
   * Once the access token is expired, it need to be refreshed
   */
   protected function getValidAccessToken(): array {

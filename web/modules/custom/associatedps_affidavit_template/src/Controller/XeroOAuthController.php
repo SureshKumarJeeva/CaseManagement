@@ -87,7 +87,8 @@ class XeroOAuthController extends ControllerBase {
   * Handle token response
   */
   public function handleTokens(Request $request): RedirectResponse {
-    var_dump($request);die;
+    //this funcion is not being referenced only at routing and none other places. Remove this later after verifying that xero acconunt is functioning.
+    die;
     $code = $request->query->get('code');
     $state = $request->query->get('state');
 

@@ -8,6 +8,7 @@ dependencies:
     - field.field.node.library.field_case_status
     - field.field.node.library.field_category
     - field.field.node.library.field_email_subject
+    - field.field.node.library.field_docusign_template_id
     - field.field.node.library.field_import_template
     - field.field.node.library.field_job_types
     - field.field.node.library.field_pandadoc_template_id
@@ -74,6 +75,14 @@ content:
   field_pandadoc_template_id:
     type: string_textfield
     weight: 7
+    region: content
+    settings:
+      size: 60
+      placeholder: ''
+    third_party_settings: {  }
+  field_docusign_template_id:
+    type: string_textfield
+    weight: 9
     region: content
     settings:
       size: 60

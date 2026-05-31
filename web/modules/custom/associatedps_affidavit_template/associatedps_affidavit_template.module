@@ -132,71 +132,269 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
       ],
     ];
   }
-  if (isset($form['field_pandadoc_template_id'])) {
-    $form['field_pandadoc_template_id']['#states'] = [
-      'visible' => [
-        [':input[name="field_category"]' => ['value' => 'Affidavit']],
-        [':input[name="field_category"]' => ['value' => 'Correspondence']],
-      ],
-    ];
-    // Make PandaDoc template ID readonly (populated automatically).
-    $form['field_pandadoc_template_id']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+  // PandaDoc kill-switch: when active, only PandaDoc logic runs; when
+  // inactive (default), only DocuSign logic runs. The two integrations
+  // never run side by side.
+  $pandadoc_active = _associatedps_affidavit_template_pandadoc_active();
+
+  // Field visibility states + readonly attribute (Affidavit/Correspondence only).
+  $template_field_states = [
+    'visible' => [
+      [':input[name="field_category"]' => ['value' => 'Affidavit']],
+      [':input[name="field_category"]' => ['value' => 'Correspondence']],
+    ],
+  ];
+  if ($pandadoc_active) {
+    if (isset($form['field_pandadoc_template_id'])) {
+      $form['field_pandadoc_template_id']['#states'] = $template_field_states;
+      $form['field_pandadoc_template_id']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+    }
+  }
+  else {
+    if (isset($form['field_docusign_template_id'])) {
+      $form['field_docusign_template_id']['#states'] = $template_field_states;
+      $form['field_docusign_template_id']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+    }
   }
 
-  // On return from PandaDoc editor: populate template ID and category from query params.
+  // Query-param population on return from the editor.
   $request = \Drupal::request();
-  $pandadoc_template_id = $request->query->get('pandadoc_template_id');
-  if ($pandadoc_template_id && isset($form['field_pandadoc_template_id'])) {
-    $form['field_pandadoc_template_id']['widget'][0]['value']['#default_value'] = $pandadoc_template_id;
+  if ($pandadoc_active) {
+    $pandadoc_template_id = $request->query->get('pandadoc_template_id');
+    if ($pandadoc_template_id && isset($form['field_pandadoc_template_id'])) {
+      $form['field_pandadoc_template_id']['widget'][0]['value']['#default_value'] = $pandadoc_template_id;
+    }
+  }
+  else {
+    $docusign_template_id = $request->query->get('docusign_template_id');
+    if ($docusign_template_id && isset($form['field_docusign_template_id'])) {
+      $form['field_docusign_template_id']['widget'][0]['value']['#default_value'] = $docusign_template_id;
+    }
   }
   $category_param = $request->query->get('category');
   if ($category_param && isset($form['field_category'])) {
     $form['field_category']['widget']['#default_value'] = $category_param;
   }
 
+  // Read existing template ID from the active integration's field.
   $node = $form_state->getFormObject()->getEntity();
   $nid = $node->id() ?: 0;
   $existingTemplateId = '';
-  if ($node->hasField('field_pandadoc_template_id')) {
-    $existingTemplateId = $node->get('field_pandadoc_template_id')->value ?: '';
+  if ($pandadoc_active) {
+    if ($node->hasField('field_pandadoc_template_id')) {
+      $existingTemplateId = $node->get('field_pandadoc_template_id')->value ?: '';
+    }
+  }
+  else {
+    if ($node->hasField('field_docusign_template_id')) {
+      $existingTemplateId = $node->get('field_docusign_template_id')->value ?: '';
+    }
   }
 
-  // Add "Update at PandaDoc" button — only when template ID already exists.
-  if (!empty($existingTemplateId)) {
-    $form['pandadoc_update_btn'] = [
-      '#type' => 'container',
-      '#weight' => 99,
-      '#states' => [
-        'visible' => [
-          [':input[name="field_category"]' => ['value' => 'Affidavit']],
-          [':input[name="field_category"]' => ['value' => 'Correspondence']],
+  // "Update at …" button + drupalSettings + library attach — only the
+  // active integration renders.
+  if ($pandadoc_active) {
+    if (!empty($existingTemplateId)) {
+      $form['pandadoc_update_btn'] = [
+        '#type' => 'container',
+        '#weight' => 99,
+        '#states' => $template_field_states,
+        'button' => [
+          '#type' => 'html_tag',
+          '#tag' => 'button',
+          '#value' => 'Update at PandaDoc',
+          '#attributes' => [
+            'type' => 'button',
+            'id' => 'pandadoc-update-btn',
+            'class' => ['button', 'button--primary'],
+            'data-template-id' => $existingTemplateId,
+            'data-nid' => $nid,
+            'style' => 'margin-top:10px;',
+          ],
         ],
-      ],
-      'button' => [
-        '#type' => 'html_tag',
-        '#tag' => 'button',
-        '#value' => 'Update at PandaDoc',
-        '#attributes' => [
-          'type' => 'button',
-          'id' => 'pandadoc-update-btn',
-          'class' => ['button', 'button--primary'],
-          'data-template-id' => $existingTemplateId,
-          'data-nid' => $nid,
-          'style' => 'margin-top:10px;',
-        ],
-      ],
+      ];
+    }
+
+    $form['#attached']['drupalSettings']['pandadocLibrary'] = [
+      'ajaxUploadUrl' => '/admin/content/pandadoc/ajax-upload',
+      'ajaxSessionUrl' => '/admin/content/pandadoc/ajax-session',
+      'editorPageBaseUrl' => '/admin/content/pandadoc/editor',
+      'existingTemplateId' => $existingTemplateId,
+      'nid' => $nid,
     ];
+    $form['#attached']['library'][] = 'associatedps_affidavit_template/pandadoc-library-form';
+  }
+  else {
+    if (!empty($existingTemplateId)) {
+      $form['docusign_update_btn'] = [
+        '#type' => 'container',
+        '#weight' => 99,
+        '#states' => $template_field_states,
+        'button' => [
+          '#type' => 'html_tag',
+          '#tag' => 'button',
+          '#value' => 'Update at DocuSign',
+          '#attributes' => [
+            'type' => 'button',
+            'id' => 'docusign-update-btn',
+            'class' => ['button', 'button--primary'],
+            'data-template-id' => $existingTemplateId,
+            'data-nid' => $nid,
+            'style' => 'margin-top:10px;',
+          ],
+        ],
+      ];
+    }
+
+    $form['#attached']['drupalSettings']['docusignLibrary'] = [
+      'ajaxUploadUrl' => '/admin/content/docusign/ajax-upload',
+      'ajaxSessionUrl' => '/admin/content/docusign/ajax-edit-view',
+      'editorPageBaseUrl' => '/admin/content/docusign/editor',
+      'existingTemplateId' => $existingTemplateId,
+      'nid' => $nid,
+    ];
+    $form['#attached']['library'][] = 'associatedps_affidavit_template/docusign-library-form';
+  }
+}
+
+/**
+ * PandaDoc integration kill-switch.
+ *
+ * Returns FALSE while PandaDoc is set aside in favor of DocuSign. All
+ * PandaDoc UI attachments, form gates, and (later) Job-form Generate
+ * buttons are suppressed when this returns FALSE. Flip to TRUE to revive
+ * PandaDoc — no other code change needed.
+ *
+ * PandaDoc PHP services, controllers, routes, JS files, and the
+ * pandadoc_documents DB table remain untouched either way.
+ */
+function _associatedps_affidavit_template_pandadoc_active(): bool {
+  return FALSE;
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_insert() for node entities.
+ *
+ * Auto-syncs any newly created Client node to Xero as a contact, regardless
+ * of which form/code path created it (the standard /node/add/client form, the
+ * CustomAddClient AJAX dialog used by the Job add/edit pages, REST, or
+ * programmatic Node::create()). Wrapped in try/catch so a Xero outage cannot
+ * block or roll back the Drupal save.
+ */
+function associatedps_affidavit_template_node_insert(NodeInterface $node): void {
+  if ($node->bundle() !== 'client') {
+    return;
   }
 
-  // Pass settings to JS.
-  $form['#attached']['drupalSettings']['pandadocLibrary'] = [
-    'ajaxUploadUrl' => '/admin/content/pandadoc/ajax-upload',
-    'ajaxSessionUrl' => '/admin/content/pandadoc/ajax-session',
-    'editorPageBaseUrl' => '/admin/content/pandadoc/editor',
-    'existingTemplateId' => $existingTemplateId,
-    'nid' => $nid,
-  ];
+  try {
+    /** @var \Drupal\associatedps_affidavit_template\Service\XeroClient $xero */
+    $xero = \Drupal::service('associatedps_affidavit_template.xero_client');
 
-  // Attach PandaDoc library form JS.
-  $form['#attached']['library'][] = 'associatedps_affidavit_template/pandadoc-library-form';
+    // Skip cleanly when Xero hasn't been authorized on this environment yet.
+    if (!$xero->isConnected()) {
+      \Drupal::logger('associatedps_affidavit_template_Xero')->notice(
+        'Skipped Xero auto-sync for new Client @nid: integration not authorized.',
+        ['@nid' => $node->id()]
+      );
+      return;
+    }
+
+    _associatedps_affidavit_template_sync_client_to_xero($node, 'insert');
+  }
+  catch (\Throwable $e) {
+    // Belt-and-braces — never let a Xero issue propagate to the node save.
+    \Drupal::logger('associatedps_affidavit_template_Xero')->error(
+      'Unexpected error during Xero auto-sync for Client @nid: @msg',
+      ['@nid' => $node->id(), '@msg' => $e->getMessage()]
+    );
+  }
+}
+
+/**
+ * Implements hook_ENTITY_TYPE_update() for node entities.
+ *
+ * Mirrors the insert hook for Client edits — looks up the previously stored
+ * Xero ContactID and includes it in the POST so the existing contact is
+ * updated rather than duplicated (covers Name changes).
+ */
+function associatedps_affidavit_template_node_update(NodeInterface $node): void {
+  if ($node->bundle() !== 'client') {
+    return;
+  }
+  try {
+    /** @var \Drupal\associatedps_affidavit_template\Service\XeroClient $xero */
+    $xero = \Drupal::service('associatedps_affidavit_template.xero_client');
+    if (!$xero->isConnected()) {
+      return;
+    }
+    _associatedps_affidavit_template_sync_client_to_xero($node, 'update');
+  }
+  catch (\Throwable $e) {
+    \Drupal::logger('associatedps_affidavit_template_Xero')->error(
+      'Unexpected error during Xero auto-sync (update) for Client @nid: @msg',
+      ['@nid' => $node->id(), '@msg' => $e->getMessage()]
+    );
+  }
+}
+
+/**
+ * Shared sync helper for Client insert/update hooks.
+ *
+ * On success, persists the Xero ContactID for the node so subsequent
+ * updates target the same Xero record and so invoice generation can route
+ * to the right contact.
+ *
+ * @param string $trigger
+ *   Either 'insert' or 'update', used only for log/messenger phrasing.
+ */
+function _associatedps_affidavit_template_sync_client_to_xero(NodeInterface $node, string $trigger): void {
+  /** @var \Drupal\associatedps_affidavit_template\Service\XeroClient $xero */
+  $xero = \Drupal::service('associatedps_affidavit_template.xero_client');
+  /** @var \Drupal\associatedps_affidavit_template\Service\XeroContactMapper $mapper */
+  $mapper = \Drupal::service('associatedps_affidavit_template.xero_contact_mapper');
+  /** @var \Drupal\associatedps_affidavit_template\Service\XeroContactStore $store */
+  $store = \Drupal::service('associatedps_affidavit_template.xero_contact_store');
+
+  $stored_id = $store->get((int) $node->id());
+  $row = $mapper->mapClientNode($node, $stored_id);
+  $response = $xero->createContacts([$row]);
+
+  if (isset($response['error'])) {
+    \Drupal::logger('associatedps_affidavit_template_Xero')->error(
+      'Xero auto-sync (@trigger) failed for Client @nid (@name): @err',
+      ['@trigger' => $trigger, '@nid' => $node->id(), '@name' => $node->label(), '@err' => $response['error']]
+    );
+    \Drupal::messenger()->addWarning(t(
+      'Client saved, but pushing to Xero failed: @err',
+      ['@err' => $response['error']]
+    ));
+    return;
+  }
+
+  $xero_row = $response['Contacts'][0] ?? NULL;
+  $errors = $xero_row['ValidationErrors'] ?? [];
+  if (!empty($errors)) {
+    $messages = array_filter(array_map(static fn ($e) => $e['Message'] ?? '', $errors));
+    \Drupal::logger('associatedps_affidavit_template_Xero')->warning(
+      'Xero rejected Client @nid (@name) on @trigger: @msgs',
+      ['@trigger' => $trigger, '@nid' => $node->id(), '@name' => $node->label(), '@msgs' => implode(' | ', $messages)]
+    );
+    \Drupal::messenger()->addWarning(t(
+      'Client saved, but Xero reported: @msgs',
+      ['@msgs' => implode(' | ', $messages)]
+    ));
+    return;
+  }
+
+  $contact_id = (string) ($xero_row['ContactID'] ?? '');
+  if ($contact_id !== '') {
+    $store->set((int) $node->id(), $contact_id);
+  }
+  \Drupal::logger('associatedps_affidavit_template_Xero')->notice(
+    'Auto-synced Client @nid (@name) to Xero ContactID @cid (@trigger).',
+    ['@trigger' => $trigger, '@nid' => $node->id(), '@name' => $node->label(), '@cid' => $contact_id]
+  );
+  \Drupal::messenger()->addStatus(t('Client synced to Xero (ContactID: @cid).', [
+    '@cid' => $contact_id ?: t('(unavailable)'),
+  ]));
 }

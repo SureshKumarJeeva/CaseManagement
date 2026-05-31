@@ -158,3 +158,182 @@ function associatedps_affidavit_template_update_8005() {
     ]);
   }
 }
+
+/**
+ * Create docusign_tokens table (JWT access token cache).
+ */
+function associatedps_affidavit_template_update_8006() {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('docusign_tokens')) {
+    $schema->createTable('docusign_tokens', [
+      'description' => 'Stores DocuSign JWT-grant access tokens.',
+      'fields' => [
+        'id' => [
+          'type' => 'serial',
+          'not null' => TRUE,
+          'description' => 'Primary key.',
+        ],
+        'user_id' => [
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+          'description' => 'DocuSign API user GUID (sub).',
+        ],
+        'account_id' => [
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+          'description' => 'DocuSign account GUID.',
+        ],
+        'base_uri' => [
+          'type' => 'varchar',
+          'length' => 255,
+          'not null' => TRUE,
+          'description' => 'Account-specific API base URI (e.g. https://demo.docusign.net).',
+        ],
+        'access_token' => [
+          'type' => 'text',
+          'not null' => TRUE,
+          'description' => 'Encrypted access token (TokenCrypto, AES-256-CBC).',
+        ],
+        'expires_at' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Token expiry unix timestamp.',
+        ],
+        'scope' => [
+          'type' => 'text',
+          'not null' => TRUE,
+          'description' => 'OAuth scopes granted.',
+        ],
+        'created' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Row created unix timestamp.',
+        ],
+        'updated' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Row updated unix timestamp.',
+        ],
+      ],
+      'primary key' => ['id'],
+      'indexes' => [
+        'account_id' => ['account_id'],
+      ],
+    ]);
+  }
+}
+
+/**
+ * Create docusign_envelopes tracking table.
+ */
+function associatedps_affidavit_template_update_8007() {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('docusign_envelopes')) {
+    $schema->createTable('docusign_envelopes', [
+      'description' => 'Tracks DocuSign envelope generation.',
+      'fields' => [
+        'id' => [
+          'type' => 'serial',
+          'not null' => TRUE,
+          'description' => 'Primary key.',
+        ],
+        'envelope_id' => [
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => FALSE,
+          'description' => 'DocuSign envelope UUID (nullable for template-only rows).',
+        ],
+        'template_id' => [
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+          'description' => 'DocuSign template UUID.',
+        ],
+        'account_id' => [
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+          'description' => 'DocuSign account GUID.',
+        ],
+        'job_nid' => [
+          'type' => 'int',
+          'not null' => FALSE,
+          'description' => 'Job node ID that triggered generation.',
+        ],
+        'library_nid' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Library node ID used as template.',
+        ],
+        'status' => [
+          'type' => 'varchar',
+          'length' => 50,
+          'not null' => TRUE,
+          'default' => 'created',
+          'description' => 'Envelope lifecycle status (created, sent, completed, voided, etc.).',
+        ],
+        'created' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Row created unix timestamp.',
+        ],
+        'updated' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Row updated unix timestamp.',
+        ],
+      ],
+      'primary key' => ['id'],
+      'unique keys' => [
+        'envelope_id' => ['envelope_id'],
+      ],
+      'indexes' => [
+        'job_nid' => ['job_nid'],
+        'library_nid' => ['library_nid'],
+        'template_id' => ['template_id'],
+      ],
+    ]);
+  }
+}
+
+/**
+ * Create xero_client_contacts mapping table.
+ *
+ * Maps Drupal Client node IDs to the Xero ContactID returned when the
+ * contact was last synced. Used so updates target the same Xero record
+ * (renames don't create duplicates) and so invoice generation can pick
+ * the right Xero contact for a given Job's client.
+ */
+function associatedps_affidavit_template_update_8008() {
+  $schema = \Drupal::database()->schema();
+  if (!$schema->tableExists('xero_client_contacts')) {
+    $schema->createTable('xero_client_contacts', [
+      'description' => 'Maps Drupal Client node IDs to Xero ContactIDs.',
+      'fields' => [
+        'nid' => [
+          'type' => 'int',
+          'unsigned' => TRUE,
+          'not null' => TRUE,
+          'description' => 'Drupal Client node ID.',
+        ],
+        'xero_contact_id' => [
+          'type' => 'varchar',
+          'length' => 64,
+          'not null' => TRUE,
+          'description' => 'Xero ContactID GUID.',
+        ],
+        'synced_at' => [
+          'type' => 'int',
+          'not null' => TRUE,
+          'description' => 'Last successful sync unix timestamp.',
+        ],
+      ],
+      'primary key' => ['nid'],
+      'indexes' => [
+        'xero_contact_id' => ['xero_contact_id'],
+      ],
+    ]);
+  }
+}

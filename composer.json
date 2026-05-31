@@ -69,6 +69,7 @@
         "drupal/views_data_export": "^1.5",
         "drupal/xmlrpc": "^1.0@beta",
         "drush/drush": "^13.6.2",
+        "firebase/php-jwt": "^6.10",
         "guzzlehttp/promises": "^2.2",
         "laminas/laminas-diactoros": "^3.6.0",
         "laminas/laminas-zendframework-bridge": "^1.2",

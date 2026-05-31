@@ -13,10 +13,19 @@ services:
     arguments:
       - '@associatedps_affidavit_template.xero_client'
       - '@database'
+      - '@associatedps_affidavit_template.xero_contact_store'
+      - '@entity_type.manager'
   associatedps_affidavit_template.token_crypto:
     class: Drupal\associatedps_affidavit_template\Service\TokenCrypto
     arguments:
       - '@settings'
+  associatedps_affidavit_template.xero_contact_mapper:
+    class: Drupal\associatedps_affidavit_template\Service\XeroContactMapper
+  associatedps_affidavit_template.xero_contact_store:
+    class: Drupal\associatedps_affidavit_template\Service\XeroContactStore
+    arguments:
+      - '@database'
+      - '@datetime.time'
   associatedps_affidavit_template.pandadoc_client:
     class: Drupal\associatedps_affidavit_template\Service\PandaDocClient
     arguments:
@@ -24,5 +33,16 @@ services:
       - '@database'
   associatedps_affidavit_template.pandadoc_token_mapper:
     class: Drupal\associatedps_affidavit_template\Service\PandaDocTokenMapper
+    arguments:
+      - '@entity_field.manager'
+  associatedps_affidavit_template.docusign_client:
+    class: Drupal\associatedps_affidavit_template\Service\DocuSignClient
+    arguments:
+      - '@http_client'
+      - '@database'
+      - '@settings'
+      - '@logger.factory'
+  associatedps_affidavit_template.docusign_token_mapper:
+    class: Drupal\associatedps_affidavit_template\Service\DocuSignTokenMapper
     arguments:
       - '@entity_field.manager'

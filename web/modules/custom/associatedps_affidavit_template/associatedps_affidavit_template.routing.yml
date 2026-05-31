@@ -64,11 +64,35 @@ associatedps_affidavit_template.save_document_template:
   requirements:
     _permission: 'administer site configuration'
 
+associatedps_affidavit_template.xero_account:
+  path: '/admin/config/associatedps/xero-account'
+  defaults:
+    _controller: '\Drupal\system\Controller\SystemController::systemAdminMenuBlockPage'
+    _title: 'Xero Account'
+  requirements:
+    _permission: 'administer site configuration'
+
 associatedps_affidavit_template.xero_account_config:
   path: '/admin/config/associatedps/xero'
   defaults:
     _form: '\Drupal\associatedps_affidavit_template\Form\XeroAccountConfigForm'
     _title: 'Xero Account Configuration'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.xero_sync_contacts:
+  path: '/admin/config/associatedps/xero/sync-contacts'
+  defaults:
+    _form: '\Drupal\associatedps_affidavit_template\Form\XeroSyncContactsForm'
+    _title: 'Sync Contacts to Xero'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.xero_sync_contacts_results:
+  path: '/admin/config/associatedps/xero/sync-contacts/results'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\XeroSyncContactsController::results'
+    _title: 'Xero Contact Sync Results'
   requirements:
     _permission: 'administer site configuration'
 
@@ -238,3 +262,142 @@ associatedps_affidavit_template.pandadoc_config:
     _title: 'PandaDoc Configuration'
   requirements:
     _permission: 'administer site configuration'
+
+# --- DocuSign Routes ---
+
+associatedps_affidavit_template.docusign_config:
+  path: '/admin/config/associatedps/docusign'
+  defaults:
+    _form: '\Drupal\associatedps_affidavit_template\Form\DocuSignConfigForm'
+    _title: 'DocuSign Configuration'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.docusign_oauth_start:
+  path: '/admin/config/associatedps/docusign/authorize'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignOAuthController::authorize'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.docusign_oauth_callback:
+  path: '/docusign/oauth/callback'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignOAuthController::callback'
+  requirements:
+    _access: 'TRUE'
+
+associatedps_affidavit_template.docusign_upload:
+  path: '/admin/content/docusign/upload/{nid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::uploadToDocuSign'
+    _title: 'Upload to DocuSign'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_editor:
+  path: '/admin/content/docusign/editor/{docusignTemplateId}/{nid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::editorPage'
+    _title: 'DocuSign Template Editor'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_editor_callback:
+  path: '/admin/content/docusign/editor-callback'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::editorCallback'
+    _title: 'DocuSign Editor Callback'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_ajax_upload:
+  path: '/admin/content/docusign/ajax-upload'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::ajaxUploadToDocuSign'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.docusign_ajax_edit_view:
+  path: '/admin/content/docusign/ajax-edit-view'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::ajaxCreateEditView'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.docusign_generate_affidavit:
+  path: '/docusign/generate-affidavit/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::generateAffidavit'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_generate_correspondence:
+  path: '/docusign/generate-correspondence/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::generateCorrespondence'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_status:
+  path: '/docusign/status/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::checkStatus'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_templates_by_category:
+  path: '/docusign/templates-by-category/{category}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::listTemplatesByCategory'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_envelope_editor:
+  path: '/docusign/envelope-editor/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::envelopeEditorPage'
+    _title: 'DocuSign Envelope Editor'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_sender_view:
+  path: '/docusign/sender-view/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::createSenderViewAjax'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.docusign_download:
+  path: '/docusign/download/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::downloadPdf'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_signing_callback:
+  path: '/docusign/signing-callback/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::signingCallback'
+  requirements:
+    # Anonymous-accessible. DocuSign's iframe lands here on Finish/cancel;
+    # cross-origin iframe redirects do not carry the Drupal session cookie
+    # (SameSite=Lax), so this endpoint must not require a permission. The
+    # endpoint only renders a postMessage script for the parent window;
+    # the parent (which is in our top-level same-site context and has the
+    # cookie) does the authenticated work.
+    _access: 'TRUE'
+
+associatedps_affidavit_template.docusign_template_editor_bounce:
+  path: '/docusign/template-editor-bounce'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignController::templateEditorBounce'
+  requirements:
+    # Same reason as signing-callback above. DocuSign's template-editor
+    # iframe redirects here on Save/Cancel. We render postMessage HTML
+    # so the parent window can run the protected editor-callback URL via
+    # a top-level same-site navigation that DOES carry the session cookie.
+    _access: 'TRUE'

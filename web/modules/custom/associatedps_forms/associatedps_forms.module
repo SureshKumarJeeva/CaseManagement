@@ -66,9 +66,28 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
       }
 
       // Single "Generate" dropdown button combining all generate actions.
+      // Affidavit/Correspondence routes + CSS class + JS library switch
+      // based on the PandaDoc kill-switch in associatedps_affidavit_template.module.
+      // FALSE (default) → DocuSign active; TRUE → PandaDoc revived.
+      // PandaDoc and DocuSign each have their own URL prefix, their own
+      // CSS class, and their own JS file — only one set is rendered + attached
+      // per request, so the two integrations never collide.
+      $pandadoc_active = function_exists('_associatedps_affidavit_template_pandadoc_active')
+        && _associatedps_affidavit_template_pandadoc_active();
+
       $invoice_url = Url::fromUri('base://xero/generate-invoice/' . $nid)->toString();
-      $affidavit_url = Url::fromUri('base://pandadoc/generate-affidavit/' . $nid)->toString();
-      $correspondence_url = Url::fromUri('base://pandadoc/generate-correspondence/' . $nid)->toString();
+      if ($pandadoc_active) {
+        $affidavit_url = Url::fromUri('base://pandadoc/generate-affidavit/' . $nid)->toString();
+        $correspondence_url = Url::fromUri('base://pandadoc/generate-correspondence/' . $nid)->toString();
+        $generate_btn_class = 'pandadoc-generate-btn';
+        $generate_library = 'associatedps_affidavit_template/pandadoc-generate';
+      }
+      else {
+        $affidavit_url = Url::fromUri('base://docusign/generate-affidavit/' . $nid)->toString();
+        $correspondence_url = Url::fromUri('base://docusign/generate-correspondence/' . $nid)->toString();
+        $generate_btn_class = 'docusign-generate-btn';
+        $generate_library = 'associatedps_affidavit_template/docusign-generate';
+      }
 
       $generate_dropdown = [
         '#type' => 'inline_template',
@@ -81,8 +100,8 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
             <div class="generate-dropdown__menu">
               <a href="{{ invoice_url }}" class="generate-dropdown__item" target="_blank">{{ "Generate Invoice"|t }}</a>
               <a href="#" class="generate-dropdown__item generate-email-btn" data-job-id="{{ nid }}">{{ "Generate Email"|t }}</a>
-              <a href="{{ affidavit_url }}" class="generate-dropdown__item pandadoc-generate-btn">{{ "Generate Affidavit"|t }}</a>
-              <a href="{{ correspondence_url }}" class="generate-dropdown__item pandadoc-generate-btn">{{ "Generate Correspondence"|t }}</a>
+              <a href="{{ affidavit_url }}" class="generate-dropdown__item {{ generate_btn_class }}">{{ "Generate Affidavit"|t }}</a>
+              <a href="{{ correspondence_url }}" class="generate-dropdown__item {{ generate_btn_class }}">{{ "Generate Correspondence"|t }}</a>
             </div>
           </div>',
         '#context' => [
@@ -90,6 +109,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
           'invoice_url' => $invoice_url,
           'affidavit_url' => $affidavit_url,
           'correspondence_url' => $correspondence_url,
+          'generate_btn_class' => $generate_btn_class,
           'nid' => $nid,
         ],
       ];
@@ -99,7 +119,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
       $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
       $form['#attached']['library'][] = 'associatedps_forms/global';
-      $form['#attached']['library'][] = 'associatedps_affidavit_template/pandadoc-generate';
+      $form['#attached']['library'][] = $generate_library;
       $form['#attached']['library'][] = 'associatedps_affidavit_template/generate-email';
 
       // Check if an automated email was just sent (case status change).
