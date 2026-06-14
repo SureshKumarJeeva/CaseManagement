@@ -9,6 +9,7 @@ dependencies:
     - field.field.node.job.field_admin_invoiced_date
     - field.field.node.job.field_admin_send_to_client_date
     - field.field.node.job.field_admin_status
+    - field.field.node.job.field_affidavit_sent_to_agent
     - field.field.node.job.field_affidavits
     - field.field.node.job.field_agreed_discount
     - field.field.node.job.field_allocated_to
@@ -164,9 +165,9 @@ third_party_settings:
       children:
         - field_case_status
         - field_job_types
-        - field_admin_status
         - field_allocated_to
         - field_admin_affidavit_date
+        - field_affidavit_sent_to_agent
         - field_admin_cover_letter_date
         - field_admin_email_update_date
         - field_admin_invoiced_date
@@ -281,7 +282,7 @@ third_party_settings:
       label: 'Client Detail'
       region: hidden
       parent_name: ''
-      weight: 9
+      weight: 10
       format_type: fieldset
       format_settings:
         classes: job-page-section-title
@@ -483,6 +484,12 @@ content:
     region: content
     settings: {  }
     third_party_settings: {  }
+  field_affidavit_sent_to_agent:
+    type: datetime_default
+    weight: 23
+    region: content
+    settings: {  }
+    third_party_settings: {  }
   field_admin_cover_letter_date:
     type: datetime_default
     weight: 24
@@ -509,7 +516,7 @@ content:
     third_party_settings: {  }
   field_admin_status:
     type: options_select
-    weight: 20
+    weight: 2
     region: content
     settings: {  }
     third_party_settings: {  }

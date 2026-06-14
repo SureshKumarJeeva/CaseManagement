@@ -34,55 +34,104 @@ function associatedps_email_template_mail($key, &$message, $params) {
 
 /**
  * Implements hook_cron().
+ *
+ * Sends the recurring "Attendance Update" client email. For every client opted
+ * in via the "Attendance Update - Frequency" checkbox
+ * (field_attendance_update_frequenc), each of that client's jobs whose
+ * instruction-received date is set gets an update email every
+ * field_email_interval days (any case status). The email body's [attendance]
+ * token is replaced with the job's Attendance Note details.
+ *
+ * Scheduling: Drupal's automated cron has no clock of its own, so this is
+ * guarded to run at most once per day and only after 05:00 server time (it
+ * fires on the first cron run past 5am). The day-count is anchored on
+ * field_last_mail_time, or the instruction-received date when no mail has been
+ * sent yet (so the first update fires `interval` days after instructions), and
+ * field_last_mail_time is re-stamped on each send by EmailTemplateController
+ * (content type 'cron').
  */
 function associatedps_email_template_cron() {
-  $nids = \Drupal::entityQuery('node')->condition('type', 'client')->execute();
-  $nodes = Node::loadMultiple($nids);
-  foreach ($nodes as $node) {
-    $nid = $node->nid->value;
-    $send_mail = $node->field_send_auto_email->value;
-    $interval = $node->field_email_interval->value;
+  // Run once per day, only after 05:00 (server time).
+  if ((int) date('G') < 5) {
+    return;
+  }
+  $today = date('Y-m-d');
+  $state = \Drupal::state();
+  if ($state->get('associatedps_email_template.attendance_cron_last_run') === $today) {
+    return;
+  }
 
-    if ($send_mail === '1') {
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
 
-      $db = Database::getConnection();
-      $query = $db->select('node__field_client', 'fc')
-        ->fields('fc', ['entity_id'])
-        ->condition('fc.field_client_target_id', $nid, '=');
-      $job_nodes = $query->execute();
-      foreach ($job_nodes as $job_node) {
+  // Load the "Attendance Update" Email template once (Library node).
+  $tpl = $storage->loadByProperties([
+    'type' => 'library',
+    'field_category' => 'Email',
+    'title' => 'Attendance Update',
+  ]);
+  if (empty($tpl)) {
+    \Drupal::logger('associatedps_email_template')->warning('Cron: no Email Library template titled "Attendance Update"; recurring client updates skipped.');
+    return;
+  }
+  $template_nid = array_key_first($tpl);
 
-        // Load the data of job content type.
-        $job_list = Node::load($job_node->entity_id);
-        if (!empty($job_list)) {
-          $job_id = $job_list->nid->value;
-          $instruction_date = $job_list->field_instruction_received->value;
-          $last_date = $job_list->field_last_mail_time->value;
-          $case_status = $job_list->field_case_status->value;
+  $client_nids = \Drupal::entityQuery('node')
+    ->condition('type', 'client')
+    ->accessCheck(FALSE)
+    ->execute();
+  if (empty($client_nids)) {
+    $state->set('associatedps_email_template.attendance_cron_last_run', $today);
+    return;
+  }
 
-          if ($case_status === 'Ongoing') {
-            $current_date = date('Y-m-d', time());
-            $current_date = date_create($current_date);
+  $today_date = date_create($today);
+  $db = Database::getConnection();
 
-            if (!empty($instruction_date) && empty($last_date)) {
-              $instruction_date = date('Y-m-d', $job_list->field_instruction_received->date->getTimestamp());
-              $instruction_date = date_create($instruction_date);
-              if ($instruction_date <= $current_date) {
-                EmailTemplateController::createEmailTemplate($nid, $job_id);
-              }
-            }
-            elseif (!empty($instruction_date) && !empty($last_date)) {
-              $last_date = date('Y-m-d', $job_list->field_last_mail_time->date->getTimestamp());
-              $last_date = date_create($last_date);
-              $diff = date_diff($last_date, $current_date);
-              $days = $diff->format("%d");
-              if ((--$days) == $interval) {
-                EmailTemplateController::createEmailTemplate($nid, $job_id);
-              }
-            }
-          }
-        }
+  foreach (Node::loadMultiple($client_nids) as $client) {
+    // Opt-in: the "Attendance Update - Frequency" checkbox gates the send.
+    if ((int) $client->get('field_attendance_update_frequenc')->value !== 1) {
+      continue;
+    }
+    // Frequency in days. No/zero interval means no schedule.
+    $interval = (int) $client->get('field_email_interval')->value;
+    if ($interval <= 0) {
+      continue;
+    }
+    $client_nid = $client->id();
+
+    // All jobs that reference this client.
+    $job_ids = $db->select('node__field_client', 'fc')
+      ->fields('fc', ['entity_id'])
+      ->condition('fc.field_client_target_id', $client_nid)
+      ->execute()
+      ->fetchCol();
+
+    foreach ($job_ids as $job_id) {
+      $job = Node::load($job_id);
+      if (!$job) {
+        continue;
+      }
+      // Requires an instruction-received date (sends for any case status).
+      if (empty($job->get('field_instruction_received')->value)) {
+        continue;
+      }
+
+      // Anchor on the last update sent, else the instruction-received date so
+      // the first update fires `interval` days after instructions.
+      $last_mail = $job->get('field_last_mail_time')->value;
+      $anchor_ts = !empty($last_mail)
+        ? $job->get('field_last_mail_time')->date->getTimestamp()
+        : $job->get('field_instruction_received')->date->getTimestamp();
+      $anchor = date_create(date('Y-m-d', $anchor_ts));
+
+      // >= (not ==): a single missed cron run must not skip the send forever.
+      $days = (int) date_diff($anchor, $today_date)->format('%a');
+      if ($days >= $interval) {
+        // 'cron' => use the title-loaded template + stamp field_last_mail_time.
+        EmailTemplateController::createEmailTemplate($template_nid, $job_id, 'cron');
       }
     }
   }
+
+  $state->set('associatedps_email_template.attendance_cron_last_run', $today);
 }

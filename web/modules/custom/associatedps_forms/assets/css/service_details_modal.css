@@ -1,0 +1,171 @@
+/**
+ * @file
+ * Styles for the Service Details popup and its read-only summary.
+ *
+ * dialogClass puts `service-details-dialog` on the outer .ui-dialog widget,
+ * so dialog rules are scoped under .ui-dialog.service-details-dialog.
+ */
+
+/* Give the dialog box an opaque background and size it. Without this the box
+ * is transparent, so the page shows through the gaps between the title bar,
+ * the content and the button row (the "transparent strip" artefacts). */
+.ui-dialog.service-details-dialog {
+  background: #fff !important;
+  max-height: 90vh;
+  padding: 0;
+  /* Pin and centre in the viewport ourselves. autoResize is off (see
+   * service_details_modal.js), so jQuery UI no longer repositions the dialog;
+   * its inline top/left are stale document coordinates, so we override them
+   * and centre with a transform. This keeps the dialog on-screen and steady
+   * (no jump when a field is focused). */
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+}
+
+/* Collapse the gap between the title bar and the content. */
+.ui-dialog.service-details-dialog .ui-dialog-titlebar {
+  margin: 0;
+  border-bottom: 0;
+}
+
+.ui-dialog.service-details-dialog .ui-dialog-content {
+  max-height: calc(90vh - 110px) !important;
+  overflow-y: auto;
+  margin: 0 !important;
+  padding: 0.75rem 1.25rem !important;
+  border: 0 !important;
+  background: #fff !important;
+}
+
+/* One thin separator line above the Done button — no transparent strip. */
+.ui-dialog.service-details-dialog .ui-dialog-buttonpane {
+  margin: 0 !important;
+  padding: 0.5rem 1.25rem !important;
+  border-top: 1px solid #d0d5dd !important;
+  background: #fff !important;
+}
+
+/* The fieldset already lives inside a dialog titled "Service Details", so its
+ * own legend/border is redundant noise (the grey bar at the top).
+ * #service-details is the Job Status group; .attendance-service-details-section
+ * is the mirror group on the Attendance Note tab (it has no fixed id, so
+ * attendance_service_details_modal.js tags it with this class). */
+.ui-dialog.service-details-dialog #service-details,
+.ui-dialog.service-details-dialog .attendance-service-details-section {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.ui-dialog.service-details-dialog #service-details > legend,
+.ui-dialog.service-details-dialog .attendance-service-details-section > legend {
+  display: none;
+}
+
+/* Compact, flat form items: strip theme-applied borders/padding and tighten
+ * vertical rhythm so the fields read densely. */
+.ui-dialog.service-details-dialog .js-form-item,
+.ui-dialog.service-details-dialog .form-item {
+  margin: 0.25rem 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+}
+
+.ui-dialog.service-details-dialog .js-form-item > label,
+.ui-dialog.service-details-dialog .form-item > label,
+.ui-dialog.service-details-dialog .form-item__label {
+  margin-bottom: 0.15rem;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+/* Tighten the nested wrappers: the address paragraph subform and the inline
+ * entity form table. */
+.ui-dialog.service-details-dialog fieldset {
+  margin: 0.25rem 0;
+  padding: 0.4rem 0.6rem;
+}
+
+.ui-dialog.service-details-dialog fieldset > legend {
+  padding: 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.ui-dialog.service-details-dialog .paragraphs-subform,
+.ui-dialog.service-details-dialog .field-multiple-table,
+.ui-dialog.service-details-dialog .form-wrapper {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.ui-dialog.service-details-dialog .details-wrapper {
+  padding: 0.4rem 0.6rem;
+}
+
+.ui-dialog.service-details-dialog input[type="text"],
+.ui-dialog.service-details-dialog input[type="date"],
+.ui-dialog.service-details-dialog select,
+.ui-dialog.service-details-dialog textarea {
+  padding: 0.25rem 0.4rem;
+}
+
+.ui-dialog.service-details-dialog textarea {
+  min-height: 3rem;
+}
+
+/* Widen the controls so their values fit (Served By, Person Delivered To,
+ * Business Name, etc. are otherwise too narrow). */
+.ui-dialog.service-details-dialog .form-element,
+.ui-dialog.service-details-dialog input[type="text"],
+.ui-dialog.service-details-dialog input[type="date"],
+.ui-dialog.service-details-dialog select,
+.ui-dialog.service-details-dialog textarea {
+  width: 100%;
+  max-width: 480px;
+  box-sizing: border-box;
+}
+
+/* Served By uses a Chosen widget whose width is set inline; override it. */
+.ui-dialog.service-details-dialog .chosen-container {
+  width: 100% !important;
+  max-width: 480px;
+}
+
+/* Read-only Service Details summary shown on the Job Status tab. */
+.service-details-summary {
+  margin: 0.5rem 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid #d0d5dd;
+  border-radius: 4px;
+  background: #f9fafb;
+}
+
+.service-details-summary__title {
+  margin-bottom: 0.5rem;
+  font-weight: 700;
+}
+
+.service-details-summary__list {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.15rem 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.service-details-summary__list dt {
+  font-weight: 600;
+}
+
+.service-details-summary__list dd {
+  margin: 0;
+}
+
+.service-details-summary__empty {
+  margin: 0 0 0.75rem;
+  color: #667085;
+  font-style: italic;
+}

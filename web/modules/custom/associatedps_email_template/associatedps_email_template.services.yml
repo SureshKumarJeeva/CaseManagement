@@ -1,0 +1,7 @@
+services:
+  associatedps_email_template.m365_mail:
+    class: Drupal\associatedps_email_template\Service\Microsoft365MailService
+    arguments:
+      - '@http_client'
+      - '@cache.default'
+      - '@logger.factory'

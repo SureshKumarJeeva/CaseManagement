@@ -120,6 +120,7 @@ class XeroInvoiceIntegration {
             return [
                 'message' => $json_invoiceID['message'],
                 'invoiceId' => $json_invoiceID['invoiceId'],
+                'invoiceNumber' => $json_invoiceID['invoiceNumber'] ?? '',
             ];
         }catch (\Exception $e) {
             \Drupal::logger('associatedps_affidavit_template_Xero')->error('Xero createInvoice error: @msg', ['@msg' => $e->getMessage()]);

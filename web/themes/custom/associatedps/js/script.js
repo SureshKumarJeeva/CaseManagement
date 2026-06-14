@@ -625,22 +625,10 @@
           $('.page-user-type-agent #edit-title-0-value').prop('readonly', true);
 
 
-          // Show Service Details group when Case Status is changed to Served.
-
-          if ($('#edit-field-case-status').val() == 'Completed – Served') {
-            $('#service-details').show();
-          }
-
-          $('#edit-field-case-status').on('change', function () {
-
-            if (this.value == 'Completed – Served') {
-              $('#service-details').show();
-              $('#edit-field-para-address-0-subform-field-primary-address-wrapper').hide();
-            }
-            else {
-              $('#service-details').hide();
-            }
-          });
+          // Service Details visibility (Case Status = "Completed – Served")
+          // is handled by the associatedps_forms/service_details_modal
+          // library, which relocates the #service-details fieldset into a
+          // modal dialog. See assets/js/service_details_modal.js.
 
           // Party to Serve populated select varaibles.
 

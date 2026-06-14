@@ -5,6 +5,7 @@ namespace Drupal\select_or_other\Plugin\Validation;
 use Drupal\Core\DependencyInjection\ContainerInjectionInterface;
 use Drupal\Core\Form\OptGroup;
 use Drupal\Core\Session\AccountInterface;
+use Drupal\Core\TypedData\OptionsProviderInterface;
 use Drupal\Core\TypedData\TypedDataInterface;
 use Drupal\Core\TypedData\Validation\TypedDataAwareValidatorTrait;
 use Drupal\Core\Validation\Plugin\Validation\Constraint\AllowedValuesConstraintValidator as CoreAllowedValuesConstraintValidator;
@@ -57,8 +58,9 @@ class AllowedValuesConstraintValidator extends ChoiceValidator implements Contai
     if ($this->mustBeValidatedByCore($typed_data)) {
       $this->validateUsingCoreValidation($value, $constraint);
     }
-    else {
-      $constraint->choices = array_keys($this->getValidChoices($typed_data));
+    elseif ($typed_data instanceof OptionsProviderInterface) {
+      $allowed_values = $typed_data->getSettableValues($this->currentUser);
+      $constraint->choices = $allowed_values;
       $value = $this->getMainPropertyValue($typed_data);
 
       // Force the choices to be the same type as the value.

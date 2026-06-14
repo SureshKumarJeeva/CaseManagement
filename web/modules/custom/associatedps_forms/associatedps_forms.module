@@ -98,7 +98,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
               <span class="generate-dropdown__arrow">&#9660;</span>
             </a>
             <div class="generate-dropdown__menu">
-              <a href="{{ invoice_url }}" class="generate-dropdown__item" target="_blank">{{ "Generate Invoice"|t }}</a>
+              <a href="{{ invoice_url }}" class="generate-dropdown__item" target="_blank" rel="opener">{{ "Generate Invoice"|t }}</a>
               <a href="#" class="generate-dropdown__item generate-email-btn" data-job-id="{{ nid }}">{{ "Generate Email"|t }}</a>
               <a href="{{ affidavit_url }}" class="generate-dropdown__item {{ generate_btn_class }}">{{ "Generate Affidavit"|t }}</a>
               <a href="{{ correspondence_url }}" class="generate-dropdown__item {{ generate_btn_class }}">{{ "Generate Correspondence"|t }}</a>
@@ -122,14 +122,17 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
       $form['#attached']['library'][] = $generate_library;
       $form['#attached']['library'][] = 'associatedps_affidavit_template/generate-email';
 
-      // Check if an automated email was just sent (case status change).
-      // If so, pass the email data to JS to also open the default email client.
-      $tempstore = \Drupal::service('tempstore.private')->get('associatedps_email_template');
-      $mailto_data = $tempstore->get('mailto_data');
-      if ($mailto_data) {
-        $form['#attached']['drupalSettings']['associatedps_forms']['mailto_trigger'] = $mailto_data;
-        $tempstore->delete('mailto_data');
-      }
+      // --- mailto popup DISABLED — automated emails now send silently via
+      //     Microsoft 365 Graph (no OS mail client). PRESERVED for recovery:
+      //     this read the mailto_data stashed by EmailTemplateController and
+      //     passed it to custom.js (associatedpsMailtoTrigger). To restore,
+      //     re-enable this block, the stash in the controller, and the JS. ---
+      // $tempstore = \Drupal::service('tempstore.private')->get('associatedps_email_template');
+      // $mailto_data = $tempstore->get('mailto_data');
+      // if ($mailto_data) {
+      //   $form['#attached']['drupalSettings']['associatedps_forms']['mailto_trigger'] = $mailto_data;
+      //   $tempstore->delete('mailto_data');
+      // }
   }
 
   /* Job Edit/Add form overrides. */
@@ -142,16 +145,43 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     $form['#after_build'][] = '_associatedps_forms_job_form_after_build';
     $form['#attached']['library'][] = 'associatedps_forms/job_form_tabs';
     $form['#attached']['library'][] = 'associatedps_forms/date_autofill';
+    $form['#attached']['library'][] = 'associatedps_forms/service_details_modal';
+    $form['#attached']['library'][] = 'associatedps_forms/attendance_service_details_modal';
+
+    // Invoice Number is set ONLY by the Xero invoice flow — the Generate Invoice
+    // tab injects it into this read-only field via the opener. Staff don't type
+    // it; readonly (not disabled) so the injected value still submits on Save.
+    if (isset($form['field_invoice_number']['widget'][0]['value'])) {
+      $form['field_invoice_number']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+    }
+
+    // Reconcile the Job Status <-> Attendance Note service-detail field sets.
+    // This MUST run as an entity builder (before save), not in node_presave:
+    // the address paragraph's existing revision is overwritten in place during
+    // the ERR field preSave, which happens before node_presave, so by then the
+    // "original" address equals the edited one and an edit looks unchanged.
+    $form['#entity_builders'][] = '_associatedps_forms_service_details_entity_builder';
+
+    // Stash the ORIGINAL address signatures now, while the form entity still
+    // holds its stored (pre-edit) values — form_alter runs before submitted
+    // values are copied into the entity. Reading them later via loadUnchanged()
+    // is unreliable: the paragraph entity static cache returns the EDITED
+    // paragraph on the submit-phase buildEntity, so an edit looks unchanged.
+    $job_entity = $form_state->getFormObject()->getEntity();
+    $form_state->set('aps_orig_job_addr_sig', _associatedps_forms_address_signature($job_entity, 'field_para_address'));
+    $form_state->set('aps_orig_att_addr_sig', _associatedps_forms_address_signature($job_entity, 'field_attendance_address_served'));
 
     // "Set to today" checkboxes for admin date fields.
     $date_autofill_fields = [
-      'field_admin_affidavit_date' => t('Set Affidavit Drafted Date to today'),
-      'field_admin_cover_letter_date' => t('Set Cover Letter Drafted Date to today'),
-      'field_admin_email_update_date' => t('Set Email Update Sent Date to today'),
-      'field_admin_invoiced_date' => t('Set Invoiced Date to today'),
-      'field_admin_send_to_client_date' => t('Set Send to Client Date to today'),
-      'field_allocation_date' => t('Set Allocation Date to today'),
-      'field_deadline' => t('Set Deadline to today'),
+      'field_admin_affidavit_date' => t('Affidavit Drafted'),
+      'field_affidavit_sent_to_agent' => t('Affidavit Sent to Agent'),
+      'field_affidavit_sent_to_client' => t('Affidavit Sent to Client'),
+      'field_affidavit_received_from_ag' => t('Affidavit Received from Agent'),
+      'field_admin_cover_letter_date' => t('Job Logged'),
+      'field_admin_email_update_date' => t('Email Update Sent'),
+      'field_admin_invoiced_date' => t('Invoice Drafted'),
+      'field_admin_send_to_client_date' => t('Invoice Sent to Client'),
+      'field_allocation_date' => t('Job Allocated'),
     ];
 
     foreach ($date_autofill_fields as $field_name => $label) {
@@ -165,6 +195,12 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         '#weight' => -10,
       ];
     }
+
+    // Inline layout for "Affidavit Drafted": the field wrapper
+    // (.field--name-field-admin-affidavit-date) already contains the
+    // autofill checkbox and the date fieldset as siblings, so the CSS
+    // in assets/css/date_autofill.css just flexes that wrapper and hides
+    // the fieldset legend.
 
     // "Create New Client" button — shared across add and edit forms.
     $client_nid = ($form_id == 'node_job_edit_form')
@@ -198,7 +234,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         'data-dialog-type' => 'modal',
         'data-dialog-options' => '{"width":800}',
       ],
-      '#weight' => '7',
+      '#weight' => '51',
     ];
 
     // "Create New Document" button — shared across add and edit forms.
@@ -230,8 +266,22 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         'data-dialog-type' => 'modal',
         'data-dialog-options' => '{"width":800}',
       ],
-      '#weight' => '22',
+      '#weight' => '21',
     ];
+
+    // "Admin Status" sub-heading: rendered as the first child of the
+    // Affidavit Drafted field so it rides along with that field's position
+    // inside group_job_status. Sits above the checkbox and the date row.
+    if (isset($form['field_admin_affidavit_date'])) {
+      $form['field_admin_affidavit_date']['admin_status_header'] = [
+        '#type' => 'inline_template',
+        '#template' => '<h3 class="admin-status-header">{{ label }}</h3>',
+        '#context' => [
+          'label' => t('Admin Status'),
+        ],
+        '#weight' => 22,
+      ];
+    }
 
     // "Save & Next" button — saves the form and advances to the next tab.
     $form['actions']['save_next'] = [
@@ -251,6 +301,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
       $form['title']['#access'] = FALSE;
       $form['field_admin_affidavit_date']['#disabled'] = TRUE;
+      $form['field_affidavit_sent_to_agent']['#disabled'] = TRUE;
       $form['field_admin_cover_letter_date']['#disabled'] = TRUE;
       $form['field_admin_email_update_date']['#disabled'] = TRUE;
       $form['field_admin_invoiced_date']['#disabled'] = TRUE;
@@ -706,93 +757,15 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
   if (($form_id == 'node_client_form') || ($form_id == 'node_client_edit_form')) {
 
-    // Build email template options.
-    $query = \Drupal::database()->select('node_field_data', 'n');
-    $query->fields('n', ['nid', 'title']);
-    $query->leftjoin('node__field_category', 'fc', 'fc.entity_id = n.nid');
-    $query->fields('fc', ['field_category_value']);
-    $query->condition('fc.field_category_value', 'Email', '=');
-    $result = $query->execute();
-    $template_options = ['' => '- Select Template -'];
-    foreach ($result as $email_value) {
-      $template_options[$email_value->nid] = $email_value->title;
-    }
+    // Load form.css (global library) so the client form picks up the
+    // "Attendance Update - Frequency" inline-layout rules; it was never
+    // attached on this form before.
+    $form['#attached']['library'][] = 'associatedps_forms/global';
 
-    // Build mail events options.
-    $mail_events_storage = \Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'field_mail_events');
-    $allowed_values = $mail_events_storage ? $mail_events_storage->getSetting('allowed_values') : [];
-    $event_options = ['' => '- Select Event -'];
-    foreach ($allowed_values as $item) {
-      if (is_array($item)) {
-        $event_options[$item['value']] = $item['label'];
-      }
-      else {
-        // When loaded from active config, allowed_values can be key => label.
-        $event_options[$item] = $item;
-      }
-    }
-    $max_events = count($allowed_values);
-
-    // Get saved values for edit page.
-    $saved_events = [];
-    $saved_templates = [];
-    $node = $form_state->getFormObject()->getEntity();
-    if ($node && !$node->isNew()) {
-      foreach ($node->get('field_mail_events')->getValue() as $val) {
-        $saved_events[] = $val['value'];
-      }
-      foreach ($node->get('field_email_template')->getValue() as $val) {
-        $saved_templates[] = $val['target_id'];
-      }
-    }
-    $saved_count = max(count($saved_events), count($saved_templates));
-
-    // Hide the original field widgets — we replace them with custom dropdowns.
-    $form['field_mail_events']['#access'] = FALSE;
+    // The Mail Event + Email Template paired-dropdown UI has been removed.
+    // field_email_template is still read by EmailTemplateController when an
+    // update email is sent, so keep its raw widget off the client form.
     $form['field_email_template']['#access'] = FALSE;
-
-    // Build custom paired dropdown container.
-    $form['email_event_pairs'] = [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['email-event-pairs-wrapper']],
-      '#weight' => 15,
-      '#tree' => TRUE,
-    ];
-
-    for ($i = 0; $i < $max_events; $i++) {
-      $form['email_event_pairs'][$i] = [
-        '#type' => 'container',
-        '#attributes' => ['class' => ['email-event-pair', 'email-event-pair--' . $i]],
-      ];
-      $form['email_event_pairs'][$i]['mail_event'] = [
-        '#type' => 'select',
-        '#title' => t('Mail Event'),
-        '#options' => $event_options,
-        '#default_value' => $saved_events[$i] ?? '',
-      ];
-      $form['email_event_pairs'][$i]['email_template'] = [
-        '#type' => 'select',
-        '#title' => t('Email Template'),
-        '#options' => $template_options,
-        '#default_value' => $saved_templates[$i] ?? '',
-      ];
-    }
-
-    // "Add email update" button.
-    $form['email_update_add_btn'] = [
-      '#type' => 'inline_template',
-      '#template' => '<div class="email-update-add-wrapper"><button type="button" class="button email-update-add-btn">{{ label }}</button></div>',
-      '#context' => ['label' => t('Add email update')],
-      '#weight' => 16,
-    ];
-
-    // Pass settings to JS.
-    $form['#attached']['library'][] = 'associatedps_forms/client_email_events';
-    $form['#attached']['drupalSettings']['associatedps_forms']['max_mail_events'] = $max_events;
-    $form['#attached']['drupalSettings']['associatedps_forms']['saved_event_count'] = $saved_count;
-
-    // Custom submit handler to map paired dropdowns back to fields.
-    array_unshift($form['actions']['submit']['#submit'], '_associatedps_forms_client_email_events_submit');
   }
 
   /* Hide preview button from Email Preview and Preview node. */
@@ -1119,6 +1092,56 @@ function associatedps_forms_inline_entity_form_table_fields_alter(&$fields, $con
   if ($context['field_name'] == 'field_service_address' && isset($fields['label'])) {
     $fields['label']['label'] = t('Address');
   }
+
+  // Attendance Notes list: replace the "Label" column (which showed the
+  // paragraph label "Job … → Attendance Notes") with two columns — Date and
+  // Time — both derived from field_date_time. The Operations column is appended
+  // by IEF and is kept as-is. (Works because attendance_note has no enabled
+  // ief_table view-mode display, so this alter is not overwritten by the
+  // ief_table_view_mode handler.)
+  if ($context['field_name'] === 'field_attendance_notes') {
+    unset($fields['label']);
+    $fields['attendance_date'] = [
+      'type' => 'callback',
+      'label' => t('Date'),
+      'callback' => '_associatedps_forms_attendance_table_date',
+      'weight' => 1,
+    ];
+    $fields['attendance_time'] = [
+      'type' => 'callback',
+      'label' => t('Time'),
+      'callback' => '_associatedps_forms_attendance_table_time',
+      'weight' => 2,
+    ];
+  }
+}
+
+/**
+ * IEF table callback: the Date part of an attendance note's field_date_time.
+ */
+function _associatedps_forms_attendance_table_date($entity, $variables) {
+  return ['#markup' => _associatedps_forms_attendance_dt_format($entity, 'd/m/Y')];
+}
+
+/**
+ * IEF table callback: the Time part of an attendance note's field_date_time.
+ */
+function _associatedps_forms_attendance_table_time($entity, $variables) {
+  return ['#markup' => _associatedps_forms_attendance_dt_format($entity, 'h:i A')];
+}
+
+/**
+ * Format an attendance note's field_date_time (stored UTC) in the site
+ * timezone with the given PHP date format. Returns '' when empty/unparseable.
+ */
+function _associatedps_forms_attendance_dt_format($entity, $format) {
+  if (!$entity->hasField('field_date_time') || $entity->get('field_date_time')->isEmpty()) {
+    return '';
+  }
+  $raw = $entity->get('field_date_time')->value;
+  // 'datetime' fields store 'Y-m-d\TH:i:s' in UTC.
+  $ts = strtotime($raw . ' UTC');
+  return $ts ? \Drupal::service('date.formatter')->format($ts, 'custom', $format) : '';
 }
 
 /**
@@ -1134,6 +1157,14 @@ function associatedps_forms_inline_entity_form_entity_form_alter(array &$entity_
     $entity_form['#ief_labels']['singular'] = t('Fee');
     $entity_form['#ief_labels']['plural'] = t('Fees');
     $entity_form['#after_build'][] = '_associatedps_forms_after_build_ief_job_fees';
+  }
+  // Attendance Notes: rename the inline add/edit save buttons to Create/Update
+  // Attendance. (The widget-level "Add new …" button is renamed in the job form
+  // after_build, _associatedps_forms_job_form_after_build.)
+  if ($entity_form['#entity_type'] == 'paragraph' && in_array('field_attendance_notes', $entity_form['#parents'], TRUE)) {
+    $entity_form['#ief_labels']['singular'] = t('Attendance');
+    $entity_form['#ief_labels']['plural'] = t('Attendances');
+    $entity_form['#after_build'][] = '_associatedps_forms_after_build_ief_attendance';
   }
 }
 
@@ -1315,26 +1346,190 @@ function associatedps_forms_node_presave(NodeInterface $node) {
 }
 
 /**
- * After build callback to fix horizontal tabs group mechanism.
+ * Entity builder: reconcile Job Status <-> Attendance service-detail fields.
  *
- * Sets #group_exists on the 'group_job' horizontal tabs container so that
- * Drupal's group mechanism properly injects tab members into the container
- * and suppresses duplicate rendering at the original location.
+ * Runs during form submit (buildEntity), BEFORE the node is saved — crucially
+ * before the entity_reference_revisions field preSave overwrites the existing
+ * address paragraph in place. That timing is what makes change detection work
+ * on EDIT: a fresh loadUnchanged() of the node still holds the pre-edit address,
+ * so an edited address is correctly detected and copied.
  */
-function _associatedps_forms_client_email_events_submit(array &$form, FormStateInterface $form_state) {
-  $pairs = $form_state->getValue('email_event_pairs') ?? [];
-  $events = [];
-  $templates = [];
-  foreach ($pairs as $pair) {
-    $event = $pair['mail_event'] ?? '';
-    $template = $pair['email_template'] ?? '';
-    if (!empty($event)) {
-      $events[] = ['value' => $event];
-      $templates[] = ['target_id' => $template ?: NULL];
+function _associatedps_forms_service_details_entity_builder($entity_type, NodeInterface $node, &$form, FormStateInterface $form_state) {
+  if ($node->getType() !== 'job') {
+    return;
+  }
+  // Only act on a real full-page submit, not the AJAX widget rebuilds
+  // (add/remove paragraph, IEF open/close), which also call buildEntity.
+  if (\Drupal::request()->isXmlHttpRequest()) {
+    return;
+  }
+  // Load a clean copy of the stored node; its paragraphs are not yet overwritten
+  // by this save, so they carry the genuine pre-edit values for comparison.
+  $original = NULL;
+  if (!$node->isNew()) {
+    $original = \Drupal::entityTypeManager()->getStorage('node')->loadUnchanged($node->id());
+  }
+  // Original address signatures captured in form_alter (pre-edit, reliable).
+  $orig_job_addr_sig = $form_state->get('aps_orig_job_addr_sig');
+  $orig_att_addr_sig = $form_state->get('aps_orig_att_addr_sig');
+  _associatedps_forms_sync_service_details($node, $original, $orig_job_addr_sig, $orig_att_addr_sig);
+}
+
+/**
+ * Reconcile the Job Status and Attendance Note service-detail field sets.
+ *
+ * The Attendance Note tab carries a copy of the Job Status "Service Details"
+ * fields (plus its own Case Status). The two sets are kept identical, resolved
+ * here on save:
+ *   - if only one tab's field changed, that value flows to the other tab;
+ *   - if BOTH changed the same field in one save, the Attendance value wins.
+ *
+ * Change is detected per field against $node->original (the pre-edit values),
+ * which also makes future per-tab field access control safe: a tab the user
+ * cannot edit keeps its original values (unchanged), so the other tab
+ * correctly propagates.
+ */
+function _associatedps_forms_sync_service_details(NodeInterface $node, $original = NULL, $origJobAddrSig = NULL, $origAttAddrSig = NULL) {
+  if ($node->getType() !== 'job') {
+    return;
+  }
+
+  // Job Status field => Attendance Note field (simple value fields).
+  $pairs = [
+    'field_case_status'              => 'field_attendance_case_status',
+    'field_served_by'                => 'field_attendance_served_by',
+    'field_method_of_service'        => 'field_attendance_method_of_servi',
+    'field_person_delivered_to'      => 'field_atten_person_delivered_to',
+    'field_person_delivered_value'   => 'field_atten_person_delivered_val',
+    'field_service_details_position' => 'field_atten_service_details_pos',
+    'field_business_name'            => 'field_atten_business_name',
+    'field_business_name_value'      => 'field_atten_business_name_value',
+    'field_notes2'                   => 'field_attendance_notes2',
+    'field_date_service'             => 'field_attendance_date_service',
+  ];
+
+  foreach ($pairs as $jobField => $attField) {
+    if (!$node->hasField($jobField) || !$node->hasField($attField)) {
+      continue;
+    }
+
+    $jobVal = $node->get($jobField)->getValue();
+    $attVal = $node->get($attField)->getValue();
+    $jobOrig = ($original && $original->hasField($jobField)) ? $original->get($jobField)->getValue() : [];
+    $attOrig = ($original && $original->hasField($attField)) ? $original->get($attField)->getValue() : [];
+
+    $jobChanged = ($jobVal != $jobOrig);
+    $attChanged = ($attVal != $attOrig);
+
+    if ($attChanged) {
+      // Attendance precedence — covers "attendance only" and "both changed".
+      if ($jobVal != $attVal) {
+        $node->set($jobField, $attVal);
+      }
+    }
+    elseif ($jobChanged) {
+      if ($jobVal != $attVal) {
+        $node->set($attField, $jobVal);
+      }
     }
   }
-  $form_state->setValue('field_mail_events', $events);
-  $form_state->setValue('field_email_template', $templates);
+
+  // Address Served — both fields are entity_reference_revisions (paragraph).
+  // Detect change by the address CONTENT (not just the reference id) so an
+  // in-place edit of the same paragraph is caught, then copy by duplicating
+  // the paragraph so each field owns its own copy.
+  $jobAddr = 'field_para_address';
+  $attAddr = 'field_attendance_address_served';
+  if ($node->hasField($jobAddr) && $node->hasField($attAddr)) {
+    $jobSig = _associatedps_forms_address_signature($node, $jobAddr);
+    $attSig = _associatedps_forms_address_signature($node, $attAddr);
+    // Prefer the signatures captured in form_alter (reliable pre-edit values);
+    // fall back to $original only when not provided (e.g. programmatic saves).
+    $jobOrigSig = $origJobAddrSig !== NULL ? $origJobAddrSig : ($original ? _associatedps_forms_address_signature($original, $jobAddr) : '');
+    $attOrigSig = $origAttAddrSig !== NULL ? $origAttAddrSig : ($original ? _associatedps_forms_address_signature($original, $attAddr) : '');
+
+    $jobAddrChanged = ($jobSig !== $jobOrigSig);
+    $attAddrChanged = ($attSig !== $attOrigSig);
+
+    if ($attAddrChanged && $jobSig !== $attSig) {
+      _associatedps_forms_copy_paragraph_field($node, $attAddr, $jobAddr);
+    }
+    elseif ($jobAddrChanged && $jobSig !== $attSig) {
+      _associatedps_forms_copy_paragraph_field($node, $jobAddr, $attAddr);
+    }
+  }
+}
+
+/**
+ * Build a comparable signature of an address paragraph's address columns.
+ *
+ * @param \Drupal\Core\Entity\FieldableEntityInterface $node
+ *   The node (or $node->original) to read from.
+ * @param string $field
+ *   The paragraph reference field name.
+ *
+ * @return string
+ *   A stable string of the address columns, or '' when there is no address.
+ */
+function _associatedps_forms_address_signature($node, $field) {
+  if (!$node->hasField($field) || $node->get($field)->isEmpty()) {
+    return '';
+  }
+  $para = $node->get($field)->entity;
+  if (!$para) {
+    return '';
+  }
+
+  // The "address" paragraph bundle has THREE editable subfields, all watched so
+  // a change to any one triggers the copy:
+  //   field_address                  (Service Address — full address columns)
+  //   field_party_to_serve_addresses (Party to Serve Addresses — list_string)
+  //   field_selected_address         (Selected Address — string)
+  $parts = [];
+
+  if ($para->hasField('field_address') && !$para->get('field_address')->isEmpty()) {
+    $a = $para->get('field_address')->first()->getValue();
+    $keys = [
+      'country_code', 'administrative_area', 'locality', 'dependent_locality',
+      'postal_code', 'sorting_code', 'address_line1', 'address_line2',
+      'organization', 'given_name', 'family_name',
+    ];
+    foreach ($keys as $k) {
+      $parts[] = isset($a[$k]) ? trim((string) $a[$k]) : '';
+    }
+  }
+  else {
+    $parts[] = '';
+  }
+
+  $parts[] = ($para->hasField('field_party_to_serve_addresses') && !$para->get('field_party_to_serve_addresses')->isEmpty())
+    ? trim((string) $para->get('field_party_to_serve_addresses')->value) : '';
+  $parts[] = ($para->hasField('field_selected_address') && !$para->get('field_selected_address')->isEmpty())
+    ? trim((string) $para->get('field_selected_address')->value) : '';
+
+  return implode('|', $parts);
+}
+
+/**
+ * Copy a paragraph reference between two node fields by duplicating it.
+ *
+ * A paragraph cannot be shared by two parent fields, so the referenced
+ * paragraph is duplicated and the new copy assigned to the target.
+ *
+ * This runs in an entity builder, BEFORE the node save (and therefore before
+ * the entity_reference_revisions field preSave). Assigning the unsaved
+ * duplicate is enough — the ERR field saves it and fills in
+ * target_id/target_revision_id during the node save, the standard paragraph
+ * flow.
+ */
+function _associatedps_forms_copy_paragraph_field($node, $sourceField, $targetField) {
+  if ($node->get($sourceField)->isEmpty() || !$node->get($sourceField)->entity) {
+    $node->set($targetField, []);
+    return;
+  }
+  $dup = $node->get($sourceField)->entity->createDuplicate();
+  $dup->enforceIsNew(TRUE);
+  $node->set($targetField, $dup);
 }
 
 /**
@@ -1351,12 +1546,29 @@ function _associatedps_forms_after_build_ief_job_fees($element, FormStateInterfa
 }
 
 /**
+ * After build: rename IEF add/edit save buttons for Attendance Notes.
+ */
+function _associatedps_forms_after_build_ief_attendance($element, FormStateInterface $form_state) {
+  if (isset($element['actions']['ief_add_save'])) {
+    $element['actions']['ief_add_save']['#value'] = t('Create Attendance');
+  }
+  if (isset($element['actions']['ief_edit_save'])) {
+    $element['actions']['ief_edit_save']['#value'] = t('Update Attendance');
+  }
+  return $element;
+}
+
+/**
  * After build callback to fix horizontal tabs group mechanism.
  */
 function _associatedps_forms_job_form_after_build($form, FormStateInterface $form_state) {
   $groups = &$form_state->getGroups();
   if (isset($groups['group_job'])) {
     $groups['group_job']['#group_exists'] = TRUE;
+  }
+  // Rename the Attendance Notes IEF "Add new …" button to "Add New Attendance".
+  if (isset($form['field_attendance_notes']['widget']['actions']['ief_add'])) {
+    $form['field_attendance_notes']['widget']['actions']['ief_add']['#value'] = t('Add New Attendance');
   }
   return $form;
 }
@@ -1670,6 +1882,12 @@ function associatedps_forms_node_insert(NodeInterface $node) {
     \Drupal::logger('associatedps_forms')->notice('Online Instruction node created with NID: @nid', ['@nid' => $nid]);
     EmailTemplateController::createEmailTemplate($nid, 'true');
   }
+
+  // A job created already carrying an instruction-received date counts as
+  // "empty -> valid date", so send the Instructions Received email.
+  if ($node->getType() === 'job' && !empty($node->get('field_instruction_received')->value)) {
+    _associatedps_forms_send_instructions_received_email($node);
+  }
 }
 
 /**
@@ -1689,38 +1907,108 @@ function associatedps_forms_node_update(NodeInterface $node) {
     $nid = $node->id();
     $job_node = Node::load($nid);
     $client_items = $job_node->get('field_client')[0]->entity ?? NULL;
-    //check if send auto email is enabled for client.
-    if($client_items && $client_items->get('field_send_auto_email')->value != 1){
-      Drupal::logger('associatedps_forms')->notice('Auto email is disabled for client: @client. So, email will not be sent.', ['@client' => $client_items->id()]);
+    //check if any update-email event is enabled for client.
+    if($client_items &&
+      $client_items->get('field_instructions_received')->value != 1 &&
+      $client_items->get('field_attendance_update_frequenc')->value != 1 &&
+      $client_items->get('field_served')->value != 1 &&
+      $client_items->get('field_attempted')->value != 1 &&
+      $client_items->get('field_completed')->value != 1){
+      Drupal::logger('associatedps_forms')->notice('All update-email events are disabled for client: @client. So, email will not be sent.', ['@client' => $client_items->id()]);
       return;
     }
+
+    // Send the Instructions Received email when the instruction date is set
+    // for the first time (empty -> valid date).
+    $instr_new = $node->get('field_instruction_received')->value;
+    $instr_old = isset($node->original) ? $node->original->get('field_instruction_received')->value : NULL;
+    if (!empty($instr_new) && empty($instr_old)) {
+      _associatedps_forms_send_instructions_received_email($node);
+    }
+
     $case_status = $node->field_case_status->value;
     $case_status_value = $node->field_case_status_value->value;
-    $config = \Drupal::config('associatedps_case_status_template.settings');
-    $email_template = $config->get('email_template');
-    \Drupal::logger('associatedps_forms')->notice('Job node case status changed with NID: @nid, @case_status, @case_status_value, @email_template ', ['@nid' => $nid, '@case_status' => $case_status, '@case_status_value' => $case_status_value, '@email_template' => $email_template]);
-    \Drupal::logger('associatedps_forms')->notice('Job node case status changed with NID: @case_status, @case_status_value', ['@case_status_value'=> $case_status_value, '@case_status' => $case_status]);
-    if (!empty($case_status) && ($email_template !== '_none')) {
-      \Drupal::logger('associatedps_forms')->notice('inside 1st condition');
-      if ($case_status !== 'Ongoing' && $case_status !== $case_status_value) {
-        if('logged' == trim(strtolower($case_status))){
-          //fetch email template from library section where category is email and title is logged.
-          $email_template_logged = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'library', 'field_category' => 'Email', 'title' => 'Logged']);
-          if(!empty($email_template_logged)){
-            $email_template_id = array_key_first($email_template_logged);
-            \Drupal::logger('associatedps_forms')->notice('inside logged condition Job node case status changed with NID: @nid', ['@nid' => $nid]);
-            EmailTemplateController::createEmailTemplate($email_template_id, $nid, 'job');
-          }else{
-            \Drupal::messenger()->addWarning(t('No email template found with category "Email" and title "Logged". Email was not sent.'));
-            \Drupal::logger('associatedps_forms')->notice('No email template found for logged case status with NID: @nid', ['@nid' => $nid]);
+    \Drupal::logger('associatedps_forms')->notice('Job @nid case status: @cs (last sent: @csv)', ['@nid' => $nid, '@cs' => $case_status, '@csv' => $case_status_value]);
+
+    // Only act when the Case Status actually changed (avoid re-sending).
+    if (!empty($case_status) && $case_status !== 'Ongoing' && $case_status !== $case_status_value) {
+      // Normalise for matching (en-dash -> hyphen, lower-case, trim).
+      $status_key = strtolower(trim(str_replace('–', '-', $case_status)));
+
+      // Job update events: Case Status => [client opt-in checkbox, email template title].
+      // The template is a Library node (category "Email") whose title matches.
+      $status_map = [
+        'completed - served'    => ['field_served', 'Served'],
+        'completed - attempted' => ['field_attempted', 'Attempted'],
+        'completed - enquiries'  => ['field_completed', 'Completed'],
+      ];
+
+      if (isset($status_map[$status_key])) {
+        [$checkbox_field, $template_title] = $status_map[$status_key];
+        // Send only if the client opted in to this event.
+        if ($client_items && $client_items->get($checkbox_field)->value == 1) {
+          $tpl = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties([
+            'type' => 'library',
+            'field_category' => 'Email',
+            'title' => $template_title,
+          ]);
+          if (!empty($tpl)) {
+            EmailTemplateController::createEmailTemplate(array_key_first($tpl), $nid, 'job');
+          }
+          else {
+            \Drupal::messenger()->addWarning(t('No email template found with category "Email" and title "@title". Email was not sent.', ['@title' => $template_title]));
+            \Drupal::logger('associatedps_forms')->notice('No "@title" email template found for job @nid.', ['@title' => $template_title, '@nid' => $nid]);
           }
         }
-        else{
-          \Drupal::logger('associatedps_forms')->notice('inside 2nd condition Job node case status changed with NID: @nid', ['@nid' => $nid]);
-          EmailTemplateController::createEmailTemplate($email_template, $nid, 'job');
+        else {
+          \Drupal::logger('associatedps_forms')->notice('Client opted out of "@field" for job @nid. Email not sent.', ['@field' => $checkbox_field, '@nid' => $nid]);
+        }
+      }
+      // Legacy "Logged" status uses its own template.
+      elseif ($status_key === 'logged') {
+        $email_template_logged = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'library', 'field_category' => 'Email', 'title' => 'Logged']);
+        if (!empty($email_template_logged)) {
+          EmailTemplateController::createEmailTemplate(array_key_first($email_template_logged), $nid, 'job');
+        }
+        else {
+          \Drupal::messenger()->addWarning(t('No email template found with category "Email" and title "Logged". Email was not sent.'));
         }
       }
     }
   }
 
+}
+
+/**
+ * Send the "Instructions Received" client email for a job.
+ *
+ * Fires when a job's instruction-received date is first set. Sends only if the
+ * linked client opted in (field_instructions_received) and an "Instructions
+ * Received" Library/Email template exists. Reuses the 'job' send path.
+ *
+ * @param \Drupal\node\NodeInterface $node
+ *   The job node being saved.
+ */
+function _associatedps_forms_send_instructions_received_email(NodeInterface $node) {
+  $client = $node->get('field_client')[0]->entity ?? NULL;
+  if (!$client) {
+    return;
+  }
+  // Client must have opted in to the Instructions Received update email.
+  if ($client->get('field_instructions_received')->value != 1) {
+    \Drupal::logger('associatedps_forms')->notice('Client @cid opted out of Instructions Received for job @nid. Email not sent.', ['@cid' => $client->id(), '@nid' => $node->id()]);
+    return;
+  }
+  // Load the Library/Email template titled "Instructions Received".
+  $tpl = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties([
+    'type' => 'library',
+    'field_category' => 'Email',
+    'title' => 'Instructions Received',
+  ]);
+  if (empty($tpl)) {
+    \Drupal::messenger()->addWarning(t('No email template found with category "Email" and title "Instructions Received". Email was not sent.'));
+    \Drupal::logger('associatedps_forms')->notice('No "Instructions Received" template found for job @nid.', ['@nid' => $node->id()]);
+    return;
+  }
+  EmailTemplateController::createEmailTemplate(array_key_first($tpl), $node->id(), 'job');
 }

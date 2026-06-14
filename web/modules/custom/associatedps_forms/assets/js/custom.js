@@ -1,36 +1,33 @@
 (function ($, Drupal, drupalSettings, once) {
   "use strict";
 
-  /**
-   * Opens the default email client when an automated email was just sent
-   * (e.g. case status change triggered a server-side email for a Job).
-   * Uses once() so the mailto fires exactly once per page load.
+  /*
+   * --- mailto popup DISABLED — automated emails now send silently via
+   *     Microsoft 365 Graph (no OS mail client opens). PRESERVED for recovery:
+   *     to restore, re-enable this behavior plus the mailto_data stash in
+   *     EmailTemplateController and the reader in associatedps_forms.module. ---
+   *
+   * Drupal.behaviors.associatedpsMailtoTrigger = {
+   *   attach: function (context) {
+   *     $(once('mailto-trigger', 'body', context)).each(function () {
+   *       var mailtoData = (drupalSettings.associatedps_forms || {}).mailto_trigger;
+   *       if (mailtoData && mailtoData.to) {
+   *         var mailto = 'mailto:' + encodeURIComponent(mailtoData.to)
+   *           + '?subject=' + encodeURIComponent(mailtoData.subject || '');
+   *         if (mailtoData.body) {
+   *           mailto += '&body=' + encodeURIComponent(mailtoData.body);
+   *         }
+   *         delete drupalSettings.associatedps_forms.mailto_trigger;
+   *         var $iframe = $('<iframe>', {
+   *           src: mailto,
+   *           style: 'display:none;'
+   *         }).appendTo('body');
+   *         setTimeout(function () { $iframe.remove(); }, 2000);
+   *       }
+   *     });
+   *   }
+   * };
    */
-  Drupal.behaviors.associatedpsMailtoTrigger = {
-    attach: function (context) {
-      $(once('mailto-trigger', 'body', context)).each(function () {
-        console.log("Before mailto trigger");
-        var mailtoData = (drupalSettings.associatedps_forms || {}).mailto_trigger;
-        if (mailtoData && mailtoData.to) {
-          console.log("mail data present");
-          var mailto = 'mailto:' + encodeURIComponent(mailtoData.to)
-            + '?subject=' + encodeURIComponent(mailtoData.subject || '');
-          if (mailtoData.body) {
-            mailto += '&body=' + encodeURIComponent(mailtoData.body);
-          }
-          delete drupalSettings.associatedps_forms.mailto_trigger;
-          // Use a hidden iframe to trigger mailto without causing
-          // the browser to show a loading spinner on the current page.
-          var $iframe = $('<iframe>', {
-            src: mailto,
-            style: 'display:none;'
-          }).appendTo('body');
-          // Remove the iframe after the email client has had time to open.
-          setTimeout(function () { $iframe.remove(); }, 2000);
-        }
-      });
-    }
-  };
 
   // Generate dropdown toggle.
   Drupal.behaviors.generateDropdown = {

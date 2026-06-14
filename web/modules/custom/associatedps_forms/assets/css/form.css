@@ -1,28 +1,3 @@
-/* Client email events */
-.email-event-pairs-wrapper {
-  margin: 10px 0;
-}
-.email-event-pair {
-  display: flex;
-  gap: 16px;
-  align-items: flex-end;
-  margin-bottom: 12px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  background: #f9f9f9;
-}
-.email-event-pair .form-item {
-  flex: 1;
-  margin: 0;
-}
-.email-update-add-wrapper {
-  margin: 10px 0;
-}
-.email-update-add-btn {
-  cursor: pointer;
-}
-
 /* Date autofill checkboxes */
 .date-autofill-wrapper {
   margin-bottom: 4px;
@@ -148,4 +123,53 @@
 #node-job-edit-form .paragraph-type--attendance-note .field--name-field-employee-full-name {
   opacity: 0;
   height: 0;
+}
+
+/* Client form — "Attendance Update - Frequency": the reused field_email_interval
+   (days) input sits inline, right after the frequency checkbox, and is kept
+   compact. Both field wrappers share a baseline and Claro's default form-item
+   margins are zeroed so they stay on one row. */
+#node-client-form .field--name-field-attendance-update-frequenc,
+#node-client-edit-form .field--name-field-attendance-update-frequenc,
+#node-client-form .field--name-field-email-interval,
+#node-client-edit-form .field--name-field-email-interval {
+  display: inline-block;
+  vertical-align: middle;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+/* Zeroing the form-item margin (below) strips Claro's checkbox indent, so the
+   row sits left of the other checkboxes. Restore it to realign with
+   Instructions Received / Served. */
+#node-client-form .field--name-field-attendance-update-frequenc,
+#node-client-edit-form .field--name-field-attendance-update-frequenc {
+  margin-left: 1.5rem;
+  margin-right: 1.5rem;
+}
+/* Keep the checkbox and its label together on one line. */
+#node-client-form .field--name-field-attendance-update-frequenc .form-item,
+#node-client-edit-form .field--name-field-attendance-update-frequenc .form-item {
+  margin: 0;
+  white-space: nowrap;
+}
+/* Lay the interval out as label + input on one centered line. */
+#node-client-form .field--name-field-email-interval .form-item,
+#node-client-edit-form .field--name-field-email-interval .form-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 0;
+}
+/* Hide the "Frequency" label on the interval field; the checkbox label and
+   the "day(s)" suffix already convey the meaning. */
+#node-client-form .field--name-field-email-interval .form-item__label,
+#node-client-edit-form .field--name-field-email-interval .form-item__label {
+  display: none;
+}
+/* Compact the days input. */
+#node-client-form .field--name-field-email-interval input,
+#node-client-edit-form .field--name-field-email-interval input {
+  display: inline-block;
+  width: 5rem;
+  min-width: 0;
 }

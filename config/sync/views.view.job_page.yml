@@ -1291,7 +1291,7 @@ display:
           plugin_id: text
           empty: true
           content:
-            value: "<a href=\"/node/add/job\" class=\"button button-action button--primary button--large\" data-drupal-link-system-path=\"node/add/job\">Create New Job</a>\r\n<a href=\"/admin/config/associatedps_case_status_template/settings\" class=\"button button-action button--primary button--large\" data-drupal-link-system-path=\"admin/config/associatedps_case_status_template/settings\">Set Email Template For Job Status</a>"
+            value: "<a href=\"/node/add/job\" class=\"button button-action button--primary button--large\" data-drupal-link-system-path=\"node/add/job\">Create New Job</a>\r\n"
             format: full_html
           tokenize: false
       footer: {  }

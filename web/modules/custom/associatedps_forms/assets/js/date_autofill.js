@@ -1,12 +1,16 @@
 /**
  * @file
- * Auto-fill admin date fields with today's date and time when checkbox is ticked.
+ * Show/hide + auto-fill admin date fields via a "set to today" checkbox.
  *
- * On edit pages, date fields may already have a value from the DB.
- * - Checking the box sets the field to today's date and current time.
- * - Unchecking restores the original DB value (or clears it on add pages).
- * - The user can always manually pick a different date/time regardless of the
- *   checkbox state.
+ * - The date field is hidden by default (CSS hides `.form-datetime-wrapper`
+ *   until the field wrapper gets the `date-active` class).
+ * - Ticking the checkbox reveals the date field and, if it has no value yet,
+ *   defaults it to today's date. The user can then change it or leave it as-is.
+ * - Unticking hides the date field again and clears the value.
+ * - Edit page with an existing value = auto-revealed + ticked, so saved dates
+ *   aren't hidden on load.
+ *
+ * Date-only fields: no time input is handled.
  */
 (function ($, Drupal, once) {
   'use strict';
@@ -17,41 +21,38 @@
         var $checkbox = $(this);
         var fieldName = $checkbox.data('date-field');
 
-        // Locate the date and time inputs for this field.
-        var selector = 'edit-' + fieldName.replace(/_/g, '-');
-        var $wrapper = $checkbox.closest('.form-wrapper, .fieldset-wrapper, .field-group-fieldset')
-          .find('[data-drupal-selector*="' + selector + '"]');
-        var $dateInput = $wrapper.find('input[type="date"]');
-        var $timeInput = $wrapper.find('input[type="time"]');
+        // The field wrapper carries the `date-active` class that reveals the box.
+        var $fieldWrapper = $checkbox.closest('.field--widget-datetime-default');
 
-        // Store the original DB values so we can restore them on uncheck.
-        $dateInput.each(function () {
-          $(this).data('original-value', $(this).val());
-        });
-        $timeInput.each(function () {
-          $(this).data('original-value', $(this).val());
-        });
+        // Locate the date input directly by its Drupal selector id — robust
+        // regardless of the surrounding wrapper structure.
+        var base = 'edit-' + fieldName.replace(/_/g, '-');
+        var $dateInput = $('input[data-drupal-selector="' + base + '-0-value-date"]');
+
+        function setToday() {
+          var now = new Date();
+          var year = now.getFullYear();
+          var month = String(now.getMonth() + 1).padStart(2, '0');
+          var day = String(now.getDate()).padStart(2, '0');
+          $dateInput.val(year + '-' + month + '-' + day).trigger('change');
+        }
+
+        // Edit page with an existing value = auto-revealed + ticked, so saved
+        // dates aren't hidden on load.
+        if ($dateInput.val()) {
+          $checkbox.prop('checked', true);
+          $fieldWrapper.addClass('date-active');
+        }
 
         $checkbox.on('change', function () {
           if ($checkbox.is(':checked')) {
-            var now = new Date();
-            var year = now.getFullYear();
-            var month = String(now.getMonth() + 1).padStart(2, '0');
-            var day = String(now.getDate()).padStart(2, '0');
-            var hours = String(now.getHours()).padStart(2, '0');
-            var minutes = String(now.getMinutes()).padStart(2, '0');
-
-            $dateInput.val(year + '-' + month + '-' + day).trigger('change');
-            $timeInput.val(hours + ':' + minutes).trigger('change');
+            $fieldWrapper.addClass('date-active');
+            // Ticking always defaults to today (re-ticking resets a stale date).
+            setToday();
           }
           else {
-            // Restore the original values from the DB (empty on add pages).
-            $dateInput.each(function () {
-              $(this).val($(this).data('original-value') || '').trigger('change');
-            });
-            $timeInput.each(function () {
-              $(this).val($(this).data('original-value') || '').trigger('change');
-            });
+            $fieldWrapper.removeClass('date-active');
+            $dateInput.val('').trigger('change');
           }
         });
       });

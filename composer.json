@@ -59,7 +59,7 @@
         "drupal/pathauto": "^1.13.0",
         "drupal/role_login_page": "^2.0.3",
         "drupal/rules": "^4.0",
-        "drupal/select_or_other": "4.2",
+        "drupal/select_or_other": "4.2.2",
         "drupal/seven": "^2.0.0-beta1",
         "drupal/simple_multistep": "2.1.0",
         "drupal/smtp": "^1.4",

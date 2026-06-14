@@ -1,0 +1,223 @@
+/**
+ * Inline layout for "Affidavit Drafted": render the autofill checkbox on the
+ * same row as the date + time inputs and remove the boxed wrapper / legend
+ * around the datetime widget.
+ *
+ * Scoped to the single field's wrapper class so the other admin date fields
+ * keep their default stacked layout.
+ */
+/**
+ * Fixed-width checkbox+label column so the date+time inputs line up vertically
+ * across all status rows. Extend the selector list as each new row is styled.
+ */
+.field--name-field-admin-affidavit-date .date-autofill-wrapper,
+.field--name-field-admin-cover-letter-date .date-autofill-wrapper,
+.field--name-field-admin-email-update-date .date-autofill-wrapper,
+.field--name-field-admin-invoiced-date .date-autofill-wrapper,
+.field--name-field-admin-send-to-client-date .date-autofill-wrapper,
+.field--name-field-allocation-date .date-autofill-wrapper,
+.field--name-field-affidavit-sent-to-agent .date-autofill-wrapper,
+.field--name-field-affidavit-sent-to-client .date-autofill-wrapper,
+.field--name-field-affidavit-received-from-ag .date-autofill-wrapper {
+  flex: 0 0 16rem;
+  margin: 0;
+}
+
+/* Compact the date input box across all Admin Status rows (Claro renders it tall). */
+.field--name-field-admin-affidavit-date .form-element--type-date,
+.field--name-field-admin-cover-letter-date .form-element--type-date,
+.field--name-field-admin-email-update-date .form-element--type-date,
+.field--name-field-admin-invoiced-date .form-element--type-date,
+.field--name-field-admin-send-to-client-date .form-element--type-date,
+.field--name-field-allocation-date .form-element--type-date,
+.field--name-field-affidavit-sent-to-agent .form-element--type-date,
+.field--name-field-affidavit-sent-to-client .form-element--type-date,
+.field--name-field-affidavit-received-from-ag .form-element--type-date {
+  padding-block: 0.15rem;
+  min-block-size: 0;
+  min-height: 0;
+  block-size: auto;
+  line-height: 1.3;
+}
+
+/* Admin Status date boxes: hidden until their checkbox is ticked.
+   The JS (date_autofill.js) adds `date-active` to the field wrapper on tick. */
+.field--name-field-admin-affidavit-date > .form-datetime-wrapper,
+.field--name-field-admin-cover-letter-date > .form-datetime-wrapper,
+.field--name-field-admin-email-update-date > .form-datetime-wrapper,
+.field--name-field-admin-invoiced-date > .form-datetime-wrapper,
+.field--name-field-admin-send-to-client-date > .form-datetime-wrapper,
+.field--name-field-allocation-date > .form-datetime-wrapper,
+.field--name-field-affidavit-sent-to-agent > .form-datetime-wrapper,
+.field--name-field-affidavit-sent-to-client > .form-datetime-wrapper,
+.field--name-field-affidavit-received-from-ag > .form-datetime-wrapper {
+  display: none;
+}
+.field--widget-datetime-default.date-active > .form-datetime-wrapper {
+  display: block;
+}
+
+.field--name-field-admin-affidavit-date.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+/* Hide the field label — rendered as <h4>, not a <legend>, for date-only widgets. */
+.field--name-field-admin-affidavit-date > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+
+/* Remove default spacing so checkbox + date input align on one row. */
+.field--name-field-admin-affidavit-date > .form-datetime-wrapper,
+.field--name-field-admin-affidavit-date .form-items-inline {
+  margin: 0;
+}
+
+/* "Job Logged" — field_admin_cover_letter_date inline layout (date-only). */
+.field--name-field-admin-cover-letter-date.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+/* Hide the field label — rendered as <h4>, not a <legend>, for date-only widgets. */
+.field--name-field-admin-cover-letter-date > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+/* Remove default spacing so checkbox + date input align on one row. */
+.field--name-field-admin-cover-letter-date > .form-datetime-wrapper,
+.field--name-field-admin-cover-letter-date .form-items-inline {
+  margin: 0;
+}
+
+/* "Email Update Sent" — field_admin_email_update_date inline layout (date-only). */
+.field--name-field-admin-email-update-date.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+/* Hide the field label — rendered as <h4>, not a <legend>, for date-only widgets. */
+.field--name-field-admin-email-update-date > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+/* Remove default spacing so checkbox + date input align on one row. */
+.field--name-field-admin-email-update-date > .form-datetime-wrapper,
+.field--name-field-admin-email-update-date .form-items-inline {
+  margin: 0;
+}
+
+/* "Invoice Drafted" — field_admin_invoiced_date inline layout (date-only). */
+.field--name-field-admin-invoiced-date.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+/* Hide the field label — rendered as <h4>, not a <legend>, for date-only widgets. */
+.field--name-field-admin-invoiced-date > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+/* Remove default spacing so checkbox + date input align on one row. */
+.field--name-field-admin-invoiced-date > .form-datetime-wrapper,
+.field--name-field-admin-invoiced-date .form-items-inline {
+  margin: 0;
+}
+
+/* "Invoice Sent to Client" — field_admin_send_to_client_date inline layout (date-only). */
+.field--name-field-admin-send-to-client-date.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+/* Hide the field label — rendered as <h4>, not a <legend>, for date-only widgets. */
+.field--name-field-admin-send-to-client-date > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+/* Remove default spacing so checkbox + date input align on one row. */
+.field--name-field-admin-send-to-client-date > .form-datetime-wrapper,
+.field--name-field-admin-send-to-client-date .form-items-inline {
+  margin: 0;
+}
+
+/* "Job Allocated" — field_allocation_date inline layout (date-only). */
+.field--name-field-allocation-date.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+/* Hide the field label — rendered as <h4>, not a <legend>, for date-only widgets. */
+.field--name-field-allocation-date > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+/* Remove default spacing so checkbox + date input align on one row. */
+.field--name-field-allocation-date > .form-datetime-wrapper,
+.field--name-field-allocation-date .form-items-inline {
+  margin: 0;
+}
+
+/* "Affidavit Sent to Agent" — field_affidavit_sent_to_agent inline layout (date-only). */
+.field--name-field-affidavit-sent-to-agent.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.field--name-field-affidavit-sent-to-agent > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+.field--name-field-affidavit-sent-to-agent > .form-datetime-wrapper,
+.field--name-field-affidavit-sent-to-agent .form-items-inline {
+  margin: 0;
+}
+
+/* "Affidavit Sent to Client" — field_affidavit_sent_to_client inline layout (date-only). */
+.field--name-field-affidavit-sent-to-client.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.field--name-field-affidavit-sent-to-client > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+.field--name-field-affidavit-sent-to-client > .form-datetime-wrapper,
+.field--name-field-affidavit-sent-to-client .form-items-inline {
+  margin: 0;
+}
+
+/* "Affidavit Received from Agent" — field_affidavit_received_from_ag inline layout (date-only). */
+.field--name-field-affidavit-received-from-ag.field--widget-datetime-default {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.field--name-field-affidavit-received-from-ag > .form-datetime-wrapper > h4.form-item__label {
+  display: none;
+}
+.field--name-field-affidavit-received-from-ag > .form-datetime-wrapper,
+.field--name-field-affidavit-received-from-ag .form-items-inline {
+  margin: 0;
+}
+
+/**
+ * "Admin Status" sub-heading above the status checkbox + date rows.
+ * Rendered as the first child of the Affidavit Drafted field, so it needs
+ * to break the flex row and sit on its own line above the checkbox.
+ */
+.admin-status-header {
+  margin: 1 0 0.5rem 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+.field--name-field-admin-cover-letter-date .admin-status-header {
+  flex-basis: 100%;
+  width: 100%;
+}
+

@@ -311,9 +311,13 @@ class XeroClient {
       $invoices = json_decode($json_response_invoices, TRUE);
       \Drupal::logger('associatedps_affidavit_template_Xero')->notice('Invoice generated with ID: @id', ['@id' => print_r($invoices, TRUE)]);
       $invoiceId = $invoices['Invoices'][0]['InvoiceID'];
+      // Xero assigns the human-readable InvoiceNumber on DRAFT creation (when
+      // the org uses automatic invoice numbering), returned in the same payload.
+      $invoiceNumber = $invoices['Invoices'][0]['InvoiceNumber'] ?? '';
       return [
         'message' => 'Invoice generated with ID: ' . $invoiceId,
         'invoiceId' => $invoiceId,
+        'invoiceNumber' => $invoiceNumber,
       ];
     }catch (\GuzzleHttp\Exception\RequestException $e) {
       $responseBody = $e->hasResponse() ? (string) $e->getResponse()->getBody() : 'No response body';

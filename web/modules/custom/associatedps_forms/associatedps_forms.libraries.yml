@@ -48,23 +48,39 @@ attendance_address_sync:
     - core/once
     - core/drupalSettings
 
-client_email_events:
-  js:
-    assets/js/client_email_events.js: {}
+date_autofill:
   css:
     theme:
-      assets/css/form.css: {}
-  dependencies:
-    - core/jquery
-    - core/once
-    - core/drupalSettings
-
-date_autofill:
+      assets/css/date_autofill.css: {}
   js:
     assets/js/date_autofill.js: {}
   dependencies:
     - core/jquery
     - core/once
+
+service_details_modal:
+  css:
+    theme:
+      assets/css/service_details_modal.css: {}
+  js:
+    assets/js/service_details_modal.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+    - core/drupal
+    - core/drupal.dialog.ajax
+
+attendance_service_details_modal:
+  css:
+    theme:
+      assets/css/service_details_modal.css: {}
+  js:
+    assets/js/attendance_service_details_modal.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+    - core/drupal
+    - core/drupal.dialog.ajax
 
 job_filter:
   css:

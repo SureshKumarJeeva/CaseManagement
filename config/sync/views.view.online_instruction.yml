@@ -738,9 +738,10 @@ display:
       path: online-instruction
       menu:
         type: normal
-        title: 'Online Instruction'
+        title: 'Online Instruction  Received'
         description: ''
         weight: 1
+        enabled: true
         expanded: false
         menu_name: client-menu
         parent: ''
