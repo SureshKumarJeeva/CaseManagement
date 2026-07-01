@@ -4,3 +4,10 @@ associatedps_forms.job_filter:
   menu_name: admin
   parent: system.admin_content
   weight: 3
+
+# NOTE: Manager-role (editor) access to this page is provided by a MANUAL menu
+# link ("Jobs - Search" -> /jobs/filter) added via Structure > Menus > Main
+# navigation in the live DB, not a static link here. The route's access is
+# gated by 'access content overview' (see associatedps_forms.routing.yml) so
+# Managers/Office can open it. Because the menu link is DB/UI-created, it must
+# be re-created manually on each environment (it does not deploy via file copy).

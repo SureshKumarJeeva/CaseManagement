@@ -73,18 +73,84 @@ class EmailTemplateController {
       $user = User::load($userCurrent->id());
       $user_name = $user->name->value;
       $roles = $user->getRoles();
-      $subject = $node->title->value;
-      $url = $base_url . '/node/' . $node_id;
-      $msg = ($job_id === 'true') ? 'Client ' . $user_name . ' added Online Instruction at ' . $url : $roles[1] . ' ' . $user_name . ' updated Online Instruction at ' . $url;
       $email = $node->getOwner()->getEmail();
 
       // Admin notification recipient (env-driven; no address hardcoded).
       $admin_to = getenv('APS_ADMIN_EMAIL') ?: '';
 
+      // Fallback subject + body — used when no template is configured or the
+      // rendering engine is unavailable, so the admin notification never
+      // silently stops.
+      $subject = $node->title->value;
+      $url = $base_url . '/node/' . $node_id;
+      $msg = ($job_id === 'true') ? 'Client ' . $user_name . ' added Online Instruction at ' . $url : $roles[1] . ' ' . $user_name . ' updated Online Instruction at ' . $url;
+
+      // Preferred: render the admin email from the Library "Email" template
+      // selected in the Online Instruction Email settings form
+      // (associatedps_case_status_template.settings:email_template), filling
+      // [node:field_*] tokens with THIS instruction's values. The token list
+      // comes from the template's field_instruction_tokens (kept separate from
+      // the Job field_available_tokens so the two token sets never mix).
+      $template_id = \Drupal::config('associatedps_case_status_template.settings')->get('email_template');
+      $moduleHandler = \Drupal::moduleHandler();
+      // Attachments built from the uploaded documents, only when the template
+      // opts in via the [node:field_upload_documents] token (see below).
+      $attachments = [];
+      if (!empty($template_id) && $template_id !== '_none'
+          && $moduleHandler->moduleExists('associatedps_pdf_templates')
+          && Node::load($template_id)) {
+        $template_array = _associatedps_pdf_templates_library_data($template_id, 'field_instruction_tokens');
+        if (!empty($template_array)) {
+          // Field-definition map for the online_instruction bundle (drives token
+          // type/formatting in the replacer).
+          $elements = [];
+          foreach (\Drupal::service('entity_field.manager')->getFieldDefinitions('node', 'online_instruction') as $field_name => $field_definition) {
+            if (!empty($field_definition->getTargetBundle())) {
+              $elements[$field_name]['type'] = $field_definition->getType();
+              $elements[$field_name]['label'] = $field_definition->getLabel();
+              $elements[$field_name]['target_type'] = $field_definition->getSetting('target_type');
+            }
+          }
+
+          // Documents token: when present in the template, the uploaded files are
+          // ATTACHED to the email (not rendered inline). Pull this token out of the
+          // generic replace pass so it isn't blanked, then substitute it with the
+          // attached filenames after rendering.
+          $docs_token = '[node:field_upload_documents]';
+          $has_docs_token = !empty($template_array['tokens'])
+            && in_array($docs_token, array_map('trim', $template_array['tokens']), TRUE);
+          if ($has_docs_token) {
+            $template_array['tokens'] = array_values(array_filter(
+              $template_array['tokens'],
+              fn ($t) => trim($t) !== $docs_token
+            ));
+          }
+
+          $rendered = _associatedps_pdf_templates_replace_value($elements, $node, $template_array);
+          if (!empty($rendered['body'])) {
+            $msg = $rendered['body'];
+            if (!empty($rendered['subject'])) {
+              $subject = $rendered['subject'];
+            }
+          }
+
+          if ($has_docs_token) {
+            [$attachments, $names, $skipped] = self::collectInstructionAttachments($node);
+            // Replace the documents token in the rendered body with the filenames
+            // (attached) plus any skipped (too large) listed by name.
+            $list = array_merge($names, array_map(fn ($s) => $s . ' (too large to attach)', $skipped));
+            $msg = str_replace($docs_token, $list ? implode(', ', $list) : '', $msg);
+          }
+        }
+      }
+      else {
+        \Drupal::logger('associatedps_email_template')->warning('Online Instruction @nid: no email template configured (associatedps_case_status_template.settings); sent fallback notification.', ['@nid' => $node_id]);
+      }
+
       // Send via Microsoft 365 Graph (app-only); owner email as reply-to. Legacy
       // SMTP preserved in
       // self::sendViaSmtp('SEND_EMAIL_TO_ADMIN', $admin_to, $subject, $msg, $email).
-      $result = self::sendViaGraph($admin_to, $subject, $msg, ['reply_to' => $email]);
+      $result = self::sendViaGraph($admin_to, $subject, $msg, ['reply_to' => $email, 'attachments' => $attachments]);
 
       if ($result['success']) {
         \Drupal::messenger()->addMessage(t('Your mail has been sent.'));
@@ -203,7 +269,8 @@ class EmailTemplateController {
    * @param string $html_body
    *   HTML body (token replacement already done by the caller).
    * @param array $options
-   *   Optional 'cc', 'bcc' (arrays) and 'reply_to' (string) — see the service.
+   *   Optional 'cc', 'bcc' (arrays), 'reply_to' (string), and 'attachments'
+   *   (array of ['name','contentType','content']) — see the service.
    *
    * @return array
    *   ['success' => bool, 'error' => string|null].
@@ -213,6 +280,59 @@ class EmailTemplateController {
     $mail = \Drupal::service('associatedps_email_template.m365_mail');
     $body = (string) check_markup((string) ($html_body ?? ''), 'full_html');
     return $mail->sendMail((string) $to, (string) $subject, $body, $options);
+  }
+
+  /**
+   * Collect file attachments from an online_instruction node's uploaded
+   * documents, capped to stay within Graph's sendMail inline-size limit.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   The online_instruction node.
+   *
+   * @return array
+   *   [attachments, attachedNames, skippedNames]. attachments is an array of
+   *   ['name','contentType','content'] for Microsoft365MailService::sendMail.
+   */
+  protected static function collectInstructionAttachments($node): array {
+    $attachments = [];
+    $names = [];
+    $skipped = [];
+    if (!$node->hasField('field_upload_documents') || $node->get('field_upload_documents')->isEmpty()) {
+      return [$attachments, $names, $skipped];
+    }
+    // Graph sendMail carries attachments inline, so the whole request must stay
+    // under ~4 MB (base64 adds ~33%). Cap per-file and cumulative raw bytes.
+    $max_per_file = 3 * 1024 * 1024;
+    $max_total = 3 * 1024 * 1024;
+    $running = 0;
+    $file_system = \Drupal::service('file_system');
+    foreach ($node->get('field_upload_documents')->referencedEntities() as $file) {
+      $name = $file->getFilename();
+      $size = (int) $file->getSize();
+      if ($size <= 0 || $size > $max_per_file || ($running + $size) > $max_total) {
+        $skipped[] = $name;
+        \Drupal::logger('associatedps_email_template')->warning('Online Instruction attachment skipped (size): @name (@size bytes).', ['@name' => $name, '@size' => $size]);
+        continue;
+      }
+      $path = $file_system->realpath($file->getFileUri());
+      if (!$path || !is_readable($path)) {
+        $skipped[] = $name;
+        continue;
+      }
+      $bytes = @file_get_contents($path);
+      if ($bytes === FALSE) {
+        $skipped[] = $name;
+        continue;
+      }
+      $attachments[] = [
+        'name' => $name,
+        'contentType' => $file->getMimeType() ?: 'application/octet-stream',
+        'content' => $bytes,
+      ];
+      $names[] = $name;
+      $running += $size;
+    }
+    return [$attachments, $names, $skipped];
   }
 
   /**

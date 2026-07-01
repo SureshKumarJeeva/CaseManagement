@@ -150,6 +150,74 @@ class CustomAddClient extends FormBase {
         '#format' => 'full_html',
         '#default_value' => $notes,
       ];
+
+      // Email update options — mirror the Client content type's email-sending
+      // checkboxes so this modal matches the full "Add content -> Client" page.
+      // All five booleans default CHECKED, same as the node.client field
+      // defaults; the "Frequency" days input pairs with the Attendance Update
+      // checkbox (reuses field_email_interval). Order follows the client form
+      // display weights (8-13).
+      $form['email_options'] = [
+        '#type' => 'details',
+        '#title' => $this->t('Email Update Options'),
+        '#open' => TRUE,
+      ];
+
+      $form['email_options']['instructions_received'] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('Instructions Received'),
+        '#default_value' => 1,
+      ];
+
+      // Checkbox + "Frequency (days)" input on a single row (inline styles so
+      // the layout holds inside the AJAX dialog without depending on an
+      // external stylesheet loading).
+      $form['email_options']['frequency_row'] = [
+        '#type' => 'container',
+        // margin-left:1.5rem aligns the row's checkbox with the other Claro
+        // checkboxes (Instructions Received, Served, ...), whose form-items
+        // carry that default left indent.
+        '#attributes' => [
+          'style' => 'display:flex; align-items:center; gap:1rem; flex-wrap:wrap; margin-left:1.5rem;',
+        ],
+      ];
+
+      $form['email_options']['frequency_row']['attendance_update_frequenc'] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('Attendance Update - Frequency'),
+        '#default_value' => 1,
+        '#wrapper_attributes' => ['style' => 'margin:0;'],
+      ];
+
+      $form['email_options']['frequency_row']['email_interval'] = [
+        '#type' => 'number',
+        '#title' => $this->t('Frequency'),
+        '#title_display' => 'inline',
+        '#field_suffix' => $this->t('day(s)'),
+        '#min' => 0,
+        '#default_value' => '',
+        '#attributes' => ['style' => 'width:6rem;'],
+        '#wrapper_attributes' => ['style' => 'margin:0; display:flex; align-items:center; gap:0.4rem;'],
+      ];
+
+      $form['email_options']['served'] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('Served'),
+        '#default_value' => 1,
+      ];
+
+      $form['email_options']['attempted'] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('Attempted'),
+        '#default_value' => 1,
+      ];
+
+      $form['email_options']['completed'] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('Completed'),
+        '#default_value' => 1,
+      ];
+
       $form['job_id'] = [
         '#type' => 'hidden',
         '#value' => $nid,
@@ -268,6 +336,17 @@ class CustomAddClient extends FormBase {
     $client_node->set('field_agreed_discount', $values['discount']);
     $client_node->set('field_notes', $values['notes']);
     $client_node->set('field_client_address', $address_data);
+
+    // Email update options (5 opt-in checkboxes + frequency days).
+    $client_node->set('field_instructions_received', !empty($values['instructions_received']) ? 1 : 0);
+    $client_node->set('field_attendance_update_frequenc', !empty($values['attendance_update_frequenc']) ? 1 : 0);
+    $client_node->set('field_served', !empty($values['served']) ? 1 : 0);
+    $client_node->set('field_attempted', !empty($values['attempted']) ? 1 : 0);
+    $client_node->set('field_completed', !empty($values['completed']) ? 1 : 0);
+    if (isset($values['email_interval']) && $values['email_interval'] !== '') {
+      $client_node->set('field_email_interval', (int) $values['email_interval']);
+    }
+
     $client_node->save();
 
     $node_id = $client_node->id();

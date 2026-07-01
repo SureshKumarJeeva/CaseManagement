@@ -387,6 +387,28 @@
           $select.val(savedValue);
         }
 
+        // Populate the attendance address sub-fields from the selected option
+        // when they're still empty. Scenario 1 only fires for NEW paragraphs, so
+        // when an existing note's popup opens with the primary pre-selected the
+        // sub-fields would otherwise stay blank.
+        var effectiveVal = $select.val();
+        if (effectiveVal && effectiveVal !== 'select_or_other') {
+          var notePrefix = ($select.attr('name') || '').replace(/\[field_party_to_serve_addresses\]\[select\]$/, '');
+          var $existingLine1 = $('[name="' + notePrefix + '[field_address_attendance][0][address][address_line1]"]');
+          if ($existingLine1.length && !$existingLine1.val()) {
+            var matched = null;
+            for (var k = 0; k < addresses.length; k++) {
+              if (formatAddressLabel(addresses[k]) === effectiveVal) {
+                matched = addresses[k];
+                break;
+              }
+            }
+            if (matched) {
+              populateAttendanceAddress(notePrefix, matched);
+            }
+          }
+        }
+
         console.log('[addr_sync] Scenario 3 — dropdown rebuilt, value:', $select.val());
       });
     }

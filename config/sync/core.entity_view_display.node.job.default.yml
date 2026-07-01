@@ -9,6 +9,9 @@ dependencies:
     - field.field.node.job.field_admin_invoiced_date
     - field.field.node.job.field_admin_send_to_client_date
     - field.field.node.job.field_admin_status
+    - field.field.node.job.field_affidavit_received_from_ag
+    - field.field.node.job.field_affidavit_sent_to_agent
+    - field.field.node.job.field_affidavit_sent_to_client
     - field.field.node.job.field_affidavits
     - field.field.node.job.field_agreed_discount
     - field.field.node.job.field_allocated_to
@@ -16,6 +19,7 @@ dependencies:
     - field.field.node.job.field_allocated_to_full_name
     - field.field.node.job.field_allocated_to_last_name
     - field.field.node.job.field_allocation_date
+    - field.field.node.job.field_attendance_case_status
     - field.field.node.job.field_attendance_notes
     - field.field.node.job.field_business_name
     - field.field.node.job.field_business_name_value
@@ -344,6 +348,33 @@ content:
         class: status-admin-status-select
     weight: 8
     region: content
+  field_affidavit_received_from_ag:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 60
+    region: content
+  field_affidavit_sent_to_agent:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 58
+    region: content
+  field_affidavit_sent_to_client:
+    type: datetime_default
+    label: above
+    settings:
+      timezone_override: ''
+      format_type: medium
+    third_party_settings: {  }
+    weight: 59
+    region: content
   field_affidavits:
     type: entity_reference_revisions_entity_view
     label: hidden
@@ -375,15 +406,20 @@ content:
     weight: 16
     region: content
   field_allocation_date:
-    type: datetime_custom
-    label: inline
+    type: datetime_default
+    label: above
     settings:
       timezone_override: ''
-      date_format: 'd F Y'
-    third_party_settings:
-      field_formatter_class:
-        class: status-allocation-date
-    weight: 14
+      format_type: medium
+    third_party_settings: {  }
+    weight: 57
+    region: content
+  field_attendance_case_status:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 61
     region: content
   field_attendance_notes:
     type: entity_reference_revisions_entity_view

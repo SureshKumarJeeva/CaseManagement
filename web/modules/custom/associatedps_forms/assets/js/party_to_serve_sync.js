@@ -15,14 +15,15 @@
   'use strict';
 
   /**
-   * Collect full names from Side Two party paragraphs (field_party_2).
+   * Collect "FirstName LastName" values from a party paragraph field.
    *
+   * @param {string} fieldPrefix  The party field machine name
+   *   (e.g. 'field_parties' for Side One or 'field_party_2' for Side Two).
    * @return {string[]}
-   *   Array of "FirstName LastName" strings.
    */
-  function collectSideTwoNames() {
+  function collectPartyNames(fieldPrefix) {
     var names = [];
-    $('input[name^="field_party_2"]').each(function () {
+    $('input[name^="' + fieldPrefix + '"]').each(function () {
       var inputName = $(this).attr('name') || '';
       // Match only the first-name field, not field_full_name.
       if (inputName.match(/\[subform\]\[field_name\]\[0\]\[value\]$/)) {
@@ -41,6 +42,29 @@
   }
 
   /**
+   * Side Two party names only (used by Name to Serve = the served party).
+   *
+   * @return {string[]}
+   */
+  function collectSideTwoNames() {
+    return collectPartyNames('field_party_2');
+  }
+
+  /**
+   * All party names — Side One (field_parties) + Side Two (field_party_2) +
+   * Other Parties (field_other_parties, whose name is also in field_name).
+   * Person Delivered To can be any party, so it lists all of them (matching the
+   * server-side option list built in associatedps_forms.module).
+   *
+   * @return {string[]}
+   */
+  function collectAllPartyNames() {
+    return collectPartyNames('field_parties')
+      .concat(collectPartyNames('field_party_2'))
+      .concat(collectPartyNames('field_other_parties'));
+  }
+
+  /**
    * Rebuild the Name to Serve select with Side Two party names.
    */
   function updateNameToServeDropdown() {
@@ -49,7 +73,8 @@
       return;
     }
 
-    var names = collectSideTwoNames();
+    // Name to Serve lists ALL parties (Side One + Side Two + Other Parties).
+    var names = collectAllPartyNames();
     if (names.length === 0) {
       return;
     }
@@ -88,26 +113,54 @@
     if (stillValid) {
       $select.val(currentValue);
     } else {
-      $select.val(names[0]);
+      // Default to the first Side Two party (the party being served) if any,
+      // otherwise the first available name.
+      var sideTwoDefault = collectSideTwoNames();
+      $select.val(sideTwoDefault.length ? sideTwoDefault[0] : names[0]);
     }
   }
 
   /**
-   * Rebuild the Person Delivered To select with the same party names
-   * so it stays in sync with the Name to Serve dropdown.
+   * Rebuild a "Person Delivered To" select with the same party names so it
+   * stays in sync with the Name to Serve dropdown.
+   *
+   * Used for both the Job Status field (field_person_delivered_to) and its
+   * Attendance Note copy (field_atten_person_delivered_to) so the two offer an
+   * identical option set — the prerequisite for the server-side value sync.
+   *
+   * @param {string} [selectName]  The select's name attribute. Defaults to the
+   *   Job Status field for backward compatibility.
    */
-  function updatePersonDeliveredToDropdown() {
-    var $select = $('select[name="field_person_delivered_to"]');
+  function updatePersonDeliveredToDropdown(selectName) {
+    var $select = $('select[name="' + (selectName || 'field_person_delivered_to') + '"]');
     if (!$select.length) {
       return;
     }
 
-    var names = collectSideTwoNames();
+    // Person Delivered To lists BOTH Side One and Side Two parties.
+    var names = collectAllPartyNames();
     if (names.length === 0) {
       return;
     }
 
     var currentValue = $select.val();
+
+    var nameSet = {};
+    $.each(names, function (_i, n) {
+      if (n) {
+        nameSet[n] = true;
+      }
+    });
+
+    // Capture accumulated custom ("Other") options (server-provided, not party
+    // names and not the special markers) so the rebuild keeps them reusable.
+    var customOptions = [];
+    $select.find('option').each(function () {
+      var v = $(this).val();
+      if (v && v !== '_none' && v !== '_other' && !nameSet[v]) {
+        customOptions.push({ value: v, text: $(this).text() });
+      }
+    });
 
     // Rebuild: "- None -" + unique party names.
     $select.empty();
@@ -122,6 +175,21 @@
         );
       }
     });
+
+    // Re-add the accumulated custom values (incl. the current one) so they stay
+    // selectable.
+    $.each(customOptions, function (_i, opt) {
+      if (!seen[opt.value]) {
+        seen[opt.value] = true;
+        $select.append($('<option></option>').attr('value', opt.value).text(opt.text));
+      }
+    });
+    if (currentValue && currentValue !== '_none' && currentValue !== '_other' && !seen[currentValue]) {
+      $select.append($('<option></option>').attr('value', currentValue).text(currentValue));
+    }
+
+    // The "- Other -" trigger is always last.
+    $select.append($('<option></option>').attr('value', '_other').text('- Other -'));
 
     // Keep previous selection if still valid.
     if (currentValue && currentValue !== '_none') {
@@ -236,6 +304,156 @@
 
   Drupal.behaviors.associatedpsPartyToServeSync = {
     attach: function (context) {
+      // Job Status Service Details popup — fill the Service Address fields from
+      // the selected "Party to Serve Addresses" option. The option value encodes
+      // the address as "line1-locality-administrativeArea-postalCode" (the last
+      // three '-' segments are postcode/state/suburb; the rest is the street
+      // line, which may itself contain hyphens). The job address paragraph is
+      // field_para_address; the Attendance tab has its own sync.
+      function fillPartyServeAddress($select) {
+        var name = $select.attr('name') || '';
+        var val = $select.val();
+        if (!val || val === '_none' || val === 'select_or_other') {
+          return;
+        }
+        var parts = val.split('-');
+        if (parts.length < 4) {
+          return;
+        }
+        var postal = parts.pop();
+        var state = parts.pop();
+        var suburb = parts.pop();
+        var line1 = parts.join('-');
+        var base = name.replace(/\[field_party_to_serve_addresses\]\[select\]$/, '') + '[field_address][0][address]';
+        function set(sub, value, isSelect) {
+          var $el = $('[name="' + base + '[' + sub + ']"]');
+          if (!$el.length) {
+            return;
+          }
+          $el.val(value);
+          if (isSelect) {
+            $el.trigger('change').trigger('chosen:updated');
+          }
+        }
+        set('address_line1', line1, false);
+        set('locality', suburb, false);
+        set('administrative_area', state, true);
+        set('postal_code', postal, false);
+      }
+
+      // Fill on change (switching between multiple addresses). Bound on document
+      // because the popup is a dialog whose select may sit outside the matched
+      // form element; a single auto-selected option fires no change, so the
+      // on-open handler below covers that case.
+      // Both the Job Status (field_para_address) and Attendance (field_attendance_
+      // address_served) Service Details popups use an 'address' paragraph with
+      // field_party_to_serve_addresses + field_address, so the same handler
+      // serves both. The attendance NOTE paragraphs (field_attendance_notes,
+      // field_address_attendance) are handled by attendance_address_sync.js and
+      // are intentionally NOT matched here.
+      var partyServeSelects =
+        'select[name*="field_para_address"][name*="field_party_to_serve_addresses"][name$="[select]"], ' +
+        'select[name*="field_attendance_address_served"][name*="field_party_to_serve_addresses"][name$="[select]"]';
+
+      $(once('party-addr-change', 'html', context)).each(function () {
+        $(document).on('change', partyServeSelects, function () {
+          fillPartyServeAddress($(this));
+        });
+      });
+
+      // "- Other -" on Person Delivered To: selecting it reveals an inline text
+      // box; the typed name is appended as a selected option (Chosen-friendly,
+      // avoids the select_or_other widget which regresses here). Covers the Job
+      // Status (field_person_delivered_to) and Attendance
+      // (field_atten_person_delivered_to) fields.
+      var personDeliveredSelects =
+        'select[name="field_person_delivered_to"], select[name="field_atten_person_delivered_to"]';
+      $(once('pdt-other', 'html', context)).each(function () {
+        // Toggle the inline text box on (de)selecting "- Other -".
+        $(document).on('change', personDeliveredSelects, function () {
+          var $select = $(this);
+          var $wrapper = $select.closest('.form-item');
+          var $box = $wrapper.find('.pdt-other-box');
+          if ($select.val() === '_other') {
+            if (!$box.length) {
+              $box = $('<input type="text" class="pdt-other-box form-text form-element" placeholder="Enter name" autocomplete="off" />');
+              $wrapper.append($box);
+            }
+            $box.val('').show().trigger('focus');
+          }
+          else if ($box.length) {
+            $box.hide();
+          }
+        });
+
+        // Commit the typed value (Enter or blur): append as a selected option.
+        $(document).on('blur keydown', '.pdt-other-box', function (e) {
+          if (e.type === 'keydown' && e.which !== 13) {
+            return;
+          }
+          if (e.type === 'keydown') {
+            e.preventDefault();
+          }
+          var $box = $(this);
+          var val = ($box.val() || '').trim();
+          var $select = $box.closest('.form-item')
+            .find('select[name="field_person_delivered_to"], select[name="field_atten_person_delivered_to"]').first();
+          if (!$select.length) {
+            return;
+          }
+          if (!val) {
+            $select.val('_none');
+          }
+          else {
+            var exists = $select.find('option').filter(function () {
+              return $(this).val() === val;
+            }).length > 0;
+            if (!exists) {
+              $select.find('option[value="_other"]').before(
+                $('<option></option>').attr('value', val).text(val)
+              );
+            }
+            $select.val(val);
+          }
+          var el = $select.get(0);
+          if (el) {
+            el.dispatchEvent(new Event('chosen:updated', { bubbles: true }));
+          }
+          $box.hide();
+        });
+      });
+
+      // Fill on open, only when the address fields are still empty (don't
+      // clobber manual edits). If the dropdown defaulted to "- Other -" / none
+      // (a new paragraph has no preset value), pick the first real address
+      // first, then fill from it.
+      $(once('party-addr-fill', partyServeSelects, context)).each(function () {
+        var $s = $(this);
+        var fillBase = ($s.attr('name') || '').replace(/\[field_party_to_serve_addresses\]\[select\]$/, '') + '[field_address][0][address]';
+        var $line1 = $('[name="' + fillBase + '[address_line1]"]');
+        if (!$line1.length || $line1.val()) {
+          return;
+        }
+        var val = $s.val();
+        if (!val || val === 'select_or_other' || val === '_none') {
+          var firstVal = null;
+          $s.find('option').each(function () {
+            var v = $(this).val();
+            if (firstVal === null && v && v !== 'select_or_other' && v !== '_none') {
+              firstVal = v;
+            }
+          });
+          if (firstVal) {
+            $s.val(firstVal);
+            var el = $s.get(0);
+            if (el) {
+              el.dispatchEvent(new Event('chosen:updated', { bubbles: true }));
+            }
+          }
+        }
+        fillPartyServeAddress($s);
+      });
+
       $(
         once(
           'party-serve-sync',
@@ -250,6 +468,8 @@
           setTimeout(function () {
             updateNameToServeDropdown();
             updatePersonDeliveredToDropdown();
+            // Keep the Attendance Note copy in lockstep with the Job Status field.
+            updatePersonDeliveredToDropdown('field_atten_person_delivered_to');
             // syncAddressServed();
           }, 100);
         });
@@ -262,6 +482,7 @@
           function () {
             updateNameToServeDropdown();
             updatePersonDeliveredToDropdown();
+            updatePersonDeliveredToDropdown('field_atten_person_delivered_to');
           }
         );
 

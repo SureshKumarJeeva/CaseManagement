@@ -1,15 +1,8 @@
 (function (Drupal, once) {
   'use strict';
 
-  Drupal.behaviors.jobFilterScrollToResults = {
-    attach: function (context) {
-      // Scroll to results after page load when filters are active.
-      var target = document.getElementById('job-filter-results')
-        || document.getElementById('job-filter-results-table');
-      if (target && once('job-filter-scroll', 'html', context).length) {
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  };
+  // Auto-scroll to the results list on page load has been intentionally
+  // removed so the page always opens from the top (filter form first) instead
+  // of jumping straight to the job list.
 
 })(Drupal, once);

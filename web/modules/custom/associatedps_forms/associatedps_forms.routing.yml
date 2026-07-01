@@ -52,4 +52,8 @@ associatedps_forms.job_filter:
     _controller: '\Drupal\associatedps_forms\Controller\JobFilterController::page'
     _title: 'Jobs - Advanced Filter'
   requirements:
-    _permission: 'access content'
+    # Content-management tool: gate on the "Content overview" permission, which
+    # Manager (editor) and Office hold directly (admins bypass via is_admin).
+    # Avoids depending on plain 'access content', which clients/agents also have
+    # and which has drifted between environments.
+    _permission: 'access content overview'

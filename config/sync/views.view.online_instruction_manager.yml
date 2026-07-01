@@ -803,7 +803,7 @@ display:
         type: normal
         title: 'Online Instruction'
         description: ''
-        weight: 5
+        weight: -44
         expanded: false
         menu_name: main
         parent: ''

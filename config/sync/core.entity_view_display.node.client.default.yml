@@ -4,21 +4,23 @@ status: true
 dependencies:
   config:
     - field.field.node.client.field_agreed_discount
+    - field.field.node.client.field_attempted
+    - field.field.node.client.field_attendance_update_frequenc
     - field.field.node.client.field_client_address
     - field.field.node.client.field_client_id
+    - field.field.node.client.field_completed
     - field.field.node.client.field_email
     - field.field.node.client.field_email_interval
     - field.field.node.client.field_email_template
-    - field.field.node.client.field_mail_events
+    - field.field.node.client.field_instructions_received
     - field.field.node.client.field_notes
-    - field.field.node.client.field_send_auto_email
+    - field.field.node.client.field_served
     - field.field.node.client.field_telephone
     - node.type.client
   module:
     - address
     - field_formatter_class
     - field_group
-    - options
     - telephone
     - text
     - user
@@ -52,6 +54,26 @@ content:
         class: client-agreed-discount-number
     weight: 5
     region: content
+  field_attempted:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 15
+    region: content
+  field_attendance_update_frequenc:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 13
+    region: content
   field_client_address:
     type: address_default
     label: hidden
@@ -70,6 +92,16 @@ content:
       field_formatter_class:
         class: client-id-text
     weight: 1
+    region: content
+  field_completed:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 16
     region: content
   field_email:
     type: email_mailto
@@ -97,12 +129,15 @@ content:
     third_party_settings: {  }
     weight: 10
     region: content
-  field_mail_events:
-    type: list_default
+  field_instructions_received:
+    type: boolean
     label: above
-    settings: {  }
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
     third_party_settings: {  }
-    weight: 11
+    weight: 12
     region: content
   field_notes:
     type: text_default
@@ -113,15 +148,15 @@ content:
         class: client-notes-textarea
     weight: 6
     region: content
-  field_send_auto_email:
+  field_served:
     type: boolean
-    label: inline
+    label: above
     settings:
       format: default
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 8
+    weight: 14
     region: content
   field_telephone:
     type: telephone_link

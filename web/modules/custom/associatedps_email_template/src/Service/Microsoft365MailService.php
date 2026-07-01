@@ -144,7 +144,8 @@ class Microsoft365MailService {
    *   HTML body.
    * @param array $options
    *   Optional: 'cc' (array of addresses), 'bcc' (array of addresses),
-   *   'reply_to' (single address).
+   *   'reply_to' (single address), 'attachments' (array of
+   *   ['name' => string, 'contentType' => string, 'content' => raw bytes]).
    *
    * @return array
    *   ['success' => bool, 'error' => string|null].
@@ -184,6 +185,26 @@ class Microsoft365MailService {
     }
     if (!empty($options['reply_to'])) {
       $message['replyTo'] = [['emailAddress' => ['address' => $options['reply_to']]]];
+    }
+    // File attachments — base64 inline (#microsoft.graph.fileAttachment). The
+    // sendMail action carries attachments inline, so total request size must
+    // stay within Graph's limit (~4 MB); the caller is responsible for capping.
+    if (!empty($options['attachments'])) {
+      $graph_attachments = [];
+      foreach ((array) $options['attachments'] as $att) {
+        if (empty($att['name']) || !isset($att['content'])) {
+          continue;
+        }
+        $graph_attachments[] = [
+          '@odata.type' => '#microsoft.graph.fileAttachment',
+          'name' => $att['name'],
+          'contentType' => $att['contentType'] ?? 'application/octet-stream',
+          'contentBytes' => base64_encode((string) $att['content']),
+        ];
+      }
+      if ($graph_attachments) {
+        $message['attachments'] = $graph_attachments;
+      }
     }
 
     $url = 'https://graph.microsoft.com/v1.0/users/' . rawurlencode($this->fromMailbox) . '/sendMail';

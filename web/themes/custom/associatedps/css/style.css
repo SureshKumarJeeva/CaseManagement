@@ -818,25 +818,32 @@ input[name="field_documents_document_add_more"] {
   background-color: #a9a9a9;
   display: block;
   float: none;
-  padding: 5px;
-  height: 20px;
+  padding: 4px 8px;
+  /* Was a fixed height:20px which clipped the title out of view in the newer
+     (BEM) fieldset markup. Use min-height + line-height so the legend label
+     shows fully. */
+  min-height: 20px;
+  line-height: 1.5;
   box-sizing: border-box;
 }
 
 .job-page-section-title >legend span {
   color: white;
   font-weight: bold;
-  height: 100%;
   display: inline-block;
 }
 
-.job-page-section-title > .fieldset-wrapper {
+/* Section body wrapper. The markup is now BEM (.fieldset__wrapper); the old
+   Classy class (.fieldset-wrapper) is kept for safety. */
+.job-page-section-title > .fieldset-wrapper,
+.job-page-section-title > .fieldset__wrapper {
   clear: both;
   padding-top: 20px;
 }
 
 /* Clearfix: contain floats within each job section */
-.job-page-section-title > .fieldset-wrapper::after {
+.job-page-section-title > .fieldset-wrapper::after,
+.job-page-section-title > .fieldset__wrapper::after {
   content: '';
   display: table;
   clear: both;

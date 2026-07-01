@@ -82,6 +82,38 @@ class JobFilterForm extends FormBase {
       ];
     }
 
+    // Milestone "(Done?)" filters — synthetic Yes/No entries that match on
+    // whether an admin date field is set. The Job Status tab renders these as
+    // code-built "set to today" checkboxes (associatedps_forms.module) which
+    // store nothing themselves, so there is no real field to filter on; instead
+    // we filter on the underlying DATE field being set/empty (entity-query
+    // exists()/notExists() — see JobFilterController). Keyed milestone__<field>
+    // and added here so they sort alphabetically with the real fields below.
+    $milestone_fields = [
+      'field_admin_affidavit_date' => $this->t('Affidavit Drafted'),
+      'field_affidavit_sent_to_agent' => $this->t('Affidavit Sent to Agent'),
+      'field_affidavit_sent_to_client' => $this->t('Affidavit Sent to Client'),
+      'field_affidavit_received_from_ag' => $this->t('Affidavit Received from Agent'),
+      'field_admin_cover_letter_date' => $this->t('Job Logged'),
+      'field_admin_email_update_date' => $this->t('Email Update Sent'),
+      'field_admin_invoiced_date' => $this->t('Invoice Drafted'),
+      'field_admin_send_to_client_date' => $this->t('Invoice Sent to Client'),
+      'field_allocation_date' => $this->t('Job Allocated'),
+    ];
+    foreach ($milestone_fields as $date_field => $milestone_label) {
+      // Skip if the underlying date field doesn't exist on Job (config safety).
+      if (!isset($field_definitions[$date_field])) {
+        continue;
+      }
+      $fields['milestone__' . $date_field] = [
+        'label' => $this->t('@label (Done?)', ['@label' => $milestone_label]),
+        'type' => 'milestone',
+        'milestone_field' => $date_field,
+        'settings' => [],
+        'storage_settings' => [],
+      ];
+    }
+
     // Sort alphabetically by label.
     uasort($fields, function ($a, $b) {
       return strcasecmp($a['label'], $b['label']);
@@ -219,6 +251,21 @@ class JobFilterForm extends FormBase {
     $form['#prefix'] = '<div id="job-filter-form-wrapper">';
     $form['#suffix'] = '</div>';
 
+    // "Create New Job" shortcut at the very top of the page (before the first
+    // "Field" filter) so job creation is still reachable from this page. Only
+    // shown to users who can create Job content.
+    $create_url = Url::fromRoute('node.add', ['node_type' => 'job']);
+    $form['create_job'] = [
+      '#type' => 'link',
+      '#title' => $this->t('Create New Job'),
+      '#url' => $create_url,
+      '#access' => $create_url->access(),
+      '#weight' => -100,
+      '#attributes' => ['class' => ['button', 'button--primary', 'job-filter-create-job']],
+      '#prefix' => '<div class="job-filter-create-job-wrapper">',
+      '#suffix' => '</div>',
+    ];
+
     $form['filters'] = [
       '#type' => 'container',
       '#tree' => TRUE,
@@ -318,6 +365,10 @@ class JobFilterForm extends FormBase {
       '#type' => 'select',
       '#title' => $this->t('Results per page'),
       '#wrapper_attributes' => ['class' => ['form-item--per-page']],
+      // Render as a plain native select, not Chosen. The site's chosen
+      // minimum_single is 1, so Chosen would otherwise wrap even this small
+      // 5-option select and collapse it so the value isn't visible.
+      '#chosen' => FALSE,
       '#options' => [
         '10' => '10',
         '20' => '20',
@@ -355,6 +406,19 @@ class JobFilterForm extends FormBase {
             '' => $this->t('- Any -'),
             '1' => $this->t('Checked'),
             '0' => $this->t('Unchecked'),
+          ],
+          '#default_value' => $default_value,
+        ];
+
+      case 'milestone':
+        // Synthetic "(Done?)" filter — Yes = date field set, No = empty.
+        return [
+          '#type' => 'select',
+          '#title' => $this->t('Value'),
+          '#options' => [
+            '' => $this->t('- Any -'),
+            'yes' => $this->t('Yes — done'),
+            'no' => $this->t('No — not done'),
           ],
           '#default_value' => $default_value,
         ];

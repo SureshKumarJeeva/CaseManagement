@@ -1,6 +1,33 @@
 (function ($, Drupal, drupalSettings, once) {
   "use strict";
 
+  /**
+   * Select a (brand-new) document in a paragraph's Document <select>.
+   *
+   * Used by the per-paragraph "Create New Document" modal. The Chosen library on
+   * this site is the vanilla-JS build, which listens for "chosen:updated" via
+   * native addEventListener; jQuery's .trigger() does NOT reach native custom
+   * event listeners, so we dispatch native Events here. Same for "change" (drives
+   * the notice-period #ajax). Appends only the one new option (guarded), never
+   * regenerates the existing options.
+   */
+  $.fn.apsSelectDocument = function (nid, label) {
+    return this.each(function () {
+      var select = this;
+      nid = String(nid);
+      if (!select.querySelector('option[value="' + nid + '"]')) {
+        var opt = document.createElement('option');
+        opt.value = nid;
+        opt.textContent = label;
+        opt.selected = true;
+        select.appendChild(opt);
+      }
+      select.value = nid;
+      select.dispatchEvent(new Event('chosen:updated', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  };
+
   /*
    * --- mailto popup DISABLED — automated emails now send silently via
    *     Microsoft 365 Graph (no OS mail client opens). PRESERVED for recovery:
@@ -57,29 +84,12 @@
 
   Drupal.behaviors.associatedps_forms = {
     attach:function (context, settings) {
-      $(document).ajaxComplete(function(event, xhr, settings) {
-        if(typeof settings.extraData != 'undefined' && settings.extraData._triggering_element_name == 'field_documents_document_add_more') {
-          $('.field--name-field-documents .paragraph-type--document:last-child').find('a.use-ajax').text('Create New Document');
-        }
-        if(typeof settings.extraData != 'undefined' && settings.extraData._triggering_element_value == 'Save') {
-          var dc_title = $.cookie('Drupal.visitor.document_title');
-          var dc_notice = $.cookie('Drupal.visitor.notice_period');
-          var dc_court_name = $.cookie('Drupal.visitor.document_court');
-          var dc_aff_template = $.cookie('Drupal.visitor.document_affidavit');
-          var field_dc = $.cookie('field_dc');
-          if(field_dc != '' && dc_title != '') {
-            $('#'+field_dc).find('.field--name-field-document-title input').val(dc_title);
-            $('#'+field_dc).find('.field--name-field-notice-period input').val(dc_notice);
-            $('#'+field_dc).find('.field--name-field-court-name input').val(dc_court_name);
-            $('#'+field_dc).find('.field--name-field-affidavit-template input').val(dc_aff_template);
-            $.removeCookie('Drupal.visitor.document_title', { path: '/' });
-            $.removeCookie('Drupal.visitor.notice_period', { path: '/' });
-            $.removeCookie('Drupal.visitor.document_court', { path: '/' });
-            $.removeCookie('Drupal.visitor.document_affidavit', { path: '/' });
-            $.removeCookie('field_dc', { path: '/' });
-          }
-        }
-      });
+      // NOTE: the legacy $(document).ajaxComplete() handler that used the
+      // jQuery Cookie plugin ($.cookie) to back-fill a newly created document's
+      // fields was removed. It belonged to the old cookie-based "Create New
+      // Document" flow (now replaced by the per-paragraph button that fills the
+      // Document select directly via AJAX). It also threw "TypeError: $.cookie
+      // is not a function" on every Save AJAX because the plugin isn't loaded.
       function setCookie(cname,cvalue,exdays) {
         var d = new Date();
         d.setTime(d.getTime() + (exdays*24*60*60*1000));

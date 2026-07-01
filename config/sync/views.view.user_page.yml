@@ -720,7 +720,7 @@ display:
         type: normal
         title: Users
         description: ''
-        weight: 3
+        weight: -46
         enabled: true
         expanded: false
         menu_name: main

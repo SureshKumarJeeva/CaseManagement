@@ -1030,7 +1030,16 @@
             }
           });
 
-          $(document).trigger('ajaxComplete');
+          // Drupal 10 core (core/misc/ajax.js) registers a
+          // $.event.special.ajaxComplete.trigger hook that calls
+          // xhr.getResponseHeader() on EVERY ajaxComplete trigger. Firing this
+          // bare (no args) makes xhr undefined -> "Cannot read properties of
+          // undefined (reading 'getResponseHeader')", which aborts the in-page
+          // AJAX command queue (e.g. the per-paragraph "Create New Document"
+          // populate). Pass a dummy xhr/settings whose token != '1' so the core
+          // hook short-circuits without interfering. (Behaviour unchanged for
+          // the theme's own ajaxComplete handlers.)
+          $(document).trigger('ajaxComplete', [{ getResponseHeader: function () { return null; } }, {}]);
         }
 
         // Job Page View functions.

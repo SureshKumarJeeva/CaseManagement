@@ -42,6 +42,9 @@ settings:
     -
       value: '2'
       label: '2'
+    -
+      value: 'Denis Gerald Jeeva'
+      label: 'Denis Gerald Jeeva'
   allowed_values_function: ''
 module: options
 locked: false

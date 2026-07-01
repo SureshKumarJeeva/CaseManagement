@@ -1,6 +1,6 @@
 uuid: 6ecdb1f7-1908-4d5c-960f-c0c536e0d41b
 langcode: en
-status: true
+status: false
 dependencies:
   config:
     - system.menu.login-navigation

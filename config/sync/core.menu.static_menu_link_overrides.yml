@@ -62,8 +62,38 @@ definitions:
     expanded: false
     enabled: true
   standard__front_page:
+    weight: -50
     menu_name: main
     parent: ''
-    weight: 0
+    enabled: true
+    expanded: false
+  mailsystem__settings:
+    weight: -19
+    menu_name: admin
+    parent: system.admin_config_system
     expanded: false
     enabled: true
+  smtp__config:
+    weight: -18
+    menu_name: admin
+    parent: system.admin_config_system
+    expanded: false
+    enabled: true
+  system__cron_settings:
+    weight: -17
+    menu_name: admin
+    parent: system.admin_config_system
+    expanded: false
+    enabled: true
+  entity_reference_revisions__delete_orphans:
+    weight: -16
+    menu_name: admin
+    parent: system.admin_config_system
+    expanded: false
+    enabled: true
+  associatedps_case_status_template__settings_form:
+    enabled: false
+    menu_name: admin
+    parent: system.admin_config_system
+    expanded: false
+    weight: -14

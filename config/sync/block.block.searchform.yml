@@ -3,7 +3,7 @@ langcode: en
 status: false
 dependencies:
   module:
-    - ctools
+    - node
     - search
     - system
     - user

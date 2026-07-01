@@ -10,6 +10,9 @@ dependencies:
     - field.field.node.job.field_admin_invoiced_date
     - field.field.node.job.field_admin_send_to_client_date
     - field.field.node.job.field_admin_status
+    - field.field.node.job.field_affidavit_received_from_ag
+    - field.field.node.job.field_affidavit_sent_to_agent
+    - field.field.node.job.field_affidavit_sent_to_client
     - field.field.node.job.field_affidavits
     - field.field.node.job.field_agreed_discount
     - field.field.node.job.field_allocated_to
@@ -17,6 +20,7 @@ dependencies:
     - field.field.node.job.field_allocated_to_full_name
     - field.field.node.job.field_allocated_to_last_name
     - field.field.node.job.field_allocation_date
+    - field.field.node.job.field_attendance_case_status
     - field.field.node.job.field_attendance_notes
     - field.field.node.job.field_business_name
     - field.field.node.job.field_business_name_value
@@ -94,6 +98,9 @@ hidden:
   field_admin_invoiced_date: true
   field_admin_send_to_client_date: true
   field_admin_status: true
+  field_affidavit_received_from_ag: true
+  field_affidavit_sent_to_agent: true
+  field_affidavit_sent_to_client: true
   field_affidavits: true
   field_agreed_discount: true
   field_allocated_to: true
@@ -101,6 +108,7 @@ hidden:
   field_allocated_to_full_name: true
   field_allocated_to_last_name: true
   field_allocation_date: true
+  field_attendance_case_status: true
   field_attendance_notes: true
   field_business_name: true
   field_business_name_value: true

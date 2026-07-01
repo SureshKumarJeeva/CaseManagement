@@ -237,21 +237,10 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
       '#weight' => '51',
     ];
 
-    // "Create New Document" button — shared across add and edit forms.
-    $form['group_documents_to_be_served']['open_modal_document'] = [
-      '#type' => 'link',
-      '#title' => 'Create New Document',
-      '#url' => Url::fromUri('base://add-document/0', ['query' => ['job_nid' => $client_nid]]),
-      '#attributes' => [
-        'class' => [
-          'use-ajax',
-          'button',
-        ],
-        'data-dialog-type' => 'modal',
-        'data-dialog-options' => '{"width":800}',
-      ],
-      '#weight' => '7',
-    ];
+    // NOTE: the "Create New Document" button is no longer a single button here.
+    // It is now rendered INSIDE each document paragraph, next to that
+    // paragraph's Document field, so the created document auto-fills that
+    // specific paragraph. See associatedps_forms_field_widget_single_element_form_alter().
 
     // "Add New User" button — placed right after the Allocated To field.
     $form['group_job_status']['open_modal_user'] = [
@@ -284,10 +273,35 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     }
 
     // "Save & Next" button — saves the form and advances to the next tab.
+    //
+    // It must behave EXACTLY like the real Save button: run ::submitForm/::save
+    // (so a brand-new Job is actually created) AND flush inline-entity-form rows
+    // such as Job Fees into the entity. Both depend on properties the form
+    // builder snapshots onto the *triggering element* DURING form build (see
+    // FormBuilder::doBuildForm + FormState::setTriggeringElement, which stores a
+    // copy), BEFORE #after_build runs:
+    //   - FormSubmitter reads #submit from that snapshot (falling back to the
+    //     form-level #submit, which here is only ['::submitForm'] — no ::save),
+    //   - the IEF widget's extractFormValues() copies IEF rows onto the entity
+    //     only when the snapshot carries #ief_submit_trigger.
+    // Therefore these MUST be set here in form_alter, never in #after_build —
+    // setting them later silently drops both the node save and the Job Fees.
+    //
+    // associatedps_forms' form_alter runs BEFORE inline_entity_form's, so the
+    // Save button's #submit does not yet contain IEF's flush trigger; add it
+    // ourselves (idempotently, in case ordering ever changes) and set the
+    // matching #ief_submit_trigger* markers, mirroring ElementSubmit::addCallback().
+    $save_next_submit = $form['actions']['submit']['#submit'] ?? [];
+    $ief_trigger = ['Drupal\inline_entity_form\ElementSubmit', 'trigger'];
+    if (!in_array($ief_trigger, $save_next_submit, TRUE)) {
+      array_unshift($save_next_submit, $ief_trigger);
+    }
     $form['actions']['save_next'] = [
       '#type' => 'submit',
       '#value' => t('Save & Next'),
-      '#submit' => $form['actions']['submit']['#submit'] ?? [],
+      '#submit' => $save_next_submit,
+      '#ief_submit_trigger' => TRUE,
+      '#ief_submit_trigger_all' => TRUE,
       '#attributes' => ['class' => ['button', 'save-next-btn']],
       '#weight' => 6,
     ];
@@ -427,6 +441,26 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     }
     $form['#attached']['drupalSettings']['associatedps_forms']['client_discount'] = $client_discount;
 
+    /* Client summary box — client NAMES are not unique (uniqueness is the
+     * email/phone), so show the selected client's address + contact details
+     * next to the Client field to tell duplicates apart. Shared by the add and
+     * edit Job forms: rendered here for an already-selected client (edit, or one
+     * just created via the modal on /node/add/job) and refreshed on change by
+     * associatedps_forms_change_client_email(). The #prefix opens a flex row and
+     * the #suffix holds the summary div and closes the row. */
+    $summary_client_id = NULL;
+    if ($node && !$node->isNew() && !$node->get('field_client')->isEmpty()) {
+      $summary_client_id = $node->get('field_client')->target_id;
+    }
+    elseif (!empty($_COOKIE['Drupal_visitor_node_id']) && !empty($_COOKIE['Drupal_visitor_client_submit'])) {
+      // Client just created via the modal on the Add Job form.
+      $summary_client_id = (int) $_COOKIE['Drupal_visitor_node_id'];
+    }
+    $summary_client = $summary_client_id ? Node::load($summary_client_id) : NULL;
+    $form['field_client']['#prefix'] = '<div class="client-field-row">';
+    $form['field_client']['#suffix'] = '<div id="client-summary" class="client-summary-box">'
+      . _associatedps_forms_client_summary_html($summary_client) . '</div></div>';
+
     /* Allow dynamically-added values in select_or_other fields. */
     $form['field_served_party']['widget']['#after_build'][] = '_associatedps_forms_after_build_select_or_other';
     $form['field_business_name']['widget']['#after_build'][] = '_associatedps_forms_after_build_select_or_other';
@@ -444,12 +478,16 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
      * IEF subforms) is built but before validation. */
     $form['#after_build'][] = '_associatedps_forms_after_build_fix_ief_address_selects';
 
-    /* set Full name of user in allocated_to/served_by */
+    /* User id list for the JS-based Employee field sync (below). */
 
     $query = \Drupal::entityQuery('user')->accessCheck(FALSE);
     $uids = $query->execute();
-    $options = _associatedps_forms_get_users($uids);
-    $form['field_served_by']['widget']['#options'] = $options;
+    // field_served_by previously had its options overridden here with a custom
+    // user list (_associatedps_forms_get_users), which gave blank labels to
+    // users without an address name and so appeared to be "missing" users. It
+    // now uses the field's default entity-reference handler — the same source as
+    // the Attendance tab's field_attendance_served_by — so both show the same,
+    // complete user list.
 
     /* Preload user details for JS-based Employee field sync.
      * When Allocated To changes after a paragraph is already generated,
@@ -570,6 +608,25 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         }
       }
 
+      // Other Parties (field_other_parties / party_other paragraph) are also
+      // selectable in "Person Delivered To" AND "Name to Serve" — their name is
+      // stored in field_name (single, no last name). Added to both $person_list
+      // and $party_list so it flows to those fields (and the attendance copy,
+      // built from $person_list below).
+      if (!empty($node->field_other_parties->getValue())) {
+        foreach ($node->field_other_parties->getValue() as $value) {
+          $op_para = Paragraph::load($value['target_id']);
+          if (!$op_para) {
+            continue;
+          }
+          $op_name = trim((string) $op_para->field_name->value);
+          if ($op_name !== '') {
+            $person_list[$op_name] = $op_name;
+            $party_list[$op_name] = $op_name;
+          }
+        }
+      }
+
       if (empty($form["field_served_party"]["widget"]["#default_value"])) {
         $form["field_served_party"]["widget"]["#default_value"] = $default_value;
       }
@@ -604,9 +661,42 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
       if (!empty($saved_business_name) && !isset($business_list[$saved_business_name])) {
         $business_list[$saved_business_name] = $saved_business_name;
       }
+      // Custom ("Other") Person Delivered To values are scoped to THIS job only:
+      // the node's own saved value is re-added to $person_list above. Global
+      // State accumulation was removed because it leaked OTHER jobs' custom
+      // names into this dropdown.
+
       $form["field_served_party"]["widget"]["#options"] = $party_list;
-      $form["field_person_delivered_to"]["widget"]["#options"] = ['_none' => '- None -'] + $person_list;
+      // The select_or_other widget builds its inner select from
+      // (#original_options ?? #options) — see ElementBase::addSelectField(). When
+      // the widget's "add_other_value_to_allowed_values" setting is OFF (as on
+      // staging), ListWidget::formElement() sets #original_options from the
+      // field's GLOBAL allowed_values (every job's accumulated party names), so
+      // our #options override above is IGNORED and the dropdown lists parties
+      // from ALL jobs. Override #original_options too so the inner select is
+      // scoped to THIS job regardless of that per-environment widget setting.
+      $form["field_served_party"]["widget"]["#original_options"] = $party_list;
+      // '_other' lets the user enter a one-off name (handled client-side by
+      // party_to_serve_sync.js, since the select_or_other widget regresses here).
+      $form["field_person_delivered_to"]["widget"]["#options"] = ['_none' => '- None -'] + $person_list + ['_other' => '- Other -'];
       $form["field_business_name"]["widget"]["#options"] = $business_list;
+
+      // Mirror the Person Delivered To options onto the Attendance Note copy
+      // (field_atten_person_delivered_to) so the SAME party names are selectable
+      // there. The two fields are reconciled server-side on Save
+      // (_associatedps_forms_sync_service_details); without matching options the
+      // attendance widget cannot render the synced value and the tabs appear
+      // out of sync. Build from the same $person_list, plus the attendance
+      // field's own currently-saved value so it isn't stripped as unknown.
+      if (isset($form['field_atten_person_delivered_to']['widget'])) {
+        $atten_person_list = $person_list;
+        $saved_atten_person = $node->field_atten_person_delivered_to->value ?? '';
+        if (!empty($saved_atten_person) && !isset($atten_person_list[$saved_atten_person])) {
+          $atten_person_list[$saved_atten_person] = $saved_atten_person;
+        }
+        $form['field_atten_person_delivered_to']['widget']['#options'] = ['_none' => '- None -'] + $atten_person_list + ['_other' => '- Other -'];
+        $form['field_atten_person_delivered_to']['widget']['#after_build'][] = '_associatedps_forms_after_build_standard_select';
+      }
       /* Finish Name To Serve and Person Delivered options and default value */
 
       /* Deadline Date */
@@ -671,6 +761,32 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
     $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
     $form['#attached']['library'][] = 'associatedps_forms/global';
+
+    // Name to Serve (field_served_party, a select_or_other field) on the ADD
+    // form: a new job has no parties yet, so the per-job scoping in the
+    // edit-only block (if node_job_edit_form) never runs here, and the widget
+    // falls back to the field's GLOBAL allowed_values — every job's accumulated
+    // party names. Scope it to empty so it shows only "- None -" / "Other"; JS
+    // (party_to_serve_sync.js) fills it live as parties are added. The inner
+    // select reads (#original_options ?? #options), so set BOTH (this is what
+    // made staging differ: with add_other_value_to_allowed_values OFF the widget
+    // sets #original_options from allowed_values and ignores #options alone).
+    if (isset($form['field_served_party']['widget'])) {
+      $form['field_served_party']['widget']['#options'] = [];
+      $form['field_served_party']['widget']['#original_options'] = [];
+    }
+
+    // Person Delivered To (Job Status + its Attendance Note copy) on the ADD
+    // form: same problem as Name to Serve above. These are options_select
+    // fields whose per-job #options is set only in the edit-only block, so on a
+    // new job they fall back to the field's GLOBAL allowed_values (every job's
+    // accumulated party names). Scope to "- None -" / "- Other -"; JS fills the
+    // party names live as they are added.
+    foreach (['field_person_delivered_to', 'field_atten_person_delivered_to'] as $pdf) {
+      if (isset($form[$pdf]['widget'])) {
+        $form[$pdf]['widget']['#options'] = ['_none' => '- None -', '_other' => '- Other -'];
+      }
+    }
 
     // Pre-populate client field if a client was just created via modal.
     $cookie_client_nid = isset($_COOKIE['Drupal_visitor_node_id']) ? $_COOKIE['Drupal_visitor_node_id'] : '';
@@ -914,6 +1030,7 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 function associatedps_forms_change_client_email($form, &$form_state) {
   $client_id = $form_state->getValue('field_client');
   $client_email = $client_dis = '';
+  $client = NULL;
 
   if (!empty($client_id)) {
     $client_id = reset($client_id);
@@ -924,9 +1041,60 @@ function associatedps_forms_change_client_email($form, &$form_state) {
   $response = new AjaxResponse();
   $response->addCommand(new InvokeCommand("#change-client-email", 'val', [$client_email]));
   $response->addCommand(new InvokeCommand("#change-client-discount", 'val', [$client_dis]));
+  // Refresh the client summary box (address / email / phone) next to the field.
+  $response->addCommand(new \Drupal\Core\Ajax\HtmlCommand('#client-summary', _associatedps_forms_client_summary_html($client)));
   // Update drupalSettings so fee calculation JS picks up the new discount.
   $response->addCommand(new \Drupal\Core\Ajax\SettingsCommand(['associatedps_forms' => ['client_discount' => (float) $client_dis]], TRUE));
   return $response;
+}
+
+/**
+ * Builds the inner HTML for the Job form's Client summary box.
+ *
+ * Client names are not unique across the app; their address/email/phone are the
+ * distinguishing details. This renders a brief summary shown next to the Client
+ * field. Returns '' when there is nothing to show (cleared selection / no data).
+ */
+function _associatedps_forms_client_summary_html($client) {
+  if (!$client) {
+    return '';
+  }
+
+  $address = '';
+  if ($client->hasField('field_client_address') && !$client->get('field_client_address')->isEmpty()) {
+    $a = $client->get('field_client_address')->getValue()[0];
+    $line = array_filter([
+      $a['address_line1'] ?? '',
+      $a['address_line2'] ?? '',
+      $a['locality'] ?? '',
+      $a['administrative_area'] ?? '',
+      $a['postal_code'] ?? '',
+    ]);
+    $address = implode(', ', $line);
+  }
+  $email = $client->hasField('field_email') ? trim((string) $client->get('field_email')->value) : '';
+  $phone = $client->hasField('field_telephone') ? trim((string) $client->get('field_telephone')->value) : '';
+
+  if ($address === '' && $email === '' && $phone === '') {
+    return '';
+  }
+
+  $rows = [];
+  if ($address !== '') {
+    $rows[] = 'Address: ' . Html::escape($address);
+  }
+  $contact = [];
+  if ($email !== '') {
+    $contact[] = 'Email: ' . Html::escape($email);
+  }
+  if ($phone !== '') {
+    $contact[] = 'Phone: ' . Html::escape($phone);
+  }
+  if ($contact) {
+    $rows[] = implode(' &nbsp;|&nbsp; ', $contact);
+  }
+
+  return implode('<br>', $rows);
 }
 
 /**
@@ -974,6 +1142,44 @@ function associatedps_forms_field_widget_single_element_form_alter(&$element, Fo
         'event' => 'change',
         'wrapper' => $ajax_id,
         'callback' => 'associatedps_forms_change_notice_period',
+      ];
+
+      // Per-paragraph "Create New Document" button, next to the Document field.
+      // Each document paragraph gets its own button so the user can create a
+      // document and have it auto-fill THIS paragraph's Document select without
+      // scrolling to the top of the page. The modal link carries this select's
+      // DOM id as ?target= ; on save the modal appends + selects the new
+      // document option in that select (see CustomAddDocument).
+      // Tag THIS paragraph's Document <select> with a unique data attribute so
+      // the modal can find + fill it. data-* attributes (unlike id) are not
+      // overwritten by Drupal's auto #id, and don't depend on a wrapper div
+      // rendering inside the IEF subform (the #prefix wrapper did not render).
+      $doc_token = 'job-doc';
+      foreach ($element['subform']['field_doc_notice_period']['widget']['#parents'] as $value) {
+        $doc_token .= is_int($value) ? '-' . $value : '';
+      }
+      $element['subform']['field_document']['widget']['#attributes']['data-doc-select'] = $doc_token;
+
+      // A document created via the modal is injected into the <select> client
+      // side, but the server's options_select option list is built before it
+      // exists, so the value would fail validation ("submitted value N ... is
+      // not allowed") on the next rebuild/save. This #after_build re-adds the
+      // selected document to #options so it validates.
+      $element['subform']['field_document']['widget']['#after_build'][] = '_associatedps_forms_ensure_document_option';
+
+      $doc_weight = $element['subform']['field_document']['#weight'] ?? 0;
+      $element['subform']['create_new_document'] = [
+        '#type' => 'link',
+        '#title' => t('Create New Document'),
+        '#url' => Url::fromUri('base://add-document/0', [
+          'query' => ['job_nid' => $nid, 'target' => $doc_token],
+        ]),
+        '#attributes' => [
+          'class' => ['use-ajax', 'button', 'create-new-document-inline'],
+          'data-dialog-type' => 'modal',
+          'data-dialog-options' => '{"width":800}',
+        ],
+        '#weight' => $doc_weight + 0.01,
       ];
     }
 
@@ -1026,6 +1232,10 @@ function associatedps_forms_field_widget_single_element_form_alter(&$element, Fo
             $element['subform']['field_address_attendance']['widget'][0]['address']['#default_value']['postal_code'] = $add[3];
           }
           $element['subform']['field_party_to_serve_addresses']['widget']['#options'] = $address;
+          // Stash the current job's address list so the after_build can restrict
+          // the rendered options to it (the field's global allowed_values lists
+          // every job's addresses).
+          $element['subform']['field_party_to_serve_addresses']['widget']['#aps_job_addresses'] = $address;
           $element['subform']['field_party_to_serve_addresses']['widget']['#after_build'][] = '_associatedps_forms_after_build_paragraph_select_or_other';
         }
       }
@@ -1079,6 +1289,10 @@ function associatedps_forms_field_widget_single_element_form_alter(&$element, Fo
             $element['subform']['field_address']['widget'][0]['address']['#default_value']['postal_code'] = $add[3];
           }
           $element['subform']['field_party_to_serve_addresses']['widget']['#options'] = $address;
+          // Restrict the rendered options to THIS job's addresses (the field's
+          // global allowed_values otherwise lists every job's addresses).
+          $element['subform']['field_party_to_serve_addresses']['widget']['#aps_job_addresses'] = $address;
+          $element['subform']['field_party_to_serve_addresses']['widget']['#after_build'][] = '_associatedps_forms_after_build_paragraph_select_or_other';
         }
       }
     }
@@ -1196,9 +1410,13 @@ function associatedps_forms_change_notice_period(array & $element, FormStateInte
   $doc_node = $document['#value'];
   $notice_period = '';
   if (!empty($doc_node)) {
-    $doc_node_id = reset($doc_node);
+    // field_document is now a Chosen <select>, so #value is the selected node id
+    // (a string); the old autocomplete widget passed an array. Handle both.
+    $doc_node_id = is_array($doc_node) ? reset($doc_node) : $doc_node;
     $node_doc = Node::load($doc_node_id);
-    $notice_period = $node_doc->field_notice_period->value;
+    if ($node_doc) {
+      $notice_period = $node_doc->field_notice_period->value;
+    }
   }
   $wrapper_id = $document["#ajax"]["wrapper"];
   $response = new AjaxResponse();
@@ -1207,10 +1425,102 @@ function associatedps_forms_change_notice_period(array & $element, FormStateInte
 }
 
 /**
+ * #after_build for the document paragraph's Document select.
+ *
+ * Ensures the currently-selected document is present in the select's #options.
+ * A document created via the per-paragraph "Create New Document" modal is added
+ * to the <select> client side, but the server-built option list does not yet
+ * contain it, so options_select would reject the value as "not allowed" on the
+ * next rebuild (Add Another / notice-period ajax) or on save. Re-adding it here
+ * keeps the value valid.
+ */
+function _associatedps_forms_ensure_document_option($element, FormStateInterface $form_state) {
+  $value = $element['#value'] ?? NULL;
+  // Single-value select gives a scalar; guard against arrays/empty/_none so the
+  // value can be safely used as an #options offset.
+  if (is_scalar($value) && $value !== '' && $value !== '_none' && !isset($element['#options'][$value])) {
+    $doc = Node::load($value);
+    if ($doc && $doc->bundle() === 'document') {
+      $element['#options'][$value] = $doc->label();
+    }
+  }
+  return $element;
+}
+
+/**
+ * Implements hook_field_group_pre_render_alter().
+ *
+ * Job VIEW page: title each section (field group) with the LIVE label of the
+ * matching edit-form group, so renaming a tab/section on the Job form updates
+ * the view section title automatically — no hardcoded titles, no CSS content
+ * hacks. The view display and form display are independent configs, so the
+ * structural view-group -> form-group map is explicit; only the label text is
+ * read dynamically from the form display.
+ */
+function associatedps_forms_field_group_pre_render_alter(array &$element, &$group, &$rendering_object) {
+  if (($group->context ?? '') !== 'view'
+    || ($group->entity_type ?? '') !== 'node'
+    || ($group->bundle ?? '') !== 'job') {
+    return;
+  }
+
+  // View field group  =>  edit-form field group whose label to mirror.
+  $map = [
+    'group_case_details'            => 'group_job_detail',       // tab "Client"
+    'group_court_details'           => 'group_court_detail',     // tab "Court"
+    'group_party_details'           => 'group_party',            // tab "Parties"
+    'group_document_details'        => 'group_documents',        // tab "Documents"
+    'group_served_party_details'    => 'group_party_to_serve',   // tab "Party To Serve"
+    'group_job_status'              => 'group_job__status',      // tab "Job Status"
+    'group_attendance_note_details' => 'group_attendance_note',  // tab "Attendance Note"
+    'group_service_details'         => 'group_service_details',  // fieldset "Service Details" (no own tab)
+  ];
+
+  if (!isset($map[$group->group_name])) {
+    return;
+  }
+
+  // Read the edit-form field group definitions once per request.
+  $form_groups = &drupal_static(__FUNCTION__);
+  if (!isset($form_groups)) {
+    $form_display = \Drupal::entityTypeManager()
+      ->getStorage('entity_form_display')
+      ->load('node.job.default');
+    $form_groups = $form_display ? ($form_display->getThirdPartySettings('field_group') ?: []) : [];
+  }
+
+  $form_group_name = $map[$group->group_name];
+  if (!empty($form_groups[$form_group_name]['label'])) {
+    $element['#title'] = $form_groups[$form_group_name]['label'];
+  }
+}
+
+/**
  * Implements hook_entity_presave().
  */
 function associatedps_forms_node_presave(NodeInterface $node) {
   if ($node->getType() == 'job') {
+    // Accumulate custom ("Other") Person Delivered To values into a global State
+    // list so they stay reusable as dropdown options across jobs. A value is
+    // "custom" when it is not one of THIS job's party names.
+    $party_names = [];
+    foreach (['field_parties', 'field_party_2', 'field_other_parties'] as $pf) {
+      if ($node->hasField($pf)) {
+        foreach ($node->get($pf)->referencedEntities() as $para) {
+          $fn = $para->hasField('field_name') ? trim((string) $para->get('field_name')->value) : '';
+          $ln = $para->hasField('field_last_name') ? trim((string) $para->get('field_last_name')->value) : '';
+          $full = trim($fn . ' ' . $ln);
+          if ($full !== '') {
+            $party_names[$full] = TRUE;
+          }
+        }
+      }
+    }
+    // Custom ("Other") Person Delivered To values are no longer accumulated into
+    // global State — that pooled custom names across ALL jobs and leaked them
+    // into every job's dropdown. Each job keeps only its own saved value
+    // (re-added to options in form_alter).
+
     $client_name = isset($_COOKIE['Drupal_visitor_client_name']) ? $_COOKIE['Drupal_visitor_client_name'] : '';
     $client_id = isset($_COOKIE['Drupal_visitor_client_id']) ? $_COOKIE['Drupal_visitor_client_id'] : '';
     $telephone = isset($_COOKIE['Drupal_visitor_telephone']) ? $_COOKIE['Drupal_visitor_telephone'] : '';
@@ -1570,6 +1880,7 @@ function _associatedps_forms_job_form_after_build($form, FormStateInterface $for
   if (isset($form['field_attendance_notes']['widget']['actions']['ief_add'])) {
     $form['field_attendance_notes']['widget']['actions']['ief_add']['#value'] = t('Add New Attendance');
   }
+
   return $form;
 }
 
@@ -1585,32 +1896,51 @@ function _associatedps_forms_job_form_after_build($form, FormStateInterface $for
  * performRequiredValidation() accepts them.
  */
 function _associatedps_forms_after_build_fix_ief_address_selects($form, FormStateInterface $form_state) {
-  _associatedps_forms_recurse_fix_address_selects($form);
+  // Build THIS job's service-address option list once, so every
+  // field_party_to_serve_addresses select (incl. the IEF-rendered Service
+  // Details popups, where the widget alter hook does not fire) can be
+  // restricted to it — the field's global allowed_values otherwise lists
+  // addresses from every job.
+  $job_addresses = [];
+  $job = $form_state->getFormObject()->getEntity();
+  if ($job instanceof NodeInterface && $job->hasField('field_service_address')) {
+    foreach ($job->get('field_service_address')->referencedEntities() as $addr_para) {
+      if (!$addr_para->hasField('field_service_address') || $addr_para->get('field_service_address')->isEmpty()) {
+        continue;
+      }
+      $a = $addr_para->get('field_service_address')->first()->getValue();
+      $key = ($a['address_line1'] ?? '') . '-' . ($a['locality'] ?? '') . '-' . ($a['administrative_area'] ?? '') . '-' . ($a['postal_code'] ?? '');
+      $job_addresses[$key] = $a['address_line1'] ?? $key;
+    }
+  }
+  _associatedps_forms_recurse_fix_address_selects($form, $job_addresses);
   return $form;
 }
 
 /**
  * Recursively walk the form tree looking for field_party_to_serve_addresses
- * select elements and inject the submitted value into #options.
+ * select elements, restrict their options to this job's addresses, and inject
+ * the submitted value into #options.
  */
-function _associatedps_forms_recurse_fix_address_selects(&$elements) {
+function _associatedps_forms_recurse_fix_address_selects(&$elements, array $job_addresses = []) {
   foreach (\Drupal\Core\Render\Element::children($elements) as $key) {
     if ($key === 'field_party_to_serve_addresses') {
       // Found the field — look for widget > select inside it.
-      _associatedps_forms_inject_address_option($elements[$key]);
+      _associatedps_forms_inject_address_option($elements[$key], $job_addresses);
     }
     // Recurse into children.
     if (is_array($elements[$key])) {
-      _associatedps_forms_recurse_fix_address_selects($elements[$key]);
+      _associatedps_forms_recurse_fix_address_selects($elements[$key], $job_addresses);
     }
   }
 }
 
 /**
- * For a field_party_to_serve_addresses render array, inject the submitted
- * value into the inner select's #options so form validation passes.
+ * For a field_party_to_serve_addresses render array, restrict the inner select's
+ * #options to THIS job's service addresses (the field's global allowed_values
+ * lists every job's addresses) and keep the submitted value so it validates.
  */
-function _associatedps_forms_inject_address_option(&$field_element) {
+function _associatedps_forms_inject_address_option(&$field_element, array $job_addresses = []) {
   // The widget is at ['widget'] (WidgetBase::form wraps in a container).
   // Inside, the select_or_other element has a 'select' child.
   $widget = &$field_element;
@@ -1619,25 +1949,40 @@ function _associatedps_forms_inject_address_option(&$field_element) {
   }
 
   // The inner select created by processSelectOrOther().
-  if (!isset($widget['select']['#value']) || !isset($widget['select']['#options'])) {
+  if (!isset($widget['select']['#options'])) {
     return;
   }
 
-  $value = $widget['select']['#value'];
-  if (empty($value) || !is_string($value) || $value === '_none' || $value === 'select_or_other') {
-    return;
+  // Restrict the options to this job's addresses. Order: "- None -" (if any)
+  // first, then the addresses, then "- Other -" LAST — otherwise the dropdown
+  // defaults to "- Other -" on a new paragraph (which has no preset value).
+  $existing = $widget['select']['#options'];
+  $restricted = [];
+  if (isset($existing['_none'])) {
+    $restricted['_none'] = $existing['_none'];
+  }
+  $restricted += $job_addresses;
+  if (isset($existing['select_or_other'])) {
+    $restricted['select_or_other'] = $existing['select_or_other'];
+  }
+  $widget['select']['#options'] = $restricted;
+  if (isset($widget['#options'])) {
+    $widget['#options'] = $restricted;
   }
 
-  // Inject into inner select's #options.
-  if (!isset($widget['select']['#options'][$value])) {
-    $widget['select']['#options'][$value] = $value;
+  // Keep the currently-selected value so it still validates / displays
+  // (e.g. a custom "Other" address, or a value saved earlier).
+  $value = $widget['select']['#value'] ?? NULL;
+  if (!empty($value) && is_string($value) && $value !== '_none' && $value !== 'select_or_other') {
+    if (!isset($widget['select']['#options'][$value])) {
+      $widget['select']['#options'][$value] = $value;
+    }
+    if (isset($widget['#options']) && !isset($widget['#options'][$value])) {
+      $widget['#options'][$value] = $value;
+    }
+    // Ensure field storage allowed_values has this value (entity validation).
+    _associatedps_forms_ensure_party_address_allowed($value);
   }
-  // Inject into parent widget's #options.
-  if (isset($widget['#options']) && !isset($widget['#options'][$value])) {
-    $widget['#options'][$value] = $value;
-  }
-  // Also ensure field storage allowed_values has this value.
-  _associatedps_forms_ensure_party_address_allowed($value);
 }
 
 /**
@@ -1676,33 +2021,8 @@ function _associatedps_forms_after_build_select_or_other($element, FormStateInte
  * paragraphs.
  */
 function _associatedps_forms_after_build_paragraph_select_or_other($element, FormStateInterface $form_state) {
-  // --- TEMPORARY DEBUG: log to file so we can trace the issue ---
-  $debug = [];
-  $debug['parents'] = $element['#parents'] ?? 'NOT SET';
-  $debug['has_select_child'] = isset($element['select']);
-  $debug['select_value'] = $element['select']['#value'] ?? 'NOT SET';
-  $debug['select_options_keys'] = isset($element['select']['#options']) ? array_keys($element['select']['#options']) : 'NO OPTIONS';
-  $debug['parent_value'] = $element['#value'] ?? 'NOT SET';
-  $debug['parent_options_keys'] = isset($element['#options']) ? array_keys($element['#options']) : 'NO OPTIONS';
-
   $input = $form_state->getUserInput();
   $select_parents = array_merge($element['#parents'] ?? [], ['select']);
-  $debug['input_via_parents'] = NestedArray::getValue($input, $select_parents);
-
-  // Also check element type and children keys.
-  $debug['element_type'] = $element['#type'] ?? 'NOT SET';
-  $children = [];
-  foreach ($element as $key => $val) {
-    if ($key[0] !== '#') {
-      $children[] = $key;
-    }
-  }
-  $debug['children_keys'] = $children;
-
-  \Drupal::logger('associatedps_debug')->notice('after_build_paragraph_select_or_other: @debug', [
-    '@debug' => print_r($debug, TRUE),
-  ]);
-  // --- END TEMPORARY DEBUG ---
 
   // Collect submitted values from multiple sources for robustness.
   $values = [];
@@ -1734,9 +2054,40 @@ function _associatedps_forms_after_build_paragraph_select_or_other($element, For
     }
   }
 
-  \Drupal::logger('associatedps_debug')->notice('after_build values resolved: @values', [
-    '@values' => print_r($values, TRUE),
-  ]);
+  // Restrict the selectable options to the CURRENT job's service addresses.
+  // field_party_to_serve_addresses is a list_string whose global storage
+  // allowed_values accumulates EVERY job's addresses (only needed so saved
+  // values pass validation), so the widget would otherwise list addresses from
+  // other jobs. The current job's address list is stashed on the element in
+  // hook_field_widget_single_element_form_alter (#aps_job_addresses).
+  $job_addresses = $element['#aps_job_addresses'] ?? NULL;
+  if (is_array($job_addresses)) {
+    // The widget is either a select_or_other (inner 'select' child) or a plain
+    // options select (#options on the widget element itself).
+    $opts_key = isset($element['select']['#options']) ? 'select' : NULL;
+    $existing = $opts_key ? $element['select']['#options'] : ($element['#options'] ?? []);
+    // Order: "- None -" first, addresses, then "- Other -" LAST so the dropdown
+    // does not default to "- Other -" on a new paragraph.
+    $restricted = [];
+    if (isset($existing['_none'])) {
+      $restricted['_none'] = $existing['_none'];
+    }
+    $restricted += $job_addresses;
+    if (isset($existing['select_or_other'])) {
+      $restricted['select_or_other'] = $existing['select_or_other'];
+    }
+    // Keep any currently-submitted value so it still validates / displays
+    // (e.g. a custom "Other" address, or a value saved earlier).
+    foreach ($values as $value) {
+      if ($value !== '' && $value !== '_none' && $value !== 'select_or_other' && !isset($restricted[$value])) {
+        $restricted[$value] = $value;
+      }
+    }
+    if ($opts_key) {
+      $element['select']['#options'] = $restricted;
+    }
+    $element['#options'] = $restricted;
+  }
 
   foreach ($values as $value) {
     if ($value === '' || $value === '_none' || $value === 'select_or_other') {
@@ -1820,20 +2171,54 @@ function _associatedps_forms_after_build_standard_select($element, FormStateInte
 function _associatedps_forms_validate_dynamic_select_options(&$form, FormStateInterface $form_state) {
   $input = $form_state->getUserInput();
 
-  // --- field_person_delivered_to (node-level) ---
-  $value = $input['field_person_delivered_to'] ?? '';
-  if (!empty($value) && $value !== '_none') {
-    $storage = \Drupal::entityTypeManager()
-      ->getStorage('field_storage_config')
-      ->load('node.field_person_delivered_to');
-    if ($storage) {
+  // --- field_person_delivered_to + its Attendance Note copy (node-level) ---
+  // Both are list_string options_select fields whose options are populated
+  // dynamically from party names, so a chosen value may not exist in field
+  // storage allowed_values yet.
+  //
+  // These two fields mirror each other: the service-details entity builder
+  // copies EITHER field's value into the OTHER on save. The options_select
+  // widget DROPS a stored value that is not in its storage allowed_values when
+  // it computes #default_value (during widget build, before form_alter can
+  // extend #options) — so a synced value would persist to the DB yet render
+  // BLANK on the other tab. To avoid that (and to let entity validation accept
+  // either value), register EVERY submitted person value on BOTH fields'
+  // storage allowed_values, not just on the field it was typed in.
+  $person_fields = ['field_person_delivered_to', 'field_atten_person_delivered_to'];
+  $person_values = [];
+  foreach ($person_fields as $pf) {
+    $v = $input[$pf] ?? '';
+    // '_other' is the literal trigger marker, not a real value — skip it (the
+    // typed value is appended as its own option client-side).
+    if (!empty($v) && $v !== '_none' && $v !== '_other') {
+      $person_values[$v] = $v;
+    }
+  }
+  if (!empty($person_values)) {
+    $reset = FALSE;
+    foreach ($person_fields as $pf) {
+      $storage = \Drupal::entityTypeManager()
+        ->getStorage('field_storage_config')
+        ->load('node.' . $pf);
+      if (!$storage) {
+        continue;
+      }
       // getSetting() returns the simplified flat format: [value => label, ...].
       $allowed_values = $storage->getSetting('allowed_values');
-      if (!isset($allowed_values[$value])) {
-        $allowed_values[$value] = $value;
-        $storage->setSetting('allowed_values', $allowed_values)->save();
-        drupal_static_reset('options_allowed_values');
+      $changed = FALSE;
+      foreach ($person_values as $v) {
+        if (!isset($allowed_values[$v])) {
+          $allowed_values[$v] = $v;
+          $changed = TRUE;
+        }
       }
+      if ($changed) {
+        $storage->setSetting('allowed_values', $allowed_values)->save();
+        $reset = TRUE;
+      }
+    }
+    if ($reset) {
+      drupal_static_reset('options_allowed_values');
     }
   }
 

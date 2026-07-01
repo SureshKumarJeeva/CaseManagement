@@ -117,6 +117,7 @@
         var $body = $form.find('.field--name-body');
         var $import = $form.find('.field--name-field-import-template');
         var $tokens = $form.find('.field--name-field-available-tokens');
+        var $instructionTokens = $form.find('.field--name-field-instruction-tokens');
         var $pandadocId = $form.find('.field--name-field-pandadoc-template-id');
         var $updateBtn = $form.find('#pandadoc-update-btn');
 
@@ -126,6 +127,7 @@
             $body.show();
             $import.hide();
             $tokens.show();
+            $instructionTokens.show();
             $pandadocId.hide();
             $updateBtn.hide();
             initEmailTokenPicker($form, $tokens);
@@ -137,6 +139,7 @@
             $body.hide();
             $import.show();
             $tokens.hide();
+            $instructionTokens.hide();
             $pandadocId.show();
             $updateBtn.show();
             removeEmailTokenPicker($tokens);
@@ -147,6 +150,7 @@
             $body.show();
             $import.show();
             $tokens.hide();
+            $instructionTokens.hide();
             $pandadocId.hide();
             $updateBtn.hide();
             removeEmailTokenPicker($tokens);

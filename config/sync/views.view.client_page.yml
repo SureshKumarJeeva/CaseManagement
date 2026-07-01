@@ -711,7 +711,7 @@ display:
         type: normal
         title: Clients
         description: ''
-        weight: 1
+        weight: -49
         enabled: true
         expanded: false
         menu_name: main

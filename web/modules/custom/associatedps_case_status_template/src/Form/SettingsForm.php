@@ -56,10 +56,10 @@ class SettingsForm extends ConfigFormBase {
     }
     $form['email_template'] = [
       '#type' => 'select',
-      '#title' => $this->t('Email Template'),
+      '#title' => $this->t('Online Instruction Email Template'),
       '#options' => $email_template,
       '#default_value' => $config_email_template,
-      '#description' => 'Select Email Template for send auto email on change of Case Status.',
+      '#description' => $this->t('Select the Library "Email" template used for the notification sent to the admin when a client submits an Online Instruction. The template body/subject should use the online_instruction tokens listed in the template\'s "Online Instruction Tokens" field.'),
     ];
     return parent::buildForm($form, $form_state);
   }

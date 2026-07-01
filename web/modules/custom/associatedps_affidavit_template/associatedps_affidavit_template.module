@@ -132,6 +132,16 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
       ],
     ];
   }
+  // Online Instruction token list — only relevant to Email templates, same as
+  // field_available_tokens. Holds the [node:*] tokens for the online_instruction
+  // bundle (used when this template drives the Online Instruction admin email).
+  if (isset($form['field_instruction_tokens'])) {
+    $form['field_instruction_tokens']['#states'] = [
+      'visible' => [
+        ':input[name="field_category"]' => ['value' => 'Email'],
+      ],
+    ];
+  }
   // PandaDoc kill-switch: when active, only PandaDoc logic runs; when
   // inactive (default), only DocuSign logic runs. The two integrations
   // never run side by side.

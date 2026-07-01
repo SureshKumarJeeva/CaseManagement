@@ -5,14 +5,17 @@ dependencies:
   config:
     - core.entity_view_mode.node.ief_table
     - field.field.node.client.field_agreed_discount
+    - field.field.node.client.field_attempted
+    - field.field.node.client.field_attendance_update_frequenc
     - field.field.node.client.field_client_address
     - field.field.node.client.field_client_id
+    - field.field.node.client.field_completed
     - field.field.node.client.field_email
     - field.field.node.client.field_email_interval
     - field.field.node.client.field_email_template
-    - field.field.node.client.field_mail_events
+    - field.field.node.client.field_instructions_received
     - field.field.node.client.field_notes
-    - field.field.node.client.field_send_auto_email
+    - field.field.node.client.field_served
     - field.field.node.client.field_telephone
     - node.type.client
   module:
@@ -48,13 +51,16 @@ hidden:
   entity_print_view_epub: true
   entity_print_view_pdf: true
   entity_print_view_word_docx: true
+  field_attempted: true
+  field_attendance_update_frequenc: true
   field_client_address: true
+  field_completed: true
   field_email: true
   field_email_interval: true
   field_email_template: true
-  field_mail_events: true
+  field_instructions_received: true
   field_notes: true
-  field_send_auto_email: true
+  field_served: true
   field_telephone: true
   links: true
   status: true

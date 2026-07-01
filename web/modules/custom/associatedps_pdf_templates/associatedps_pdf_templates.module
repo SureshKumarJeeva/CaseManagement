@@ -108,14 +108,17 @@ function associatedps_pdf_templates_preprocess_views_view_field(&$variables) {
  *
  * @return: array of Template
  */
-function _associatedps_pdf_templates_library_data($library_id) {
+function _associatedps_pdf_templates_library_data($library_id, $tokens_field = 'field_available_tokens') {
   $body = '';
   $email_sub = '';
   $template_tokens = [];
   if (!empty($library_id)) {
     $template = Node::load($library_id);
     $body = $template->body->value;
-    $template_tokens = $template->field_available_tokens->value;
+    // Which field holds the [node:*] token list is configurable: Job templates
+    // use field_available_tokens (default); the Online Instruction template
+    // passes field_instruction_tokens so the two token sets never mix.
+    $template_tokens = $template->hasField($tokens_field) ? $template->get($tokens_field)->value : '';
     if (!empty($template_tokens)) {
       $template_tokens = explode(PHP_EOL, $template_tokens);
     }

@@ -114,15 +114,25 @@
 #node-job-form .paragraph-type--document .field--name-field-court-name,
 #node-job-edit-form .paragraph-type--document .field--name-field-court-name,
 #node-job-form .paragraph-type--document .field--name-field-affidavit-template,
-#node-job-edit-form .paragraph-type--document .field--name-field-affidavit-template,
-#node-job-form .paragraph-type--attendance-note .field--name-field-employee-first-name,
-#node-job-edit-form .paragraph-type--attendance-note .field--name-field-employee-first-name,
-#node-job-form .paragraph-type--attendance-note .field--name-field-employee-last-name,
-#node-job-edit-form .paragraph-type--attendance-note .field--name-field-employee-last-name,
-#node-job-form .paragraph-type--attendance-note .field--name-field-employee-full-name,
-#node-job-edit-form .paragraph-type--attendance-note .field--name-field-employee-full-name {
+#node-job-edit-form .paragraph-type--document .field--name-field-affidavit-template {
   opacity: 0;
   height: 0;
+}
+
+/* Attendance Note uses the Inline Entity Form widget (NOT the Paragraphs
+   module), so its subform has NO .paragraph-type--attendance-note wrapper
+   class — the old selector never matched and these fields stayed visible.
+   Target the field--name-* wrappers directly instead. These three
+   (first/last/full employee name) are helper fields auto-filled by theme
+   script.js and read as template tokens; display:none keeps them in the DOM
+   (still submitted + JS can fill them) while fully hiding them from the user. */
+#node-job-form .field--name-field-employee-first-name,
+#node-job-edit-form .field--name-field-employee-first-name,
+#node-job-form .field--name-field-employee-last-name,
+#node-job-edit-form .field--name-field-employee-last-name,
+#node-job-form .field--name-field-employee-full-name,
+#node-job-edit-form .field--name-field-employee-full-name {
+  display: none;
 }
 
 /* Client form — "Attendance Update - Frequency": the reused field_email_interval
@@ -172,4 +182,66 @@
   display: inline-block;
   width: 5rem;
   min-width: 0;
+}
+
+/* Document paragraph "Document" select switched from Autocomplete to the Chosen
+   widget. Chosen computes an inline pixel width from the source element (~848px)
+   which overflows the Documents tab section. Constrain the Chosen container (and
+   its dropdown) to the field width so it fits inside the tab like the old
+   autocomplete did. */
+#node-job-form .paragraph-type--document .field--name-field-document .chosen-container,
+#node-job-edit-form .paragraph-type--document .field--name-field-document .chosen-container {
+  width: 70% !important;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Client summary box — brief address/email/phone of the selected client, shown
+   NEXT TO the Job form's Client field so duplicate client names can be told
+   apart. The field + summary share a flex row; box hidden when empty. */
+.client-field-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.client-field-row .field--name-field-client {
+  flex: 0 0 auto;
+  margin: 0;
+}
+/* Keep the Client Chosen widget a sensible width so the summary has room
+   beside it. */
+#node-job-form .client-field-row .field--name-field-client .chosen-container,
+#node-job-edit-form .client-field-row .field--name-field-client .chosen-container {
+  width: 320px !important;
+  max-width: 100%;
+}
+.client-summary-box {
+  flex: 1 1 240px;
+  padding: 8px 10px;
+  border: 1px solid #d0d7de;
+  border-left: 3px solid #0073e6;
+  border-radius: 4px;
+  background: #f6f9fc;
+  font-size: 0.85em;
+  line-height: 1.45;
+  color: #333;
+  max-width: 460px;
+}
+.client-summary-box:empty {
+  display: none;
+}
+.client-summary-box .client-summary-label {
+  font-weight: 600;
+  color: #0073e6;
+}
+
+/* Create New Document modal: keep the Court name + Affidavit Template Chosen
+   selects full-width so the box doesn't resize/jerk when a longer value is
+   selected (Chosen otherwise sizes to the chosen value). !important beats
+   Chosen's computed inline width. */
+.wrapper-form-add-document .chosen-container {
+  width: 100% !important;
+  max-width: 100%;
+  box-sizing: border-box;
 }

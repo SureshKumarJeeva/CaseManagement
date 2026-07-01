@@ -8,9 +8,8 @@ use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\CssCommand;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\CloseDialogCommand;
-use Drupal\Core\Ajax\RedirectCommand;
+use Drupal\Core\Ajax\InvokeCommand;
 use Drupal\node\Entity\Node;
-use Drupal\paragraphs\Entity\Paragraph;
 use Drupal\user\Entity\User;
 
 /**
@@ -55,30 +54,55 @@ class CustomAddDocument extends FormBase {
         '#required' => FALSE,
       ];
 
+      // Court name + Affidavit Template as Chosen (searchable/scrollable) selects
+      // instead of autocomplete. Options are loaded from the same sources the
+      // autocomplete targeted: 'court_name' taxonomy terms and 'library' nodes.
+      $court_options = ['_none' => $this->t('- None -')];
+      $court_terms = \Drupal::entityTypeManager()
+        ->getStorage('taxonomy_term')
+        ->loadByProperties(['vid' => 'court_name']);
+      foreach ($court_terms as $term) {
+        $court_options[$term->id()] = $term->label();
+      }
+      natcasesort($court_options);
+
+      $library_options = ['_none' => $this->t('- None -')];
+      $library_nids = \Drupal::entityQuery('node')
+        ->condition('type', 'library')
+        ->condition('status', 1)
+        ->sort('title')
+        ->accessCheck(TRUE)
+        ->execute();
+      foreach (Node::loadMultiple($library_nids) as $library) {
+        $library_options[$library->id()] = $library->label();
+      }
+
       $form['document_court'] = [
-        '#type' => 'entity_autocomplete',
-        '#target_type' => 'taxonomy_term',
+        '#type' => 'select',
         '#title' => $this->t('Court name'),
-        '#tags' => TRUE,
-        '#selection_settings' => [
-          'target_bundles' => ['court_name'],
-        ],
+        '#options' => $court_options,
+        '#required' => FALSE,
+        '#attributes' => ['class' => ['chosen-enable']],
       ];
 
       $form['document_affidavit'] = [
-        '#type' => 'entity_autocomplete',
-        '#target_type' => 'node',
+        '#type' => 'select',
         '#title' => $this->t('Affidavite Template'),
-        '#tags' => TRUE,
-        '#selection_handler' => 'default',
-        '#selection_settings' => [
-          'target_bundles' => ['library'],
-        ],
+        '#options' => $library_options,
+        '#required' => FALSE,
+        '#attributes' => ['class' => ['chosen-enable']],
       ];
 
       $form['job_id'] = [
         '#type' => 'hidden',
         '#value' => $job_nid,
+      ];
+
+      // DOM id of the document paragraph's Document <select> that opened this
+      // modal. On save the new document is appended + selected in it.
+      $form['target_select'] = [
+        '#type' => 'hidden',
+        '#value' => \Drupal::request()->query->get('target', ''),
       ];
 
       $form['submit'] = [
@@ -93,6 +117,8 @@ class CustomAddDocument extends FormBase {
 
       $form['#attached']['library'] = [
         'core/drupal.dialog.ajax',
+        // Apply Chosen to the Court name + Affidavit Template selects.
+        'chosen/drupal.chosen',
       ];
 
       $form['#cache']['max-age'] = 0;
@@ -129,23 +155,13 @@ class CustomAddDocument extends FormBase {
 
     $response->addCommand(new CssCommand('.form-item-document-title input', ['border' => '1px solid #b8b8b8', 'border-top-color' => '#999']));
     $response->addCommand(new HtmlCommand('#document-title-validate', ''));
-    $response->addCommand(new CloseDialogCommand());
 
     $values = $form_state->getValues();
-    $job_nid = (int) $values['job_id'];
 
-    // Determine redirect URL.
-    if ($job_nid === 0) {
-      $redirect_url = '/node/add/job';
-    }
-    else {
-      $redirect_url = '/node/' . $job_nid . '/edit';
-    }
-    $response->addCommand(new RedirectCommand($redirect_url));
-
-    // Get court and affidavit values safely.
-    $court_target_id = !empty($values['document_court'][0]['target_id']) ? $values['document_court'][0]['target_id'] : NULL;
-    $affidavit_target_id = !empty($values['document_affidavit'][0]['target_id']) ? $values['document_affidavit'][0]['target_id'] : NULL;
+    // Court and affidavit are now Chosen selects: the value is a scalar id (or
+    // '_none').
+    $court_target_id = (!empty($values['document_court']) && $values['document_court'] !== '_none') ? $values['document_court'] : NULL;
+    $affidavit_target_id = (!empty($values['document_affidavit']) && $values['document_affidavit'] !== '_none') ? $values['document_affidavit'] : NULL;
 
     // Create new document node.
     $node = Node::create(['type' => 'document']);
@@ -162,38 +178,22 @@ class CustomAddDocument extends FormBase {
 
     $node_id = $node->id();
 
-    if ($job_nid > 0) {
-      // Edit mode: directly attach the document to the job as a new paragraph.
-      $job_node = Node::load($job_nid);
-      if ($job_node) {
-        $paragraph = Paragraph::create(['type' => 'document']);
-        $paragraph->set('field_document', ['target_id' => $node_id]);
-        $paragraph->set('field_document_title', $values['document_title']);
-        $paragraph->set('field_notice_period', $values['notice_period']);
-        $paragraph->set('field_court_name', $court_target_id ? ['target_id' => $court_target_id] : []);
-        $paragraph->set('field_affidavit_template', $affidavit_target_id ? ['target_id' => $affidavit_target_id] : []);
-        $paragraph->save();
-        $job_node->field_documents[] = [
-          'target_id' => $paragraph->id(),
-          'target_revision_id' => $paragraph->getRevisionId(),
-        ];
-        $job_node->save();
-      }
+    // Inject the new document into the originating paragraph's Document <select>
+    // (id passed in via ?target=) and select it, then refresh Chosen. This fills
+    // that specific document section without a page reload. Works for both add
+    // and edit job forms — the job is saved normally by the user afterwards.
+    $target = trim((string) $form_state->getValue('target_select'));
+    if ($target !== '') {
+      // $target tags this paragraph's Document <select> via data-doc-select.
+      // The jQuery plugin (custom.js) appends the new doc as a selected option
+      // and dispatches NATIVE chosen:updated + change events (this Chosen build
+      // and the notice-period #ajax both listen natively, so jQuery .trigger()
+      // would not reach them).
+      $selector = 'select[data-doc-select="' . $target . '"]';
+      $response->addCommand(new InvokeCommand($selector, 'apsSelectDocument', [(string) $node_id, $values['document_title']]));
     }
-    else {
-      // Add mode: use cookies so the presave hook attaches the document
-      // when the job is first saved.
-      setcookie('create_doc_for_job', $node_id, time() + (86400 * 30), "/");
-      $value_submit = [
-        'node_doc_id' => $node_id,
-        'document_submit' => 1,
-        'document_title' => $values['document_title'],
-        'notice_period' => $values['notice_period'],
-        'court_name' => $court_target_id ?? '',
-        'affidavit_template' => $affidavit_target_id ?? '',
-      ];
-      user_cookie_save($value_submit);
-    }
+
+    $response->addCommand(new CloseDialogCommand());
 
     return $response;
   }
