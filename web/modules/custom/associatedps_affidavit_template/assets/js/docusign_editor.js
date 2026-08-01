@@ -26,11 +26,15 @@
         // shared ApsTokenPicker utility (same one PandaDoc uses). Users type
         // to filter, click a token → copied to clipboard with a "Copied!"
         // flash → paste into the Data Label field of a tab in DocuSign.
+        //
+        // Entries are {label, value}: the label is the field's readable
+        // Tab-Section-Field path from the Job form display, the value is the
+        // token actually copied. They differ, hence the wording below.
         var pickerContainer = document.getElementById('docusign-token-picker-container');
         var variables = settings.variables || [];
         if (pickerContainer && variables.length && window.ApsTokenPicker) {
           window.ApsTokenPicker.init(pickerContainer, variables, {
-            label: 'Search & click a token label to copy. Paste it into the "Data Label" field of a tab in DocuSign.',
+            label: 'Search by where the field sits on the Job form (Tab-Section-Field) and click it. The token itself is copied to your clipboard — paste it into the "Data Label" field of a tab in DocuSign.',
             idPrefix: 'docusign-token'
           });
         }

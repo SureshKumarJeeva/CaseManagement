@@ -4,7 +4,6 @@ status: true
 dependencies:
   config:
     - core.entity_view_mode.paragraph.preview
-    - field.field.paragraph.document.field_affidavit_template
     - field.field.paragraph.document.field_amount
     - field.field.paragraph.document.field_court_name
     - field.field.paragraph.document.field_date
@@ -24,15 +23,6 @@ targetEntityType: paragraph
 bundle: document
 mode: preview
 content:
-  field_document:
-    type: entity_reference_entity_view
-    label: inline
-    settings:
-      view_mode: default
-      link: true
-    third_party_settings: {  }
-    weight: 0
-    region: content
   field_override_notice_period:
     type: number_integer
     label: inline
@@ -58,11 +48,11 @@ hidden:
   entity_print_view_epub: true
   entity_print_view_pdf: true
   entity_print_view_word_docx: true
-  field_affidavit_template: true
   field_amount: true
   field_court_name: true
   field_date: true
   field_doc_notice_period: true
+  field_document: true
   field_document_title: true
   field_name: true
   field_notice_period: true

@@ -29,7 +29,11 @@
    * click selection, and clipboard copy.
    *
    * @param {HTMLElement} containerEl - The DOM element to insert the picker into.
-   * @param {string[]} tokens - Array of token strings to display in the dropdown.
+   * @param {(string|{label: string, value: string})[]} tokens - Tokens to list.
+   *   A plain string is shown and copied as-is. An object lets the displayed
+   *   label differ from the copied value — the DocuSign editor uses this to
+   *   show a readable "Tab-Section-Field" path while still copying the raw
+   *   token that DocuSign matches on.
    * @param {Object} [options] - Optional configuration.
    * @param {string} [options.label] - Label text shown above the search input.
    * @param {string} [options.idPrefix] - ID prefix to avoid collisions when multiple pickers exist.
@@ -39,6 +43,17 @@
     if (!containerEl || !tokens || !tokens.length) {
       return;
     }
+
+    // Normalize to {label, value} so the rest of the picker has one shape to
+    // deal with. Strings map to label === value (the original behaviour).
+    var items = tokens.map(function (t) {
+      if (typeof t === 'string') {
+        return { label: t, value: t };
+      }
+      var value = (t && t.value != null) ? t.value : t.label;
+      var label = (t && t.label != null) ? t.label : value;
+      return { label: String(label), value: String(value) };
+    });
 
     var opts = options || {};
     var label = opts.label || 'Search & click to copy token';
@@ -86,10 +101,14 @@
     function renderList(filter) {
       var query = (filter || '').toLowerCase();
 
-      // Filter tokens: show all if query is empty, otherwise substring match.
+      // Filter on the visible label AND the underlying value, so searching
+      // still works after a copy puts the raw token in the search box.
       var matches = query
-        ? tokens.filter(function (v) { return v.toLowerCase().indexOf(query) !== -1; })
-        : tokens;
+        ? items.filter(function (it) {
+            return it.label.toLowerCase().indexOf(query) !== -1 ||
+              it.value.toLowerCase().indexOf(query) !== -1;
+          })
+        : items;
 
       // Reset keyboard navigation on every re-render.
       activeIndex = -1;
@@ -101,14 +120,15 @@
       }
 
       // Build list items with the matching substring highlighted in bold.
-      listEl.innerHTML = matches.map(function (v, i) {
-        var display = v;
+      // Escape first, then highlight, so field labels can never inject markup.
+      listEl.innerHTML = matches.map(function (it, i) {
+        var display = escapeHtml(it.label);
         if (query) {
           // Escape regex special chars in query before using in RegExp.
-          var safeQuery = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          display = v.replace(new RegExp('(' + safeQuery + ')', 'gi'), '<strong style="color:#0071b8;">$1</strong>');
+          var safeQuery = escapeHtml(query).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          display = display.replace(new RegExp('(' + safeQuery + ')', 'gi'), '<strong style="color:#0071b8;">$1</strong>');
         }
-        return '<li data-token="' + escapeHtml(v) + '" data-index="' + i + '" ' +
+        return '<li data-token="' + escapeHtml(it.value) + '" data-label="' + escapeHtml(it.label) + '" data-index="' + i + '" ' +
           'style="padding:8px 12px; cursor:pointer; font-family:monospace; font-size:13px; border-bottom:1px solid #eee;">' +
           display + '</li>';
       }).join('');
@@ -143,11 +163,14 @@
      * Uses the modern Clipboard API when available, with a fallback
      * to a temporary textarea + execCommand('copy') for older browsers
      * or non-HTTPS contexts. Shows a brief "Copied!" indicator and
-     * populates the search input with the copied value.
+     * puts the readable label in the search input — only the value goes to
+     * the clipboard, so the box stays legible while the paste is the token.
      *
      * @param {string} tokenText - The token string to copy.
+     * @param {string} [displayText] - Text to show in the input; defaults to
+     *   the copied value (the original behaviour for plain string tokens).
      */
-    function copyToken(tokenText) {
+    function copyToken(tokenText, displayText) {
       // Modern Clipboard API (requires HTTPS or localhost).
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(tokenText);
@@ -164,8 +187,8 @@
       // Show the "Copied!" indicator next to the search input.
       copiedEl.style.display = 'inline';
 
-      // Place the copied token in the search input for visual confirmation.
-      searchInput.value = tokenText;
+      // Show the label (not the raw token) as visual confirmation.
+      searchInput.value = (displayText != null) ? displayText : tokenText;
 
       // Close the dropdown after selection.
       listEl.style.display = 'none';
@@ -205,7 +228,7 @@
         e.preventDefault();
         // Copy the currently highlighted token.
         if (activeIndex >= 0 && items[activeIndex]) {
-          copyToken(items[activeIndex].dataset.token);
+          copyToken(items[activeIndex].dataset.token, items[activeIndex].dataset.label);
         }
       } else if (e.key === 'Escape') {
         // Close the dropdown without selecting.
@@ -218,7 +241,7 @@
       // Find the closest <li> with a data-token attribute (handles clicks on <strong> children).
       var li = e.target.closest('li[data-token]');
       if (li) {
-        copyToken(li.dataset.token);
+        copyToken(li.dataset.token, li.dataset.label);
       }
     });
 

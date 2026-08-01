@@ -1,0 +1,27 @@
+uuid: cce4b82e-f205-448a-b3c5-095463c55372
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_import_template
+    - node.type.library
+  module:
+    - file
+id: node.library.field_import_template
+field_name: field_import_template
+entity_type: node
+bundle: library
+label: 'Import Template'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'doc docx pdf rtf'
+  max_filesize: ''
+  description_field: false
+field_type: file

@@ -1,10 +1,14 @@
-uuid: d8591ba4-048a-4f3d-be02-461ea8456f7a
+uuid: d451a267-d8ae-402d-a555-ea93d86fbee9
 langcode: en
 status: true
 dependencies:
   module:
+    - field_permissions
     - paragraphs
     - user
+third_party_settings:
+  field_permissions:
+    permission_type: public
 id: paragraph.field_by
 field_name: field_by
 entity_type: paragraph

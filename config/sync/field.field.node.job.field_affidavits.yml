@@ -30,11 +30,17 @@ settings:
       address:
         weight: 8
         enabled: false
+      addresses:
+        weight: 14
+        enabled: false
       affidavit:
         weight: 9
         enabled: true
       attendance_note:
         weight: 10
+        enabled: false
+      cover_letter:
+        weight: 17
         enabled: false
       document:
         weight: 11
@@ -42,8 +48,17 @@ settings:
       from_library:
         weight: 12
         enabled: true
+      job_fees:
+        weight: 20
+        enabled: false
       party:
         weight: 13
+        enabled: false
+      party_other:
+        weight: 22
+        enabled: false
+      party_side_two:
+        weight: 23
         enabled: false
       party_side_two_:
         weight: 14

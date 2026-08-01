@@ -1,0 +1,19 @@
+uuid: a57e7ade-4e6e-4a2e-a0dc-111ced9579dc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_pandadoc_template_id
+    - node.type.library
+id: node.library.field_pandadoc_template_id
+field_name: field_pandadoc_template_id
+entity_type: node
+bundle: library
+label: 'Pandadoc Template ID'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

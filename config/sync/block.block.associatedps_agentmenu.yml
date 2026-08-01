@@ -1,0 +1,33 @@
+uuid: 53c23309-f065-4485-a05a-c0299be42588
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.agent-menu
+  module:
+    - system
+    - user
+  theme:
+    - associatedps
+id: associatedps_agentmenu
+theme: associatedps
+region: pre_content
+weight: 0
+provider: null
+plugin: 'system_menu_block:agent-menu'
+settings:
+  id: 'system_menu_block:agent-menu'
+  label: 'Agent Menu'
+  label_display: '0'
+  provider: system
+  level: 1
+  depth: 0
+  expand_all_items: false
+visibility:
+  user_role:
+    id: user_role
+    negate: false
+    context_mapping:
+      user: '@user.current_user_context:current_user'
+    roles:
+      agent: agent

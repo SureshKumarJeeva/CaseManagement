@@ -20,7 +20,7 @@ content:
     weight: 2
     region: content
     settings:
-      wrapper_type: details
+      wrapper_type: fieldset
     third_party_settings: {  }
   field_party_to_serve_addresses:
     type: select_or_other_list

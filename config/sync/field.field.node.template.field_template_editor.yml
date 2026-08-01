@@ -1,0 +1,26 @@
+uuid: cd4eadc7-95a7-4a24-a70a-3a0e3064819b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_template_editor
+    - filter.format.full_html
+    - node.type.template
+  module:
+    - text
+id: node.template.field_template_editor
+field_name: field_template_editor
+entity_type: node
+bundle: template
+label: 'Template Editor'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  display_summary: false
+  required_summary: false
+  allowed_formats:
+    - full_html
+field_type: text_with_summary

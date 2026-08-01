@@ -1,0 +1,21 @@
+uuid: 766f6f56-ba14-4f82-b6d1-1c7b2694cabc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attendance_method_of_servi
+    - node.type.job
+  module:
+    - options
+id: node.job.field_attendance_method_of_servi
+field_name: field_attendance_method_of_servi
+entity_type: node
+bundle: job
+label: 'Attendance Method of Service'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

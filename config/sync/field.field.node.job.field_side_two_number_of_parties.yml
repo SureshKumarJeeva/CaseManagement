@@ -1,0 +1,23 @@
+uuid: 77b93d75-f8d0-4443-82d5-a617553f8bc7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_side_two_number_of_parties
+    - node.type.job
+id: node.job.field_side_two_number_of_parties
+field_name: field_side_two_number_of_parties
+entity_type: node
+bundle: job
+label: 'Side Two Number of Parties'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

@@ -12,7 +12,7 @@ dependencies:
     - node.type.online_instruction
     - system.menu.main
     - user.role.administrator
-    - user.role.editor
+    - user.role.aps_administrator
     - user.role.office
   module:
     - better_exposed_filters
@@ -567,7 +567,10 @@ display:
           bef:
             general:
               autosubmit: false
+              auto_submit_sort_only: false
+              autosubmit_breakpoint: ''
               autosubmit_exclude_textfield: false
+              autosubmit_textfield_minimum_length: 3
               autosubmit_hide: false
               input_required: false
               allow_secondary: false
@@ -579,18 +582,25 @@ display:
                 plugin_id: default
                 advanced:
                   sort_options: false
+                  sort_options_method: alphabetical_asc
+                  sort_options_natural: true
                   placeholder_text: ''
                   rewrite:
                     filter_rewrite_values: ''
+                    filter_rewrite_values_key: false
                   collapsible: false
+                  collapsible_disable_automatic_open: false
+                  open_by_default: false
                   is_secondary: false
+                  hide_label: false
+                  field_classes: ''
       access:
         type: role
         options:
           role:
             administrator: administrator
-            editor: editor
             office: office
+            aps_administrator: aps_administrator
       cache:
         type: tag
         options: {  }

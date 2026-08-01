@@ -1,4 +1,4 @@
-uuid: bfea4469-0c99-4fd8-b2cb-26a7aaf191dc
+uuid: a1585a28-3ace-4816-9f6b-39e58e91ff35
 langcode: en
 status: true
 dependencies:
@@ -26,36 +26,39 @@ settings:
     negate: 0
     target_bundles_drag_drop:
       address:
-        weight: 6
+        weight: 13
         enabled: false
       addresses:
-        weight: 13
+        weight: 14
         enabled: true
       affidavit:
-        weight: 12
-        enabled: false
-      attendance_note:
-        weight: 7
-        enabled: false
-      cover_letter:
-        weight: 14
-        enabled: false
-      document:
         weight: 15
         enabled: false
-      from_library:
+      attendance_note:
         weight: 16
         enabled: false
-      job_fees:
+      cover_letter:
         weight: 17
         enabled: false
-      party:
-        weight: 8
+      document:
+        weight: 18
         enabled: false
-      party_other:
+      from_library:
         weight: 19
         enabled: false
+      job_fees:
+        weight: 20
+        enabled: false
+      party:
+        weight: 21
+        enabled: false
+      party_other:
+        weight: 22
+        enabled: false
+      party_side_two:
+        weight: 23
+        enabled: false
       party_side_two_:
-        weight: 9
+        weight: 24
         enabled: false
 field_type: entity_reference_revisions

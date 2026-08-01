@@ -30,7 +30,7 @@ mode: default
 content:
   field_service_address:
     type: address_default
-    label: hidden
+    label: above
     settings: {  }
     third_party_settings: {  }
     weight: 1

@@ -186,6 +186,24 @@ tr.paragraph-type--attendance-note {
   display: none;
 }
 
+/* Compact Edit / Remove buttons in the Job Fees table rows (operations column) */
+#job-fees-panel .ief-entity-operations {
+  white-space: nowrap;
+  text-align: right;
+}
+#job-fees-panel .ief-entity-operations .button {
+  display: inline-block;
+  width: auto;
+  min-height: 0;
+  margin: 0 0 0 4px;
+  padding: 3px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+}
+#job-fees-panel .ief-entity-operations .button--danger {
+  float: none;
+}
+
 /* client update section */
 #block-views-block-client-update-client-update-block{
   width: 82.5%;
@@ -218,7 +236,11 @@ tr.paragraph-type--attendance-note {
 
 #block-mainnavigation .o-menu.c-menu-main,
 #block-loginnavigation .o-menu.c-menu-login-navigation,
-#block-clientmenu .o-menu.c-menu-client-menu {
+#block-clientmenu .o-menu.c-menu-client-menu,
+#block-associatedps-officemenu ul,
+#block-associatedps-managermenu ul,
+#block-associatedps-agentmenu ul,
+#block-associatedps-mainnavigation .o-menu.c-menu-main{
   list-style-type: none;
   padding: 0;
   margin: 0;
@@ -229,14 +251,22 @@ tr.paragraph-type--attendance-note {
 }
 #block-mainnavigation .o-menu.c-menu-main .c-menu-main__item,
 #block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item {
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item,
+#block-associatedps-officemenu ul li,
+#block-associatedps-managermenu ul li,
+#block-associatedps-agentmenu ul li,
+#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item {
   display: inline-block;
   padding: 0;
   padding-right: 4px;
 }
 #block-mainnavigation .o-menu.c-menu-main .c-menu-main__item a,
 #block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item a,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item a {
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item a,
+#block-associatedps-officemenu ul li a,
+#block-associatedps-managermenu ul li a,
+#block-associatedps-agentmenu ul li a,
+#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item a {
   color: white;
   padding: 8px 2rem;
   background-color: #6b6b6b;
@@ -244,17 +274,23 @@ tr.paragraph-type--attendance-note {
 }
 #block-mainnavigation .o-menu.c-menu-main .c-menu-main__item a.is-active,
 #block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item a.is-active,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item a.is-active {
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item a.is-active,
+#block-associatedps-officemenu ul li a.is-active,
+#block-associatedps-managermenu ul li a.is-active,
+#block-associatedps-agentmenu ul li a.is-active,
+#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item a.is-active{
 text-decoration: underline;
 }
 #block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded,
 #block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded {
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded,
+#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded {
   position: relative;
 }
 #block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul,
 #block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul {
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul,
+#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul {
   display: none;
   position: absolute;
   top: 100%;
@@ -265,18 +301,21 @@ text-decoration: underline;
 }
 #block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li,
 #block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul li,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul li {
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul li,
+#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li {
   display: block;
   background-color: #6b6b6b;
 }
 #block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li a,
 #block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul li a,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul li a {
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul li a,
+#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li a {
   display: inline-block;
 }
 #block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded:hover ul,
 #block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded:hover ul,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded:hover ul {
+#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded:hover ul,
+#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded:hover ul {
   display: block;
 }
 

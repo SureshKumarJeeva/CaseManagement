@@ -1,4 +1,4 @@
-uuid: ddaf2be4-f5b0-420c-bda0-e701a42bc75f
+uuid: 8b5948fc-d82f-499c-a601-a7a18a81f208
 langcode: en
 status: true
 dependencies:
@@ -11,7 +11,7 @@ id: node.job.field_allocation_date
 field_name: field_allocation_date
 entity_type: node
 bundle: job
-label: 'Allocation Date'
+label: 'Job Allocated'
 description: ''
 required: false
 translatable: false

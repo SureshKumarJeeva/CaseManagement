@@ -1,40 +1,16 @@
-uuid: d80831af-9b08-4c0a-9c6d-c53231732247
+uuid: bc3a536c-b1da-4635-8534-ff3550976b26
 langcode: en
 status: true
 dependencies:
   config:
     - field.field.node.template.field_file_upload
-    - field.field.node.template.field_paragraph_test
     - field.field.node.template.field_short_codes
     - field.field.node.template.field_template_editor
     - node.type.template
   module:
-    - field_group
     - file
     - path
     - text
-third_party_settings:
-  field_group:
-    group_template_controls:
-      children: {  }
-      label: 'Template controls'
-      region: content
-      parent_name: ''
-      weight: 6
-      format_type: html_element
-      format_settings:
-        classes: ''
-        show_empty_fields: false
-        id: ''
-        label_as_html: false
-        element: div
-        show_label: false
-        label_element: h3
-        label_element_classes: ''
-        attributes: ''
-        effect: none
-        speed: fast
-        required_fields: true
 id: node.template.default
 targetEntityType: node
 bundle: template
@@ -42,26 +18,26 @@ mode: default
 content:
   created:
     type: datetime_timestamp
-    weight: 1
+    weight: 10
     region: content
     settings: {  }
     third_party_settings: {  }
   field_file_upload:
     type: file_generic
-    weight: 8
+    weight: 121
     region: content
     settings:
       progress_indicator: throbber
     third_party_settings: {  }
   field_short_codes:
     type: options_select
-    weight: 26
+    weight: 123
     region: content
     settings: {  }
     third_party_settings: {  }
   field_template_editor:
     type: text_textarea_with_summary
-    weight: 9
+    weight: 122
     region: content
     settings:
       rows: 9
@@ -71,34 +47,34 @@ content:
     third_party_settings: {  }
   path:
     type: path
-    weight: 4
+    weight: 30
     region: content
     settings: {  }
     third_party_settings: {  }
   promote:
     type: boolean_checkbox
-    weight: 2
+    weight: 15
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   status:
     type: boolean_checkbox
-    weight: 5
+    weight: 120
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   sticky:
     type: boolean_checkbox
-    weight: 3
+    weight: 16
     region: content
     settings:
       display_label: true
     third_party_settings: {  }
   title:
     type: string_textfield
-    weight: 7
+    weight: -5
     region: content
     settings:
       size: 60
@@ -106,7 +82,7 @@ content:
     third_party_settings: {  }
   uid:
     type: entity_reference_autocomplete
-    weight: 0
+    weight: 5
     region: content
     settings:
       match_operator: CONTAINS
@@ -114,5 +90,4 @@ content:
       size: 60
       placeholder: ''
     third_party_settings: {  }
-hidden:
-  field_paragraph_test: true
+hidden: {  }

@@ -1,0 +1,27 @@
+uuid: 5140509d-5790-47f6-a69d-ed6e56a111dc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_file_upload
+    - node.type.template
+  module:
+    - file
+id: node.template.field_file_upload
+field_name: field_file_upload
+entity_type: node
+bundle: template
+label: 'Template Upload'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:file'
+  handler_settings: {  }
+  file_directory: '[date:custom:Y]-[date:custom:m]'
+  file_extensions: 'pdf docx eml rtf'
+  max_filesize: ''
+  description_field: false
+field_type: file

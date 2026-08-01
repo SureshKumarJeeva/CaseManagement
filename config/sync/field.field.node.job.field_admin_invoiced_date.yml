@@ -11,7 +11,7 @@ id: node.job.field_admin_invoiced_date
 field_name: field_admin_invoiced_date
 entity_type: node
 bundle: job
-label: 'Invoiced Date'
+label: 'Invoice Drafted'
 description: ''
 required: false
 translatable: false

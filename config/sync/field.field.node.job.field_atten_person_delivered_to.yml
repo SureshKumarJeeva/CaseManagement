@@ -1,0 +1,21 @@
+uuid: 9db310b5-7e64-4045-aa74-228503930dcd
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_atten_person_delivered_to
+    - node.type.job
+  module:
+    - options
+id: node.job.field_atten_person_delivered_to
+field_name: field_atten_person_delivered_to
+entity_type: node
+bundle: job
+label: 'Attendance Person Delivered to'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

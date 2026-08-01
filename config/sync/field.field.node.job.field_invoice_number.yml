@@ -1,0 +1,19 @@
+uuid: e9c590fc-c198-4cf4-ace1-753ce9b9aebf
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_invoice_number
+    - node.type.job
+id: node.job.field_invoice_number
+field_name: field_invoice_number
+entity_type: node
+bundle: job
+label: 'Invoice Number'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

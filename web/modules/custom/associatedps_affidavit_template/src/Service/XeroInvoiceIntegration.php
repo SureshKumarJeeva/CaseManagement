@@ -10,6 +10,12 @@ use Drupal\associatedps_affidavit_template\Service\XeroClient;
 
 class XeroInvoiceIntegration {
 
+    /**
+     * En dash used in the invoice Reference block and line descriptions,
+     * matching the APS Xero template spec ("Job Type – Suburb", "Fee – Name").
+     */
+    private const EN_DASH = "\u{2013}";
+
     protected Connection $database;
     /**
      * Xero client.
@@ -98,6 +104,11 @@ class XeroInvoiceIntegration {
             $now = new \DateTime();
             $currentDate = $now->format('Y-m-d');
             $dueDate = (clone $now)->modify('+30 days')->format('Y-m-d');
+
+            // Composed header block (MATTER / Re: / Your & Our Reference). Xero
+            // has one free-text Reference field, rendered by «Reference».
+            $reference = $this->buildInvoiceReference($job);
+
             $invoice_payload = [
                 'Invoices' => [
                   [
@@ -107,6 +118,7 @@ class XeroInvoiceIntegration {
                     ],
                     'Date' => $currentDate,
                     'DueDate' => $dueDate,
+                    'Reference' => $reference,
                     "LineAmountTypes" => "Exclusive",
                     'LineItems' => $line_items,
                     'Status' => 'DRAFT',
@@ -150,6 +162,9 @@ class XeroInvoiceIntegration {
         $lines = [];
         $skipped = [];
 
+        // Appended to every line's description as "<Type of Service> – <Name>".
+        $name_to_serve = $this->nameToServe($job);
+
         $fee_paragraphs = $job->get('field_job_fees')->referencedEntities();
         foreach ($fee_paragraphs as $index => $fee) {
             $description = 'Service';
@@ -185,6 +200,10 @@ class XeroInvoiceIntegration {
                 continue;
             }
 
+            if ($name_to_serve !== '') {
+                $description .= ' ' . self::EN_DASH . ' ' . $name_to_serve;
+            }
+
             $line = [
                 'Description' => $description,
                 'Quantity' => $units,
@@ -206,5 +225,155 @@ class XeroInvoiceIntegration {
         }
 
         return ['lines' => $lines];
+    }
+
+    /**
+     * Builds the invoice Reference block for the APS Xero template.
+     *
+     * Xero exposes a single free-text Reference field, so the whole header
+     * block (MATTER + Re: on the left, Your/Our Reference on the right) is
+     * packed into it with line breaks; the template renders it via «Reference».
+     * Stacked single column (Xero's Reference field is single-line and collapses
+     * whitespace, so two-column left/right alignment is not possible):
+     *   Our Reference <CLI>12:<JobNo>:SY
+     *   Your Reference <field_client_ref>
+     *   MATTER: <Job Type> – <Suburb>
+     *   <State>
+     *   Re: <Side One> -v- <Side Two>
+     */
+    protected function buildInvoiceReference($job): string {
+        $client_ref = $this->fieldValue($job, 'field_client_ref');
+
+        // Our Reference: first 3 letters of the client name (UPPER) + fixed
+        // "12:" + Job number (node title) + fixed ":SY".
+        $client_name = $this->fieldValue($job, 'field_client_name');
+        if ($client_name === '' && $job->hasField('field_client') && !$job->get('field_client')->isEmpty()) {
+            $client = $job->get('field_client')->entity;
+            if ($client) {
+                $client_name = (string) $client->label();
+            }
+        }
+        $client_prefix = mb_strtoupper(mb_substr(trim($client_name), 0, 3));
+        $our_ref = $client_prefix . '12:' . trim((string) $job->getTitle()) . ':SY';
+
+        $job_type = mb_strtoupper($this->firstTermLabel($job, 'field_job_types'));
+        [$suburb, $state] = $this->partyToServeSuburbState($job);
+        $suburb = mb_strtoupper($suburb);
+        $state = mb_strtoupper($state);
+
+        $side_one = $this->firstPartyFullName($job, 'field_parties');
+        $side_two = $this->firstPartyFullName($job, 'field_party_2');
+
+        $matter_line = $job_type;
+        if ($suburb !== '') {
+            $matter_line = trim($job_type . ' ' . self::EN_DASH . ' ' . $suburb);
+        }
+
+        // Single column, stacked in this order. Xero's Reference is a
+        // single-line free-text field that collapses runs of whitespace, so
+        // left/right column alignment is impossible; CRLF is used between rows
+        // in the hope Xero honours it as a line break in the rendered template.
+        $lines = [];
+        $lines[] = 'Our Reference ' . $our_ref;
+        $lines[] = 'Your Reference ' . $client_ref;
+        $lines[] = trim('MATTER: ' . $matter_line);
+        if ($state !== '') {
+            $lines[] = $state;
+        }
+        $lines[] = 'Re: ' . $side_one . ' -v- ' . $side_two;
+
+        return implode("\r\n", $lines);
+    }
+
+    /**
+     * Trimmed scalar value of a simple field, or '' when empty/absent.
+     */
+    protected function fieldValue($entity, string $field): string {
+        if ($entity->hasField($field) && !$entity->get($field)->isEmpty()) {
+            return trim((string) $entity->get($field)->value);
+        }
+        return '';
+    }
+
+    /**
+     * Label of the first referenced taxonomy term on a field, or ''.
+     */
+    protected function firstTermLabel($job, string $field): string {
+        if (!$job->hasField($field) || $job->get($field)->isEmpty()) {
+            return '';
+        }
+        $terms = $job->get($field)->referencedEntities();
+        return $terms ? trim((string) $terms[0]->label()) : '';
+    }
+
+    /**
+     * Full name of the first party paragraph on a side field. Prefers
+     * field_full_name; falls back to first + last name.
+     */
+    protected function firstPartyFullName($job, string $field): string {
+        if (!$job->hasField($field) || $job->get($field)->isEmpty()) {
+            return '';
+        }
+        foreach ($job->get($field)->referencedEntities() as $para) {
+            if ($para->hasField('field_full_name') && !$para->get('field_full_name')->isEmpty()) {
+                $full = trim((string) $para->get('field_full_name')->value);
+                if ($full !== '') {
+                    return $full;
+                }
+            }
+            $first = ($para->hasField('field_name') && !$para->get('field_name')->isEmpty())
+                ? trim((string) $para->get('field_name')->value) : '';
+            $last = ($para->hasField('field_last_name') && !$para->get('field_last_name')->isEmpty())
+                ? trim((string) $para->get('field_last_name')->value) : '';
+            $composed = trim($first . ' ' . $last);
+            if ($composed !== '') {
+                return $composed;
+            }
+        }
+        return '';
+    }
+
+    /**
+     * Suburb + state from the Party-to-Serve service address: the primary
+     * addresses paragraph (field_primary_address) else the first one.
+     * Mirrors JobFilterController::primaryPostalCode().
+     *
+     * @return array
+     *   [0 => suburb, 1 => state].
+     */
+    protected function partyToServeSuburbState($job): array {
+        if (!$job->hasField('field_service_address') || $job->get('field_service_address')->isEmpty()) {
+            return ['', ''];
+        }
+        $first = NULL;
+        $chosen = NULL;
+        foreach ($job->get('field_service_address')->referencedEntities() as $para) {
+            if (!$para->hasField('field_service_address') || $para->get('field_service_address')->isEmpty()) {
+                continue;
+            }
+            if ($first === NULL) {
+                $first = $para;
+            }
+            if ($para->hasField('field_primary_address') && (bool) $para->get('field_primary_address')->value) {
+                $chosen = $para;
+                break;
+            }
+        }
+        $chosen = $chosen ?: $first;
+        if (!$chosen) {
+            return ['', ''];
+        }
+        $addr = $chosen->get('field_service_address')->first()->getValue();
+        return [
+            trim((string) ($addr['locality'] ?? '')),
+            trim((string) ($addr['administrative_area'] ?? '')),
+        ];
+    }
+
+    /**
+     * The Party-to-Serve "Name to Serve" (field_served_party). No fallback.
+     */
+    protected function nameToServe($job): string {
+        return $this->fieldValue($job, 'field_served_party');
     }
 }

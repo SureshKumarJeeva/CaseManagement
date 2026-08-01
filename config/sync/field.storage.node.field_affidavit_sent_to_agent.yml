@@ -1,0 +1,24 @@
+uuid: 935c6258-12d3-4ba1-9830-463ff3768bd6
+langcode: en
+status: true
+dependencies:
+  module:
+    - datetime
+    - field_permissions
+    - node
+third_party_settings:
+  field_permissions:
+    permission_type: public
+id: node.field_affidavit_sent_to_agent
+field_name: field_affidavit_sent_to_agent
+entity_type: node
+type: datetime
+settings:
+  datetime_type: date
+module: datetime
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

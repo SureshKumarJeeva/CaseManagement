@@ -1,0 +1,244 @@
+uuid: 4ed8807a-db29-41fa-b170-3d67fddbd8b8
+langcode: en
+status: true
+dependencies:
+  module:
+    - field_permissions
+    - node
+    - options
+third_party_settings:
+  field_permissions:
+    permission_type: public
+id: node.field_short_codes
+field_name: field_short_codes
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: select_fields
+      label: '---Select Fields---'
+    -
+      value: node_field_client
+      label: '[node:field_client]'
+    -
+      value: node_field_client_ref
+      label: '[node:field_client_ref]'
+    -
+      value: node_field_client_s_job_email
+      label: '[node:field_client_s_job_email]'
+    -
+      value: node_field_client_field_client_id
+      label: '[node:field_client:field_client_id]'
+    -
+      value: node_field_client_field_client_address
+      label: '[node:field_client:field_client_address]'
+    -
+      value: node_field_client_field_telephone
+      label: '[node:field_client:field_telephone]'
+    -
+      value: node_field_client_field_email
+      label: '[node:field_client:field_email]'
+    -
+      value: node_field_client_field_agreed_discount
+      label: '[node:field_client:field_agreed_discount]'
+    -
+      value: node_field_client_field_notes
+      label: '[node:field_client:field_notes]'
+    -
+      value: node_field_court
+      label: '[node:field_court]'
+    -
+      value: node_field_case_no
+      label: '[node:field_case_no]'
+    -
+      value: node_field_division
+      label: '[node:field_division]'
+    -
+      value: node_field_list
+      label: '[node:field_list]'
+    -
+      value: node_field_registry
+      label: '[node:field_registry]'
+    -
+      value: node_field_hearing_date
+      label: '[node:field_hearing_date]'
+    -
+      value: node_field_parties_field_full_name
+      label: '[node:field_parties:field_full_name]'
+    -
+      value: node_field_party_2_field_full_name
+      label: '[node:field_party_2:field_full_name]'
+    -
+      value: node_field_other_parties_field_name
+      label: '[node:field_other_parties:field_name]'
+    -
+      value: node_field_parties_field_party_type
+      label: '[node:field_parties:field_party_type]'
+    -
+      value: node_field_party_2_field_party_type_2
+      label: '[node:field_party_2:field_party_type_2]'
+    -
+      value: node_field_other_parties_field_party_type_other
+      label: '[node:field_other_parties:field_party_type_other]'
+    -
+      value: node_field_parties
+      label: '[node:field_parties]'
+    -
+      value: node_field_party_2
+      label: '[node:field_party_2]'
+    -
+      value: node_field_other_parties
+      label: '[node:field_other_parties]'
+    -
+      value: node_field_name_to_server_value
+      label: '[node:field_name_to_server_value]'
+    -
+      value: node_field_party_to_serve_phone
+      label: '[node:field_party_to_serve_phone]'
+    -
+      value: node_field_service_address
+      label: '[node:field_service_address]'
+    -
+      value: node_field_served_notes
+      label: '[node:field_served_notes]'
+    -
+      value: node_field_case_status
+      label: '[node:field_case_status]'
+    -
+      value: node_field_admin_status
+      label: '[node:field_admin_status]'
+    -
+      value: node_field_admin_send_to_client_date
+      label: '[node:field_admin_send_to_client_date]'
+    -
+      value: node_field_admin_invoiced_date
+      label: '[node:field_admin_invoiced_date]'
+    -
+      value: node_field_admin_email_update_date
+      label: '[node:field_admin_email_update_date]'
+    -
+      value: node_field_admin_cover_letter_date
+      label: '[node:field_admin_cover_letter_date]'
+    -
+      value: node_field_admin_affidavit_date
+      label: '[node:field_admin_affidavit_date]'
+    -
+      value: node_field_job_types
+      label: '[node:field_job_types]'
+    -
+      value: node_field_instruction_received
+      label: '[node:field_instruction_received]'
+    -
+      value: node_field_allocation_date
+      label: '[node:field_allocation_date]'
+    -
+      value: node_field_allocated_to_first_name
+      label: '[node:field_allocated_to_first_name]'
+    -
+      value: node_field_allocated_to_last_name
+      label: '[node:field_allocated_to_last_name]'
+    -
+      value: node_field_allocated_to_full_name
+      label: '[node:field_allocated_to_full_name]'
+    -
+      value: node_field_deadline
+      label: '[node:field_deadline]'
+    -
+      value: node_field_served_by_first_name
+      label: '[node:field_served_by_first_name]'
+    -
+      value: node_field_served_by_last_name
+      label: '[node:field_served_by_last_name]'
+    -
+      value: node_field_served_by_full_name
+      label: '[node:field_served_by_full_name]'
+    -
+      value: node_field_date_service
+      label: '[node:field_date_service]'
+    -
+      value: node_field_para_address
+      label: '[node:field_para_address]'
+    -
+      value: node_field_method_of_service
+      label: '[node:field_method_of_service]'
+    -
+      value: node_field_person_delivered_to
+      label: '[node:field_person_delivered_to]'
+    -
+      value: node_field_person_delivered_to_fname
+      label: '[node:field_person_delivered_to_fname]'
+    -
+      value: node_field_person_delivered_to_lname
+      label: '[node:field_person_delivered_to_lname]'
+    -
+      value: node_field_service_details_position
+      label: '[node:field_service_details_position]'
+    -
+      value: node_field_business_name
+      label: '[node:field_business_name]'
+    -
+      value: node_field_notes2
+      label: '[node:field_notes2]'
+    -
+      value: node_field_attendance_notes
+      label: '[node:field_attendance_notes]'
+    -
+      value: node_field_attendance_notes_field_employee_full_name
+      label: '[node:field_attendance_notes:field_employee_full_name]'
+    -
+      value: node_field_attendance_notes_field_employee_first_name
+      label: '[node:field_attendance_notes:field_employee_first_name]'
+    -
+      value: node_field_attendance_notes_field_employee_last_name
+      label: '[node:field_attendance_notes:field_employee_last_name]'
+    -
+      value: node_field_attendance_notes_field_date_time
+      label: '[node:field_attendance_notes:field_date_time]'
+    -
+      value: node_field_attendance_notes_field_address_attendance
+      label: '[node:field_attendance_notes:field_address_attendance]'
+    -
+      value: node_field_attendance_notes_field_notes
+      label: '[node:field_attendance_notes:field_notes]'
+    -
+      value: node_field_documents_field_untitled
+      label: '[node:field_documents:field_untitled]'
+    -
+      value: node_field_documents_field_date
+      label: '[node:field_documents:field_date]'
+    -
+      value: node_field_documents_field_name
+      label: '[node:field_documents:field_name]'
+    -
+      value: node_field_documents_field_amount
+      label: '[node:field_documents:field_amount]'
+    -
+      value: node_field_documents_field_notice_period
+      label: '[node:field_documents:field_notice_period]'
+    -
+      value: node_field_documents_field_document
+      label: '[node:field_documents:field_document]'
+    -
+      value: node_field_job_fees_field_standard_fee
+      label: '[node:field_job_fees:field_standard_fee]'
+    -
+      value: node_field_job_fees_field_agreed_fee
+      label: '[node:field_job_fees:field_agreed_fee]'
+    -
+      value: node_field_job_fees_field_type_of_service
+      label: '[node:field_job_fees:field_type_of_service]'
+    -
+      value: node_field_job_fees_field_units
+      label: '[node:field_job_fees:field_units]'
+    -
+      value: node_field_job_fees_field_total
+      label: '[node:field_job_fees:field_total]'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

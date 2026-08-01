@@ -58,9 +58,11 @@
                 $('#court-details').hide();
                 $('#parties-panel').hide();
                 $('#documents-panel').hide();
-                $('#party-served-details').hide();
+                // NOTE: '#party-served-details' (Party To Serve) is intentionally
+                // NOT hidden — agents are now allowed to view/edit the Party To
+                // Serve tab (see the agent block in associatedps_forms.module).
                 $('#job-fees-panel').hide();
-                if (($('.step-label.active').text() === 'Job Detail') || ($('.step-label.active').text() === 'Court Detail') || ($('.step-label.active').text() === 'Party') || ($('.step-label.active').text() === 'Documents') || ($('.step-label.active').text() === 'Party To Serve') || ($('.step-label.active').text() === 'Job Fees')){
+                if (($('.step-label.active').text() === 'Job Detail') || ($('.step-label.active').text() === 'Court Detail') || ($('.step-label.active').text() === 'Party') || ($('.step-label.active').text() === 'Documents') || ($('.step-label.active').text() === 'Job Fees')){
                   $('#edit-next').click();
                 }
               }
@@ -79,6 +81,14 @@
                 }
               });
 
+              /* DISABLED 2026-07-24 — Job Fees totals + client discount are now
+                 owned solely by service_fee_sync.js (associatedps_forms module),
+                 which applies the discount to the STANDARD fee only. These legacy
+                 handlers wrote the discounted value INTO field_agreed_fee (i.e.
+                 "discount on agreed fee", which is no longer wanted) and
+                 double-applied the discount alongside service_fee_sync. Wrapped in
+                 if(false) and kept for reference. */
+              if (false) {
               /* Auto calculate agreed_fees based on click standar_fees and discount. */
               $(document).on('keyup click', "input[name*='[subform][field_standard_fee][0][value]']", function(){
                 var ele = $(this);
@@ -134,6 +144,7 @@
                   $("input[name='field_job_fees["+append_id+"][subform][field_total][0][value]']").val(total);
                 }
               });
+              } /* end DISABLED legacy Job Fees calc — see note above */
 
               /* Attendance note Employee First Name and Last Name */
               $(document).on('mouseout', "div[id*='_subform_field_by']", function(){
@@ -329,6 +340,61 @@
             }
           });
 
+          // --- "Date of Service" prefill in the Served-By person's timezone --
+          // The Service Details "Date of Service" is prefilled with the CURRENT
+          // date/time in the timezone of the person in "Served By". Served By is
+          // itself defaulted from "Allocated To" (below) or picked manually.
+          //   - Value from DB (already-served job): left untouched on load.
+          //   - Value from Allocated To / a manual pick: date recomputed to
+          //     "now" in that person's timezone.
+          var apsTzSettings = (drupalSettings.associatedps_forms || {});
+          var apsSiteTz = apsTzSettings.site_timezone || 'Australia/Sydney';
+
+          // IANA timezone for a user id, falling back to the site timezone.
+          function apsUserTz(uid) {
+            var users = apsTzSettings.user_details || {};
+            if (uid && users[uid] && users[uid].timezone) {
+              return users[uid].timezone;
+            }
+            return apsSiteTz;
+          }
+
+          // Current wall-clock in the given IANA timezone -> {date, time}.
+          function apsNowInTz(tz) {
+            var parts = {};
+            try {
+              new Intl.DateTimeFormat('en-CA', {
+                timeZone: tz,
+                year: 'numeric', month: '2-digit', day: '2-digit',
+                hour: '2-digit', minute: '2-digit', hour12: false
+              }).formatToParts(new Date()).forEach(function (p) {
+                parts[p.type] = p.value;
+              });
+            }
+            catch (err) {
+              // Unknown timezone string: fall back to browser local time.
+              var d = new Date();
+              parts.year = d.getFullYear();
+              parts.month = ('0' + (d.getMonth() + 1)).slice(-2);
+              parts.day = ('0' + d.getDate()).slice(-2);
+              parts.hour = ('0' + d.getHours()).slice(-2);
+              parts.minute = ('0' + d.getMinutes()).slice(-2);
+            }
+            // Intl can emit "24" for midnight in some engines.
+            var hour = (parts.hour === '24') ? '00' : parts.hour;
+            return {
+              date: parts.year + '-' + parts.month + '-' + parts.day,
+              time: hour + ':' + parts.minute
+            };
+          }
+
+          // Prefill "Date of Service" with now-in-<uid's timezone>.
+          function apsPrefillServedDate(uid) {
+            var t = apsNowInTz(apsUserTz(uid));
+            $('#edit-field-date-service-0-value-date').val(t.date);
+            $('#edit-field-date-service-0-value-time').val(t.time);
+          }
+
           // Default 'Served By' to 'Allocated to' (same user).
 
           $('#edit-field-allocated-to').change(function (e) {
@@ -348,6 +414,10 @@
               $('#edit-field-allocated-to-full-name-0-value').val($allocatedUser);
               $('#edit-field-allocated-to-first-name-0-value').val($allocated_user[0]);
               $('#edit-field-allocated-to-last-name-0-value').val($allocated_user[1]);
+
+              // Served By was just fetched from Allocated To -> prefill the Date
+              // of Service with "now" in this person's timezone (spec point 4).
+              apsPrefillServedDate($allocatedUserId);
             }
             else {
               $('#edit-field-served-by-full-name-0-value').val('');
@@ -362,21 +432,28 @@
           });
 
           $('#edit-field-case-status').change(function (e) {
+            // Service Details (incl. Date of Service) only apply once the job is
+            // marked served; ignore every other status. 'Completed – Served' is
+            // the only status value containing "Served".
+            if (this.value.indexOf('Served') === -1) {
+              return;
+            }
+
+            // If Served By already holds a value — a saved DB value (spec
+            // point 3) or a manual pick (point 5) — keep it and its existing
+            // Date of Service untouched. Only default when it is still empty.
+            var servedByText = $('#edit_field_served_by_chosen a span').text();
+            if (servedByText && servedByText !== '- None -') {
+              return;
+            }
+
+            // Newly marking served: default Served By to Allocated To and
+            // prefill the Date of Service with "now" in that person's timezone
+            // (spec point 4 — value fetched from Allocated To).
             var $allocatedUser = $('#edit_field_allocated_to_chosen a span').text();
             var $allocatedUserId = $('#edit-field-allocated-to option').filter(':selected').val();
             $('#edit_field_served_by_chosen a span').text($allocatedUser);
             $('#edit-field-served-by option[value="' + $allocatedUserId + '"]').attr('selected', 'selected');
-
-            var now = new Date();
-            var day = ("0" + now.getDate()).slice(-2);
-            var month = ("0" + (now.getMonth() + 1)).slice(-2);
-            var today = now.getFullYear()+"-"+(month)+"-"+(day) ;
-
-            var hours = (now.getHours() <= 9) ? '0' + now.getHours() : now.getHours();
-            var timeValue = hours + ':' + now.getMinutes();
-
-            $('#edit-field-date-service-0-value-date').val(today);
-            $('#edit-field-date-service-0-value-time').val(timeValue);
 
             if ($allocatedUser !== '- None -') {
               var $allocated_user = $allocatedUser.split(" ");
@@ -390,6 +467,8 @@
               $('#edit-field-served-by-first-name-0-value').val('');
               $('#edit-field-served-by-last-name-0-value').val('');
             }
+
+            apsPrefillServedDate($allocatedUserId);
           });
 
           $('#edit-field-served-by').change(function (e) {
@@ -401,6 +480,10 @@
               $('#edit-field-served-by-full-name-0-value').val($servedBy);
               $('#edit-field-served-by-first-name-0-value').val($served_user[0]);
               $('#edit-field-served-by-last-name-0-value').val($served_user[1]);
+
+              // Manual Served By change -> recompute the Date of Service in the
+              // newly chosen person's timezone (spec point 5).
+              apsPrefillServedDate($servedById);
             }
             else {
               $('#edit-field-served-by-full-name-0-value').val('');
@@ -538,81 +621,81 @@
             }
           });
 
-          $('#edit-field-hearing-date-0-value-date').change(function () {
-
-            if (($('#edit-field-hearing-date-0-value-date').val().length > 1) && (!$('#edit-field-lock-deadline-date-value').is(':checked'))) {
-
-              var $docPrimary = [];
-
-              $.each($('.field--name-field-primary-document .field__item'), function (index, value) {
-
-                // Get the Primary Document if in view mode.
-
-                $(this).each(function () {
-                  if ($(this).text() == 'Yes') {
-                    $docPrimary.push(index);
-                  }
-                });
-
-              });
-
-              $.each($('.field--name-field-primary-document input'), function (index, value) {
-
-                // Get the Primary Document if in edit mode.
-
-                $(this).each(function () {
-                  if ($(this).is(':checked')) {
-                    $docPrimary.push(index);
-                  }
-                });
-
-              });
-
-              var $docPrimary = $docPrimary.toString();
-
-              if ($docPrimary.length > 0) {
-
-                // Get the notice period from the primary document.
-
-                if ($("input[name='field_documents["+$docPrimary+"][subform][field_override_notice_period][0][value]']").val()) {
-                  var periodValue = $("input[name='field_documents["+$docPrimary+"][subform][field_override_notice_period][0][value]']").val();
-                }
-                else {
-                  var periodValue = $("input[name='field_documents["+$docPrimary+"][subform][field_doc_notice_period][0][value]']").val();
-                }
-
-                var period = parseInt(periodValue);
-                var hearing = moment($('#edit-field-hearing-date-0-value-date').val());
-
-                // Subtract the notice period from the Hearing Date.
-
-                var deadline = hearing.subtract(period, 'days').format('YYYY-MM-DD');
-                // Set the Deadline date.
-
-                $('#edit-field-deadline-0-value-date').val(deadline);
-                $('#edit-field-deadline-0-value-date').trigger('change');
-              }
-            }
-          });
-
-          $('#edit-field-hearing-date-0-value-date').trigger('change');
-          $(document).on('click', "input[name*='[subform][field_primary_document][value]']", function(){
-            $('#edit-field-hearing-date-0-value-date').trigger('change');
-          });
-
-          $(document).ajaxComplete(function () {
-
-            $('.field--name-field-notice-period input').keyup(function () {
-              $('#edit-field-hearing-date-0-value-date').trigger('change');
-            });
-
-            $('#edit-field-hearing-date-0-value-date').trigger('change');
-
-            $('.field--name-field-override-notice-period input').keyup(function () {
-              $('#edit-field-hearing-date-0-value-date').trigger('change');
-            });
-
-          });
+          // COMMENTED OUT 2026-07-23 — the Deadline (Hearing Date - Notice
+          // Period) is now calculated SERVER-SIDE on save, in
+          // _associatedps_forms_calculate_deadline() (associatedps_forms.module,
+          // called from hook_node_presave). Kept for reference; delete once the
+          // server-side version has run in production for a while.
+          //
+          // Why this was unreliable:
+          // - It read field_doc_notice_period, which is filled by the Document
+          //   select's #ajax callback. Pick a document and save promptly and
+          //   that input is still empty -> parseInt(undefined) = NaN.
+          // - Notice-period changes were only caught by 'keyup'. The ajax
+          //   callback sets the value with InvokeCommand('val'), which fires no
+          //   keyup, so changing the DOCUMENT often did not recalculate.
+          // - $docPrimary is an array flattened with .toString(); two documents
+          //   ticked Primary produced "0,1", so the field_documents[0,1][...]
+          //   selector matched nothing and it silently did nothing.
+          // - It required the Primary Document checkbox; no fallback to the
+          //   first document.
+          // - The #edit-field-lock-deadline-date-value guard was dead: there is
+          //   no field_lock_deadline_date on the Job content type, so the
+          //   selector never matched anything.
+          //
+          // $('#edit-field-hearing-date-0-value-date').change(function () {
+          //   if (($('#edit-field-hearing-date-0-value-date').val().length > 1) && (!$('#edit-field-lock-deadline-date-value').is(':checked'))) {
+          //     var $docPrimary = [];
+          //     $.each($('.field--name-field-primary-document .field__item'), function (index, value) {
+          //       // Get the Primary Document if in view mode.
+          //       $(this).each(function () {
+          //         if ($(this).text() == 'Yes') {
+          //           $docPrimary.push(index);
+          //         }
+          //       });
+          //     });
+          //     $.each($('.field--name-field-primary-document input'), function (index, value) {
+          //       // Get the Primary Document if in edit mode.
+          //       $(this).each(function () {
+          //         if ($(this).is(':checked')) {
+          //           $docPrimary.push(index);
+          //         }
+          //       });
+          //     });
+          //     var $docPrimary = $docPrimary.toString();
+          //     if ($docPrimary.length > 0) {
+          //       // Get the notice period from the primary document.
+          //       if ($("input[name='field_documents["+$docPrimary+"][subform][field_override_notice_period][0][value]']").val()) {
+          //         var periodValue = $("input[name='field_documents["+$docPrimary+"][subform][field_override_notice_period][0][value]']").val();
+          //       }
+          //       else {
+          //         var periodValue = $("input[name='field_documents["+$docPrimary+"][subform][field_doc_notice_period][0][value]']").val();
+          //       }
+          //       var period = parseInt(periodValue);
+          //       var hearing = moment($('#edit-field-hearing-date-0-value-date').val());
+          //       // Subtract the notice period from the Hearing Date.
+          //       var deadline = hearing.subtract(period, 'days').format('YYYY-MM-DD');
+          //       // Set the Deadline date.
+          //       $('#edit-field-deadline-0-value-date').val(deadline);
+          //       $('#edit-field-deadline-0-value-date').trigger('change');
+          //     }
+          //   }
+          // });
+          //
+          // $('#edit-field-hearing-date-0-value-date').trigger('change');
+          // $(document).on('click', "input[name*='[subform][field_primary_document][value]']", function(){
+          //   $('#edit-field-hearing-date-0-value-date').trigger('change');
+          // });
+          //
+          // $(document).ajaxComplete(function () {
+          //   $('.field--name-field-notice-period input').keyup(function () {
+          //     $('#edit-field-hearing-date-0-value-date').trigger('change');
+          //   });
+          //   $('#edit-field-hearing-date-0-value-date').trigger('change');
+          //   $('.field--name-field-override-notice-period input').keyup(function () {
+          //     $('#edit-field-hearing-date-0-value-date').trigger('change');
+          //   });
+          // });
 
           // Hide the Service Details pane if no served date set.
 

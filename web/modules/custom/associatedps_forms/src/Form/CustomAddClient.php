@@ -153,10 +153,13 @@ class CustomAddClient extends FormBase {
 
       // Email update options — mirror the Client content type's email-sending
       // checkboxes so this modal matches the full "Add content -> Client" page.
-      // All five booleans default CHECKED, same as the node.client field
-      // defaults; the "Frequency" days input pairs with the Attendance Update
-      // checkbox (reuses field_email_interval). Order follows the client form
-      // display weights (8-13).
+      // The booleans mirror the node.client field defaults: all CHECKED except
+      // Attendance Update - Frequency, which defaults UNCHECKED. The
+      // "Frequency" days input pairs with the Attendance Update checkbox
+      // (reuses field_email_interval). Order follows the client form display
+      // weights (8-13). These defaults are hardcoded here (hand-built form, not
+      // entity-form-driven), so changing a field's default value in config does
+      // NOT propagate — update it here too.
       $form['email_options'] = [
         '#type' => 'details',
         '#title' => $this->t('Email Update Options'),
@@ -185,7 +188,9 @@ class CustomAddClient extends FormBase {
       $form['email_options']['frequency_row']['attendance_update_frequenc'] = [
         '#type' => 'checkbox',
         '#title' => $this->t('Attendance Update - Frequency'),
-        '#default_value' => 1,
+        // The only one that defaults UNCHECKED — matches the node.client field
+        // default for field_attendance_update_frequenc.
+        '#default_value' => 0,
         '#wrapper_attributes' => ['style' => 'margin:0;'],
       ];
 
@@ -200,21 +205,30 @@ class CustomAddClient extends FormBase {
         '#wrapper_attributes' => ['style' => 'margin:0; display:flex; align-items:center; gap:0.4rem;'],
       ];
 
+      // Titles mirror the Client page labels exactly (en-dash U+2013). The
+      // array keys stay as-is — they are local form keys, mapped to the real
+      // fields in the submit handler.
       $form['email_options']['served'] = [
         '#type' => 'checkbox',
-        '#title' => $this->t('Served'),
+        '#title' => $this->t('Completed – Served'),
         '#default_value' => 1,
       ];
 
       $form['email_options']['attempted'] = [
         '#type' => 'checkbox',
-        '#title' => $this->t('Attempted'),
+        '#title' => $this->t('Completed – Attempted'),
+        '#default_value' => 1,
+      ];
+
+      $form['email_options']['cancelled'] = [
+        '#type' => 'checkbox',
+        '#title' => $this->t('Completed – Cancelled'),
         '#default_value' => 1,
       ];
 
       $form['email_options']['completed'] = [
         '#type' => 'checkbox',
-        '#title' => $this->t('Completed'),
+        '#title' => $this->t('Completed – Enquiries'),
         '#default_value' => 1,
       ];
 
@@ -342,6 +356,7 @@ class CustomAddClient extends FormBase {
     $client_node->set('field_attendance_update_frequenc', !empty($values['attendance_update_frequenc']) ? 1 : 0);
     $client_node->set('field_served', !empty($values['served']) ? 1 : 0);
     $client_node->set('field_attempted', !empty($values['attempted']) ? 1 : 0);
+    $client_node->set('field_cancelled', !empty($values['cancelled']) ? 1 : 0);
     $client_node->set('field_completed', !empty($values['completed']) ? 1 : 0);
     if (isset($values['email_interval']) && $values['email_interval'] !== '') {
       $client_node->set('field_email_interval', (int) $values['email_interval']);

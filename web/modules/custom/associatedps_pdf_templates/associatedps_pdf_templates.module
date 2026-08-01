@@ -115,17 +115,36 @@ function _associatedps_pdf_templates_library_data($library_id, $tokens_field = '
   if (!empty($library_id)) {
     $template = Node::load($library_id);
     $body = $template->body->value;
-    // Which field holds the [node:*] token list is configurable: Job templates
-    // use field_available_tokens (default); the Online Instruction template
-    // passes field_instruction_tokens so the two token sets never mix.
-    $template_tokens = $template->hasField($tokens_field) ? $template->get($tokens_field)->value : '';
-    if (!empty($template_tokens)) {
-      $template_tokens = explode(PHP_EOL, $template_tokens);
-    }
     if ($template->field_category->value == 'Email') {
       $email_sub = $template->field_email_subject->value;
       $template_data['subject'] = $email_sub;
     }
+
+    // Where the list of tokens-to-substitute comes from:
+    //
+    // Both email token fields (field_available_tokens = Job templates,
+    // field_instruction_tokens = Online Instruction) now scan the body AND
+    // subject for [node:...] tokens directly instead of reading a stored list.
+    // The hand-maintained textareas are hidden on the form (the Chosen pickers
+    // just copy tokens for pasting), so the body itself is the source of truth.
+    // Every [node:...] the author placed gets resolved — no un-substituted token
+    // can leak into a sent email, and there is no separate list to keep in sync.
+    // The Online Instruction [node:field_upload_documents] attachment token is
+    // still detected here (it lives in the body, where it renders as the
+    // filename list) and handled by the caller.
+    if ($tokens_field === 'field_available_tokens' || $tokens_field === 'field_instruction_tokens') {
+      $scan = (string) $body . ' ' . (string) $email_sub;
+      $template_tokens = preg_match_all('/\[node:[^\]]+\]/', $scan, $matches)
+        ? array_values(array_unique($matches[0]))
+        : [];
+    }
+    else {
+      $template_tokens = $template->hasField($tokens_field) ? $template->get($tokens_field)->value : '';
+      if (!empty($template_tokens)) {
+        $template_tokens = explode(PHP_EOL, $template_tokens);
+      }
+    }
+
     $template_data['body'] = $body;
     $template_data['tokens'] = $template_tokens;
     return $template_data;
@@ -213,6 +232,22 @@ function _associatedps_pdf_templates_replace_value($elements, $data, $template) 
                 $value = $node_data->$in_token->value;
               }
               \Drupal::logger('associatedps_email_template')->notice('Node Inner Token Value: @value', ['@value' => $value]);
+            }
+          }
+          elseif ($target_type == 'user') {
+            // User-reference sub-field, e.g. [node:field_allocated_to:name].
+            // Needed for full DocuSign label parity: the picker offers user
+            // sub-fields, so the resolver must be able to fill them.
+            $user_data = User::load($entity_reference_data['target_id']);
+            if (!empty($user_data) && $user_data->hasField($in_token)) {
+              $value = $user_data->$in_token->value;
+            }
+          }
+          elseif ($target_type == 'taxonomy_term') {
+            // Taxonomy-reference sub-field, e.g. [node:field_job_types:name].
+            $term_data = Term::load($entity_reference_data['target_id']);
+            if (!empty($term_data) && $term_data->hasField($in_token)) {
+              $value = $term_data->$in_token->value;
             }
           }
         }

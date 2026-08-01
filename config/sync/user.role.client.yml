@@ -5,19 +5,29 @@ dependencies:
   config:
     - filter.format.basic_html
     - filter.format.full_html
+    - node.type.job
     - node.type.online_instruction
   module:
     - field_permissions
     - file
     - filter
     - node
+    - system
 id: client
 label: Client
 weight: 6
 is_admin: null
 permissions:
+  - 'access content'
+  - 'access content overview'
   - 'access files overview'
   - 'create online_instruction content'
+  - 'delete any online_instruction content'
+  - 'delete own online_instruction content'
+  - 'edit any job content'
+  - 'edit any online_instruction content'
+  - 'edit own job content'
+  - 'edit own online_instruction content'
   - 'use text format basic_html'
   - 'use text format full_html'
   - 'view field_agreed_discount'

@@ -1,0 +1,21 @@
+uuid: 1905f507-b3f3-4f25-b018-0b7285bd550c
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_affidavit_sent_to_agent
+    - node.type.job
+  module:
+    - datetime
+id: node.job.field_affidavit_sent_to_agent
+field_name: field_affidavit_sent_to_agent
+entity_type: node
+bundle: job
+label: 'Affidavit Sent to Agent'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

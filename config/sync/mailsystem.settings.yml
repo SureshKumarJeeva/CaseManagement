@@ -2,5 +2,12 @@ _core:
   default_config_hash: IhwTepsVwtbtbcT5GzQKhCXDCRvbk3MNkWqPiuiZ10s
 theme: current
 defaults:
-  sender: php_mail
-  formatter: php_mail
+  sender: SMTPMailSystem
+  formatter: SMTPMailSystem
+modules:
+  swiftmailer: {  }
+  associatedps_email_template: {  }
+  smtp:
+    none:
+      sender: SMTPMailSystem
+      formatter: SMTPMailSystem

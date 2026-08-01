@@ -8,8 +8,10 @@ dependencies:
     - field.field.node.library.field_available_tokens
     - field.field.node.library.field_case_status
     - field.field.node.library.field_category
+    - field.field.node.library.field_docusign_template_id
     - field.field.node.library.field_email_subject
     - field.field.node.library.field_import_template
+    - field.field.node.library.field_instruction_tokens
     - field.field.node.library.field_job_types
     - field.field.node.library.field_pandadoc_template_id
     - node.type.library
@@ -41,7 +43,9 @@ hidden:
   field_available_tokens: true
   field_case_status: true
   field_category: true
+  field_docusign_template_id: true
   field_email_subject: true
   field_import_template: true
+  field_instruction_tokens: true
   field_job_types: true
   field_pandadoc_template_id: true

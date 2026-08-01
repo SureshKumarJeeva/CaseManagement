@@ -6,6 +6,7 @@ dependencies:
     - field.field.node.client.field_agreed_discount
     - field.field.node.client.field_attempted
     - field.field.node.client.field_attendance_update_frequenc
+    - field.field.node.client.field_cancelled
     - field.field.node.client.field_client_address
     - field.field.node.client.field_client_id
     - field.field.node.client.field_completed
@@ -62,7 +63,7 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 15
+    weight: 14
     region: content
   field_attendance_update_frequenc:
     type: boolean
@@ -72,7 +73,17 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 13
+    weight: 12
+    region: content
+  field_cancelled:
+    type: boolean
+    label: above
+    settings:
+      format: default
+      format_custom_false: ''
+      format_custom_true: ''
+    third_party_settings: {  }
+    weight: 16
     region: content
   field_client_address:
     type: address_default
@@ -101,7 +112,7 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 16
+    weight: 15
     region: content
   field_email:
     type: email_mailto
@@ -137,7 +148,7 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 12
+    weight: 11
     region: content
   field_notes:
     type: text_default
@@ -156,7 +167,7 @@ content:
       format_custom_false: ''
       format_custom_true: ''
     third_party_settings: {  }
-    weight: 14
+    weight: 13
     region: content
   field_telephone:
     type: telephone_link

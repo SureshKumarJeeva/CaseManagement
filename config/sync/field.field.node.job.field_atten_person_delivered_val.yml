@@ -1,0 +1,19 @@
+uuid: 3001d8c4-29ba-46a2-901b-1193040042fa
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_atten_person_delivered_val
+    - node.type.job
+id: node.job.field_atten_person_delivered_val
+field_name: field_atten_person_delivered_val
+entity_type: node
+bundle: job
+label: 'Attendance Person Delivered to Value'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

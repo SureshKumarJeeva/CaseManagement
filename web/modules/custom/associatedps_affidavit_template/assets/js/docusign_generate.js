@@ -2,6 +2,78 @@
   'use strict';
 
   /**
+   * Inject the spinner keyframes once (inline styles can't hold @keyframes).
+   */
+  function ensureLoaderStyles() {
+    if (document.getElementById('docusign-loader-styles')) {
+      return;
+    }
+    var style = document.createElement('style');
+    style.id = 'docusign-loader-styles';
+    style.textContent = '@keyframes docusignSpin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(style);
+  }
+
+  /**
+   * Show (or update) a full-screen blocking overlay with a spinner + message.
+   * Makes the generate wait obvious even after the Generate dropdown closes.
+   */
+  function showLoadingOverlay(message) {
+    ensureLoaderStyles();
+
+    var $overlay = $('#docusign-loading-overlay');
+    if ($overlay.length) {
+      $overlay.find('.docusign-loading-message').text(message);
+      return $overlay;
+    }
+
+    $overlay = $('<div id="docusign-loading-overlay"></div>').css({
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: '100%',
+      height: '100%',
+      backgroundColor: 'rgba(0, 0, 0, 0.6)',
+      zIndex: 10001,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center'
+    });
+
+    var $spinner = $('<div></div>').css({
+      width: '48px',
+      height: '48px',
+      border: '5px solid rgba(255, 255, 255, 0.3)',
+      borderTopColor: '#fff',
+      borderRadius: '50%',
+      animation: 'docusignSpin 0.9s linear infinite',
+      marginBottom: '18px'
+    });
+
+    var $msg = $('<div class="docusign-loading-message"></div>').text(message || 'Generating…').css({
+      color: '#fff',
+      fontSize: '16px',
+      fontFamily: 'sans-serif',
+      textAlign: 'center',
+      maxWidth: '80vw',
+      padding: '0 20px'
+    });
+
+    $overlay.append($spinner, $msg);
+    $('body').append($overlay);
+    return $overlay;
+  }
+
+  function updateLoadingOverlay(message) {
+    $('#docusign-loading-overlay .docusign-loading-message').text(message);
+  }
+
+  function hideLoadingOverlay() {
+    $('#docusign-loading-overlay').remove();
+  }
+
+  /**
    * Trigger the generate workflow via AJAX for a given URL.
    */
   function triggerGenerate($btn, generateUrl) {
@@ -10,9 +82,15 @@
     var $spinner = $('<span class="ajax-progress ajax-progress--throbber"><span class="throbber">&nbsp;</span></span>');
     $btn.append($spinner);
 
+    // Full-screen overlay so the wait is obvious even after the Generate
+    // dropdown closes — envelope creation + editor prep can take several
+    // seconds. Removed on error / no-template; kept through the redirect.
+    showLoadingOverlay('Generating envelope… This can take a few moments.');
+
     function resetButton() {
       $btn.text(originalText).removeClass('is-disabled').css('pointer-events', '');
       $spinner.remove();
+      hideLoadingOverlay();
     }
 
     $.ajax({
@@ -33,6 +111,7 @@
         }
 
         if (response.envelope_id && response.status_url) {
+          updateLoadingOverlay('Envelope created. Preparing the DocuSign editor…');
           pollStatus($btn, $spinner, originalText, response.status_url, response.editor_url || response.download_url, 0);
         }
         else {
@@ -63,6 +142,7 @@
     function resetButton() {
       $btn.text(originalText).removeClass('is-disabled').css('pointer-events', '');
       $spinner.remove();
+      hideLoadingOverlay();
     }
 
     if (attempt >= maxAttempts) {
@@ -84,13 +164,16 @@
           }
 
           if (statusResponse.download_ready) {
+            // Keep the overlay up through the redirect so the page never
+            // flashes back to the Job form before the editor loads.
+            updateLoadingOverlay('Editor ready. Opening…');
             (new Drupal.Message()).add('Envelope created. Opening editor...', { type: 'status' });
-            resetButton();
             window.location.href = editorUrl;
           }
           else {
             $btn.text('Generating... (' + statusResponse.status + ')');
             $btn.append($spinner);
+            updateLoadingOverlay('Generating… (' + statusResponse.status + ')');
             pollStatus($btn, $spinner, originalText, statusUrl, editorUrl, attempt + 1);
           }
         },

@@ -6,7 +6,7 @@ dependencies:
     - field.storage.user.field_phone
     - system.menu.main
     - user.role.administrator
-    - user.role.editor
+    - user.role.aps_administrator
   module:
     - address
     - telephone
@@ -476,7 +476,7 @@ display:
         options:
           role:
             administrator: administrator
-            editor: editor
+            aps_administrator: aps_administrator
       cache:
         type: tag
         options: {  }

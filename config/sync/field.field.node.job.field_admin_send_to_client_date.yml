@@ -11,7 +11,7 @@ id: node.job.field_admin_send_to_client_date
 field_name: field_admin_send_to_client_date
 entity_type: node
 bundle: job
-label: 'Send to Client Date'
+label: 'Invoice Sent to Client'
 description: ''
 required: false
 translatable: false

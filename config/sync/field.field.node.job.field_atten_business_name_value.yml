@@ -1,0 +1,19 @@
+uuid: 5f07e270-1fef-47ee-babd-068fa70c5ebc
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_atten_business_name_value
+    - node.type.job
+id: node.job.field_atten_business_name_value
+field_name: field_atten_business_name_value
+entity_type: node
+bundle: job
+label: 'Attendance Business Name Value'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

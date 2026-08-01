@@ -1,0 +1,22 @@
+uuid: 8ff476c2-be9b-45e1-b61f-a6850b6246a2
+langcode: en
+status: true
+dependencies:
+  module:
+    - field_permissions
+    - node
+third_party_settings:
+  field_permissions:
+    permission_type: public
+id: node.field_attendance_update_frequenc
+field_name: field_attendance_update_frequenc
+entity_type: node
+type: boolean
+settings: {  }
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

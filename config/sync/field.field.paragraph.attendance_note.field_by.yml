@@ -1,4 +1,4 @@
-uuid: b7648609-f1ee-4c13-8ea8-24157ab9bc3f
+uuid: 8c0141f2-ed0f-47f2-89c0-76fb1629a92e
 langcode: en
 status: true
 dependencies:
@@ -21,6 +21,7 @@ settings:
     target_bundles: null
     sort:
       field: _none
+      direction: ASC
     auto_create: false
     filter:
       type: _none

@@ -69,6 +69,26 @@
   }
 
   /**
+   * Compose a datetime widget's value from its two inputs.
+   *
+   * A datetime field (datetime_default widget) renders as separate
+   * <base>-date and <base>-time inputs — there is no single <base> input, which
+   * is why reading the plain id returned blank. Pass the base id, e.g.
+   * '#edit-field-date-service-0-value'.
+   */
+  function datetimeVal(base) {
+    var d = ($(base + '-date').val() || '').trim();
+    var t = ($(base + '-time').val() || '').trim();
+    if (!d) {
+      return '';
+    }
+    // Display as dd/mm/yyyy hh:mm (input values are ISO yyyy-mm-dd / hh:mm[:ss]).
+    var ymd = d.split('-');
+    var out = (ymd.length === 3) ? (ymd[2] + '/' + ymd[1] + '/' + ymd[0]) : d;
+    return t ? (out + ' ' + t.slice(0, 5)) : out;
+  }
+
+  /**
    * Compose the Address Served from the paragraph address subform inputs.
    */
   function addressServed() {
@@ -88,7 +108,7 @@
     { label: 'Person Delivered To', get: function () { return optText('#edit-field-person-delivered-to'); } },
     { label: 'Position', get: function () { return displayVal('#edit-field-service-details-position-0-value'); } },
     { label: 'Business Name', get: businessName },
-    { label: 'Date of Service', get: function () { return displayVal('#edit-field-date-service-0-value'); } },
+    { label: 'Date Served', get: function () { return datetimeVal('#edit-field-date-service-0-value'); } },
     { label: 'Notes', get: function () { return displayVal('#edit-field-notes2-0-value'); } }
   ];
 

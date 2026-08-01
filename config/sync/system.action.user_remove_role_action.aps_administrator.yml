@@ -1,0 +1,14 @@
+uuid: d83b7c6c-2384-43ed-abb7-9a00645b4f21
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.aps_administrator
+  module:
+    - user
+id: user_remove_role_action.aps_administrator
+label: 'Remove the APS Administrator role from the selected user(s)'
+type: user
+plugin: user_remove_role_action
+configuration:
+  rid: aps_administrator

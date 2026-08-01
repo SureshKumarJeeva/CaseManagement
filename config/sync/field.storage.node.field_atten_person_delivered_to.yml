@@ -1,0 +1,55 @@
+uuid: 0c5fa122-a024-4178-9933-00b782575702
+langcode: en
+status: true
+dependencies:
+  module:
+    - field_permissions
+    - node
+    - options
+third_party_settings:
+  field_permissions:
+    permission_type: public
+id: node.field_atten_person_delivered_to
+field_name: field_atten_person_delivered_to
+entity_type: node
+type: list_string
+settings:
+  allowed_values:
+    -
+      value: 'Jane Doe'
+      label: 'Jane Doe'
+    -
+      value: 'Suresh Kumar 2 Jeeva'
+      label: 'Suresh Kumar 2 Jeeva'
+    -
+      value: 'Suresh Kumar 1 Jeeva'
+      label: 'Suresh Kumar 1 Jeeva'
+    -
+      value: 'party 2 party 2 lname'
+      label: 'party 2 party 2 lname'
+    -
+      value: 'Philip Soldat'
+      label: 'Philip Soldat'
+    -
+      value: ' '
+      label: ' '
+    -
+      value: test1
+      label: test1
+    -
+      value: test2
+      label: test2
+    -
+      value: 'Suresh Kumar Jeeva'
+      label: 'Suresh Kumar Jeeva'
+    -
+      value: 'Denis Gerald Crawford'
+      label: 'Denis Gerald Crawford'
+  allowed_values_function: ''
+module: options
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false

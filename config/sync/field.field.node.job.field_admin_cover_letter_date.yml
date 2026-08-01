@@ -11,7 +11,7 @@ id: node.job.field_admin_cover_letter_date
 field_name: field_admin_cover_letter_date
 entity_type: node
 bundle: job
-label: 'Cover Letter Drafted Date'
+label: 'Job Logged'
 description: ''
 required: false
 translatable: false

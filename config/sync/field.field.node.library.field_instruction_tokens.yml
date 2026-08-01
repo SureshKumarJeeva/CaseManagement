@@ -1,0 +1,21 @@
+uuid: c3504dec-bd06-4836-9740-580ff1cd0a2b
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_instruction_tokens
+    - node.type.library
+id: node.library.field_instruction_tokens
+field_name: field_instruction_tokens
+entity_type: node
+bundle: library
+label: 'Instruction Tokens'
+description: "Add available Tokens for the selected webform. Tokens must be in [] and add | For separate token and description. Add new token in new line. For display form element use field as prefix. For display Label of field in PDF use label as prefix.\r\n For example, \r\n [field_client_name]|Display Client Name Value"
+required: false
+translatable: false
+default_value:
+  -
+    value: "[node:field_first_name]\r\n[node:field_last_name]\r\n[node:field_representative_name]\r\n[node:field_representative_telephone]\r\n[node:field_client_s_job_reference]\r\n[node:field_address_of_served]\r\n[node:field_telephone_of_served]\r\n[node:field_work_details_of_served]\r\n[node:field_last_date_for_service]\r\n[node:field_same_day]\r\n[node:field_next_day]\r\n[node:field_additional_information]\r\n[node:field_upload_documents]"
+default_value_callback: ''
+settings: {  }
+field_type: string_long

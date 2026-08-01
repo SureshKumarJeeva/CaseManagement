@@ -2,6 +2,7 @@
 
 namespace Drupal\associatedps_forms\Form;
 
+use Drupal\associatedps_forms\FormDisplayFields;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
@@ -23,9 +24,18 @@ class JobFilterForm extends FormBase {
    */
   protected function getFilterableFields(): array {
     $fields = [];
-    $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', 'job');
 
-    // Field types we support filtering on.
+    // Field set and labels come from FormDisplayFields so this dropdown, the
+    // DocuSign token picker and (later) the email-template token list all offer
+    // the same fields under the same names. That means paths one level deep
+    // ("field_client__mail"), labels read from the live Job form display
+    // ("Client-Job Details-Client's Job Email"), and no field that sits outside
+    // a tab. See FormDisplayFields for the rules.
+    $job_fields = FormDisplayFields::create();
+
+    // Field types we can actually build a value widget and a query condition
+    // for. This is the one filter that stays local: it is about what this form
+    // can render, not about which fields exist.
     $supported_types = [
       'list_string',
       'entity_reference',
@@ -42,40 +52,28 @@ class JobFilterForm extends FormBase {
       'float',
     ];
 
-    // Skip paragraph references and internal/computed fields.
-    $skip_fields = [
-      'field_documents',
-      'field_affidavits',
-      'field_cover_letters',
-      'field_job_fees',
-      'field_attendance_notes',
-      'field_parties',
-      'field_party_2',
-      'field_para_address',
-    ];
-
-    foreach ($field_definitions as $field_name => $definition) {
-      // Only include configurable fields (field_*).
-      if (strpos($field_name, 'field_') !== 0) {
+    foreach ($job_fields->getFieldPaths() as $path) {
+      // NULL label = not inside a tab, so not offered here. Old bookmarked
+      // URLs naming such a field still filter correctly — see
+      // JobFilterController.
+      $label = $job_fields->buildLabel($path);
+      if ($label === NULL) {
         continue;
       }
-      if (in_array($field_name, $skip_fields)) {
+
+      // Sub-field definitions come from the REFERENCED entity, not from Job.
+      $definition = $job_fields->getFieldDefinition($path);
+      if (!$definition) {
         continue;
       }
 
       $field_type = $definition->getType();
-
-      // Skip paragraph references.
-      if ($field_type === 'entity_reference_revisions') {
+      if (!in_array($field_type, $supported_types, TRUE)) {
         continue;
       }
 
-      if (!in_array($field_type, $supported_types)) {
-        continue;
-      }
-
-      $fields[$field_name] = [
-        'label' => $definition->getLabel(),
+      $fields[$path] = [
+        'label' => $label,
         'type' => $field_type,
         'settings' => $definition->getSettings(),
         'storage_settings' => $definition->getFieldStorageDefinition()->getSettings(),
@@ -100,13 +98,27 @@ class JobFilterForm extends FormBase {
       'field_admin_send_to_client_date' => $this->t('Invoice Sent to Client'),
       'field_allocation_date' => $this->t('Job Allocated'),
     ];
+    $group_paths = $job_fields->getGroupPaths();
     foreach ($milestone_fields as $date_field => $milestone_label) {
       // Skip if the underlying date field doesn't exist on Job (config safety).
-      if (!isset($field_definitions[$date_field])) {
+      if (!$job_fields->getFieldDefinition($date_field)) {
         continue;
       }
+
+      // A milestone has no form-display placement of its own — the checkbox is
+      // built in code — so borrow the tab/section path of the date field it
+      // reads, keeping it sorted alongside that tab's real fields. The date
+      // field may itself be untabbed, in which case the bare label stands:
+      // these are long-standing working filters and are not dropped the way an
+      // untabbed real field is.
+      $label = $this->t('@label (Done?)', ['@label' => $milestone_label]);
+      if (!empty($group_paths[$date_field])) {
+        $label = implode(FormDisplayFields::LABEL_SEPARATOR, $group_paths[$date_field])
+          . FormDisplayFields::LABEL_SEPARATOR . $label;
+      }
+
       $fields['milestone__' . $date_field] = [
-        'label' => $this->t('@label (Done?)', ['@label' => $milestone_label]),
+        'label' => $label,
         'type' => 'milestone',
         'milestone_field' => $date_field,
         'settings' => [],
@@ -114,9 +126,10 @@ class JobFilterForm extends FormBase {
       ];
     }
 
-    // Sort alphabetically by label.
+    // Sort alphabetically by label — with tab-prefixed labels this groups the
+    // dropdown by tab, in the same order the user sees on the Job form.
     uasort($fields, function ($a, $b) {
-      return strcasecmp($a['label'], $b['label']);
+      return strcasecmp((string) $a['label'], (string) $b['label']);
     });
 
     return $fields;
@@ -194,10 +207,7 @@ class JobFilterForm extends FormBase {
           if ($user->id() == 0) {
             continue;
           }
-          $name = $user->hasField('field_full_name') && !$user->get('field_full_name')->isEmpty()
-            ? $user->get('field_full_name')->value
-            : $user->getDisplayName();
-          $options[$user->id()] = $name;
+          $options[$user->id()] = $this->userDisplayName($user);
         }
         asort($options);
         break;
@@ -221,6 +231,32 @@ class JobFilterForm extends FormBase {
     }
 
     return $options;
+  }
+
+  /**
+   * Human name for a user, matching the "Allocated To" column in the results.
+   *
+   * The results table (JobFilterController::allocatedToName) shows the user's
+   * field_address given + family name, falling back to the username. The filter
+   * value dropdown must read the SAME source, or a user appears in the table as
+   * "Jane Smith" but in the filter as her login name — confusing when picking a
+   * value. Kept public and static so the controller uses the one definition.
+   *
+   * @param \Drupal\user\UserInterface $user
+   *   The user entity.
+   *
+   * @return string
+   *   The display name.
+   */
+  public static function userDisplayName($user): string {
+    if ($user->hasField('field_address') && !$user->get('field_address')->isEmpty()) {
+      $address = $user->get('field_address')->first()->getValue();
+      $full_name = trim(($address['given_name'] ?? '') . ' ' . ($address['family_name'] ?? ''));
+      if ($full_name !== '') {
+        return $full_name;
+      }
+    }
+    return (string) $user->getDisplayName();
   }
 
   /**
@@ -294,6 +330,15 @@ class JobFilterForm extends FormBase {
         '#title' => $this->t('Field'),
         '#options' => $field_options,
         '#default_value' => $selected_field,
+        // Force Chosen on every environment. Auto-enhancement depends on the
+        // site's chosen minimum_single setting, which is drifted between local
+        // and staging (Chosen locally, native select on staging); pin it so the
+        // field selector looks and behaves the same everywhere.
+        '#chosen' => TRUE,
+        // Stable wrapper class so the CSS can pin this to a fixed width without
+        // relying on child order (the remove button and Drupal wrappers make
+        // :nth-of-type unreliable).
+        '#wrapper_attributes' => ['class' => ['job-filter-field']],
         '#ajax' => [
           'callback' => '::ajaxRefreshForm',
           'wrapper' => 'job-filter-form-wrapper',
@@ -301,16 +346,35 @@ class JobFilterForm extends FormBase {
         ],
       ];
 
+      // If THIS row's field selector is what triggered the AJAX rebuild, the
+      // user just switched fields. The previous field's value is still sitting
+      // in user input, and because a form element takes its value from user
+      // input ahead of #default_value, it would be poured into the new value
+      // widget — which may be a different type (a leftover date string landing
+      // on an integer/list/reference field), producing a submit that errors the
+      // query. Drop the stale value so the new widget starts empty.
+      $triggering = $form_state->getTriggeringElement();
+      $field_changed = $triggering
+        && ($triggering['#array_parents'] ?? NULL) === ['filters', 'row_' . $i, 'filter_field'];
+      if ($field_changed) {
+        unset($input['filters']['row_' . $i]['filter_value']);
+        $form_state->setUserInput($input);
+      }
+
       // Build the value widget based on the selected field.
       if (!empty($selected_field) && isset($filterable_fields[$selected_field])) {
         $field_info = $filterable_fields[$selected_field];
-        $default_val = $input['filters']['row_' . $i]['filter_value'] ?? NULL;
-        if ($default_val === NULL) {
-          $default_val = $existing_values[$i] ?? '';
-        }
+        // After a field switch, ignore both the stale user input and the URL
+        // value from a previous search; otherwise keep the current value.
+        $default_val = $field_changed
+          ? ''
+          : ($input['filters']['row_' . $i]['filter_value'] ?? ($existing_values[$i] ?? ''));
 
         $form['filters']['row_' . $i]['filter_value'] =
           $this->buildValueWidget($field_info, $selected_field, $default_val);
+        // Stable wrapper class so the CSS can let the value widget fill the
+        // space beside the fixed-width field selector.
+        $form['filters']['row_' . $i]['filter_value']['#wrapper_attributes']['class'][] = 'job-filter-value';
       }
 
       // Remove button (only if more than 1 row).
@@ -396,6 +460,9 @@ class JobFilterForm extends FormBase {
           '#title' => $this->t('Value'),
           '#options' => ['' => $this->t('- Any -')] + $options,
           '#default_value' => $default_value,
+          // Pin to Chosen (see field selector note); keeps the value box
+          // consistent between local and staging despite drifted chosen config.
+          '#chosen' => TRUE,
         ];
 
       case 'boolean':
@@ -408,6 +475,7 @@ class JobFilterForm extends FormBase {
             '0' => $this->t('Unchecked'),
           ],
           '#default_value' => $default_value,
+          '#chosen' => TRUE,
         ];
 
       case 'milestone':
@@ -421,6 +489,7 @@ class JobFilterForm extends FormBase {
             'no' => $this->t('No — not done'),
           ],
           '#default_value' => $default_value,
+          '#chosen' => TRUE,
         ];
 
       case 'entity_reference':
@@ -430,6 +499,7 @@ class JobFilterForm extends FormBase {
           '#title' => $this->t('Value'),
           '#options' => ['' => $this->t('- Any -')] + $options,
           '#default_value' => $default_value,
+          '#chosen' => TRUE,
         ];
 
       case 'datetime':

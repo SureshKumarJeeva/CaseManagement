@@ -2,6 +2,7 @@
 
 namespace Drupal\associatedps_forms\Controller;
 
+use Drupal\associatedps_forms\FormDisplayFields;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Link;
 use Drupal\Core\Url;
@@ -104,68 +105,13 @@ class JobFilterController extends ControllerBase {
     }
     $query->sort('changed', 'DESC');
 
-    $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', 'job');
-
     // Apply each filter condition (AND logic).
     foreach ($filter_fields as $index => $field_name) {
       $value = $filter_values[$index] ?? '';
       if (empty($field_name) || $value === '') {
         continue;
       }
-
-      // Synthetic milestone "(Done?)" filter: match on whether the underlying
-      // admin date field is set (yes) or empty (no).
-      if (strpos($field_name, 'milestone__') === 0) {
-        $date_field = substr($field_name, 11);
-        if (isset($field_definitions[$date_field])) {
-          if ($value === 'yes') {
-            $query->exists($date_field);
-          }
-          elseif ($value === 'no') {
-            $query->notExists($date_field);
-          }
-        }
-        continue;
-      }
-
-      if (!isset($field_definitions[$field_name])) {
-        continue;
-      }
-
-      $field_type = $field_definitions[$field_name]->getType();
-
-      switch ($field_type) {
-        case 'string':
-        case 'string_long':
-        case 'text':
-        case 'text_long':
-        case 'email':
-        case 'telephone':
-          // Text fields use CONTAINS matching.
-          $query->condition($field_name, $value, 'CONTAINS');
-          break;
-
-        case 'datetime':
-          // Date fields: match on the date portion.
-          $query->condition($field_name, $value, '>=');
-          $next_day = date('Y-m-d', strtotime($value . ' +1 day'));
-          $query->condition($field_name, $next_day, '<');
-          break;
-
-        case 'list_string':
-        case 'boolean':
-        case 'integer':
-        case 'decimal':
-        case 'float':
-        case 'entity_reference':
-          // Exact match.
-          $query->condition($field_name, $value);
-          break;
-
-        default:
-          $query->condition($field_name, $value);
-          break;
-      }
+      $this->applyFilterCondition($query, $field_name, $value);
     }
 
     $nids = $query->execute();
@@ -187,57 +133,89 @@ class JobFilterController extends ControllerBase {
       ->accessCheck(TRUE)
       ->count();
 
-    $field_definitions = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', 'job');
-
     foreach ($filter_fields as $index => $field_name) {
       $value = $filter_values[$index] ?? '';
       if (empty($field_name) || $value === '') {
         continue;
       }
-
-      // Synthetic milestone "(Done?)" filter — mirror executeFilteredQuery.
-      if (strpos($field_name, 'milestone__') === 0) {
-        $date_field = substr($field_name, 11);
-        if (isset($field_definitions[$date_field])) {
-          if ($value === 'yes') {
-            $query->exists($date_field);
-          }
-          elseif ($value === 'no') {
-            $query->notExists($date_field);
-          }
-        }
-        continue;
-      }
-
-      if (!isset($field_definitions[$field_name])) {
-        continue;
-      }
-
-      $field_type = $field_definitions[$field_name]->getType();
-
-      switch ($field_type) {
-        case 'string':
-        case 'string_long':
-        case 'text':
-        case 'text_long':
-        case 'email':
-        case 'telephone':
-          $query->condition($field_name, $value, 'CONTAINS');
-          break;
-
-        case 'datetime':
-          $query->condition($field_name, $value, '>=');
-          $next_day = date('Y-m-d', strtotime($value . ' +1 day'));
-          $query->condition($field_name, $next_day, '<');
-          break;
-
-        default:
-          $query->condition($field_name, $value);
-          break;
-      }
+      $this->applyFilterCondition($query, $field_name, $value);
     }
 
     return (int) $query->execute();
+  }
+
+  /**
+   * Adds one filter condition to an entity query.
+   *
+   * Shared by the results query and the count query so the two can never
+   * disagree about what a filter means.
+   *
+   * A field name is one of three shapes:
+   *  - "milestone__<date_field>": synthetic Yes/No, matches on the underlying
+   *    admin date field being set or empty. Tested BEFORE any "__" split so it
+   *    is never mistaken for a reference sub-field path.
+   *  - "field_x": a top-level Job field, exact/contains/date per its type.
+   *  - "field_ref__sub": a reference or paragraph sub-field. The path maps to
+   *    entity-query "__" -> ".entity." traversal (field_client__mail becomes
+   *    field_client.entity.mail); a multi-value paragraph matches if ANY delta
+   *    matches.
+   *
+   * Top-level fields that sit outside a tab (the "hidden" group) are no longer
+   * offered by the dropdown, but a value naming one may still arrive from an
+   * old bookmarked URL. Such a field is still a real Job field, so
+   * getFieldDefinition() resolves it and the filter keeps working — we
+   * deliberately do NOT reject it here.
+   */
+  protected function applyFilterCondition($query, string $field_name, string $value): void {
+    // Synthetic milestone "(Done?)" filter: match on whether the underlying
+    // admin date field is set (yes) or empty (no).
+    if (strpos($field_name, 'milestone__') === 0) {
+      $date_field = substr($field_name, 11);
+      $fields = FormDisplayFields::create();
+      if ($fields->getFieldDefinition($date_field)) {
+        if ($value === 'yes') {
+          $query->exists($date_field);
+        }
+        elseif ($value === 'no') {
+          $query->notExists($date_field);
+        }
+      }
+      return;
+    }
+
+    $definition = FormDisplayFields::create()->getFieldDefinition($field_name);
+    if (!$definition) {
+      return;
+    }
+
+    // Path to entity-query syntax: field_client__mail -> field_client.entity.mail.
+    // A top-level field has no "__" and is unchanged.
+    $query_field = str_replace(FormDisplayFields::PATH_SEPARATOR, '.entity.', $field_name);
+
+    switch ($definition->getType()) {
+      case 'string':
+      case 'string_long':
+      case 'text':
+      case 'text_long':
+      case 'email':
+      case 'telephone':
+        // Text fields use CONTAINS matching.
+        $query->condition($query_field, $value, 'CONTAINS');
+        break;
+
+      case 'datetime':
+        // Date fields: match on the date portion.
+        $query->condition($query_field, $value, '>=');
+        $next_day = date('Y-m-d', strtotime($value . ' +1 day'));
+        $query->condition($query_field, $next_day, '<');
+        break;
+
+      default:
+        // list_string, boolean, integer, decimal, float, entity_reference —
+        // exact match.
+        $query->condition($query_field, $value);
+        break;
+    }
   }
 
   /**
@@ -268,8 +246,8 @@ class JobFilterController extends ControllerBase {
 
     $rows = [];
     foreach ($results as $node) {
-      $edit_url = $node->toUrl('edit-form')
-        ->setOption('attributes', ['target' => '_blank']);
+      $edit_url = $node->toUrl('edit-form');
+        //->setOption('attributes', ['target' => '_blank']);
       $rows[] = [
         Link::fromTextAndUrl(
           $node->getTitle(),
@@ -339,14 +317,9 @@ class JobFilterController extends ControllerBase {
     if (!$user) {
       return '';
     }
-    if ($user->hasField('field_address') && !$user->get('field_address')->isEmpty()) {
-      $address = $user->get('field_address')->first()->getValue();
-      $full_name = trim(($address['given_name'] ?? '') . ' ' . ($address['family_name'] ?? ''));
-      if ($full_name !== '') {
-        return $full_name;
-      }
-    }
-    return (string) $user->getDisplayName();
+    // Same name logic as the filter's user value dropdown — one definition so
+    // the column and the filter option can never disagree.
+    return \Drupal\associatedps_forms\Form\JobFilterForm::userDisplayName($user);
   }
 
   /**
@@ -424,8 +397,8 @@ class JobFilterController extends ControllerBase {
     if ($name === '') {
       $name = $client->label();
     }
-    $url = $client->toUrl('edit-form')
-      ->setOption('attributes', ['target' => '_blank']);
+    $url = $client->toUrl('edit-form');
+      //->setOption('attributes', ['target' => '_blank']);
     return Link::fromTextAndUrl($name, $url)->toString();
   }
 

@@ -28,6 +28,9 @@ settings:
       address:
         weight: 6
         enabled: false
+      addresses:
+        weight: 14
+        enabled: false
       affidavit:
         weight: 12
         enabled: false
@@ -51,6 +54,9 @@ settings:
         enabled: false
       party_other:
         weight: 19
+        enabled: false
+      party_side_two:
+        weight: 23
         enabled: false
       party_side_two_:
         weight: 5

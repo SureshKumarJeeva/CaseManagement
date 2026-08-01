@@ -4,7 +4,6 @@ status: true
 dependencies:
   config:
     - user.role.administrator
-    - user.role.editor
   module:
     - dblog
     - node
@@ -275,7 +274,6 @@ display:
         options:
           role:
             administrator: administrator
-            editor: editor
       cache:
         type: none
         options: {  }

@@ -1,10 +1,14 @@
-uuid: 0e1157a8-8e34-49d8-bdc0-dcb18b8b6ee4
+uuid: 0cad1993-55cb-4983-8e3b-10fa0729440f
 langcode: en
 status: true
 dependencies:
   module:
+    - field_permissions
     - paragraphs
     - taxonomy
+third_party_settings:
+  field_permissions:
+    permission_type: public
 id: paragraph.field_court_name
 field_name: field_court_name
 entity_type: paragraph

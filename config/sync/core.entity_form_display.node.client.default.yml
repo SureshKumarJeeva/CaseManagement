@@ -6,6 +6,7 @@ dependencies:
     - field.field.node.client.field_agreed_discount
     - field.field.node.client.field_attempted
     - field.field.node.client.field_attendance_update_frequenc
+    - field.field.node.client.field_cancelled
     - field.field.node.client.field_client_address
     - field.field.node.client.field_client_id
     - field.field.node.client.field_completed
@@ -43,6 +44,13 @@ content:
   field_attendance_update_frequenc:
     type: boolean_checkbox
     weight: 9
+    region: content
+    settings:
+      display_label: true
+    third_party_settings: {  }
+  field_cancelled:
+    type: boolean_checkbox
+    weight: 26
     region: content
     settings:
       display_label: true

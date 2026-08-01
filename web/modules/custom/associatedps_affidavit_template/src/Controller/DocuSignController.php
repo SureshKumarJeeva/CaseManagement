@@ -111,7 +111,9 @@ class DocuSignController extends ControllerBase {
 
     /** @var \Drupal\associatedps_affidavit_template\Service\DocuSignTokenMapper $mapper */
     $mapper = \Drupal::service('associatedps_affidavit_template.docusign_token_mapper');
-    $variables = $mapper->getJobVariableNames();
+    // [{label, value}] — label is the field's Tab-Section-Field path from the
+    // Job form display, value is the token the author actually pastes.
+    $variables = $mapper->getJobVariableOptions();
 
     $callbackUrl = '/admin/content/docusign/editor-callback'
       . '?nid=' . $nid
@@ -351,12 +353,25 @@ class DocuSignController extends ControllerBase {
       }
     }
 
+    // Auto-resolve the template from the job's documents when the user did not
+    // pick one manually. Precedence: the PRIMARY document paragraph
+    // (field_primary_document ticked) with a valid template wins outright;
+    // otherwise the first document (in paragraph order) that carries a valid
+    // template is used. "Valid" = a Library of the matching category that has a
+    // DocuSign template ID. If no document yields a valid template we fall
+    // through to the no_template response and the selection modal is shown.
     if (empty($docusignTemplateId)) {
+      $primaryCandidate = NULL;
+      $firstCandidate = NULL;
+
       foreach ($jobNode->get('field_documents') as $docGroup) {
         $paragraph = $docGroup->entity;
         if (!$paragraph) {
           continue;
         }
+        $isPrimary = $paragraph->hasField('field_primary_document')
+          && (int) $paragraph->get('field_primary_document')->value === 1;
+
         foreach ($paragraph->get('field_document') as $docItem) {
           $docNode = $docItem->entity;
           if (!$docNode) {
@@ -377,10 +392,24 @@ class DocuSignController extends ControllerBase {
             continue;
           }
 
-          $libraryNode = $candidate;
-          $docusignTemplateId = $candidate->field_docusign_template_id->value;
-          break 2;
+          // Remember the first valid template overall — used only when no
+          // primary document contributes one.
+          if ($firstCandidate === NULL) {
+            $firstCandidate = $candidate;
+          }
+          // A primary document's valid template takes precedence and wins
+          // outright — stop looking once we have it.
+          if ($isPrimary) {
+            $primaryCandidate = $candidate;
+            break 2;
+          }
         }
+      }
+
+      $chosen = $primaryCandidate ?: $firstCandidate;
+      if ($chosen) {
+        $libraryNode = $chosen;
+        $docusignTemplateId = $chosen->field_docusign_template_id->value;
       }
     }
 

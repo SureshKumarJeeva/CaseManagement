@@ -19,32 +19,41 @@ settings:
       value: 'Pranali Kalavadia'
       label: 'Pranali Kalavadia'
     -
-      value: 'asdlj asdlfj'
-      label: 'asdlj asdlfj'
+      value: 'Jane Doe'
+      label: 'Jane Doe'
+    -
+      value: 'Suresh J'
+      label: 'Suresh J'
+    -
+      value: '2nd party 2nd'
+      label: '2nd party 2nd'
     -
       value: ' '
       label: ' '
     -
-      value: 'Lorenzo Dominico Guiseppe Cazzola'
-      label: 'Lorenzo Dominico Guiseppe Cazzola'
+      value: 'Denis Gerald Crawford'
+      label: 'Denis Gerald Crawford'
     -
-      value: 'Sandra Carrera'
-      label: 'Sandra Carrera'
+      value: 'Suresh Kumar 2 Jeeva'
+      label: 'Suresh Kumar 2 Jeeva'
     -
-      value: 'Beverley Dew'
-      label: 'Beverley Dew'
+      value: 'Suresh Kumar 1 Jeeva'
+      label: 'Suresh Kumar 1 Jeeva'
     -
-      value: 'New '
-      label: 'New '
+      value: 'party 2 party 2 lname'
+      label: 'party 2 party 2 lname'
     -
-      value: 'New 2 fname new 2 lname'
-      label: 'New 2 fname new 2 lname'
+      value: 'Philip Soldat'
+      label: 'Philip Soldat'
     -
-      value: '2'
-      label: '2'
+      value: test1
+      label: test1
     -
-      value: 'Denis Gerald Jeeva'
-      label: 'Denis Gerald Jeeva'
+      value: test2
+      label: test2
+    -
+      value: 'Suresh Kumar Jeeva'
+      label: 'Suresh Kumar Jeeva'
   allowed_values_function: ''
 module: options
 locked: false

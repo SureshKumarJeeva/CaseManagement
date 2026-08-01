@@ -7,7 +7,7 @@ dependencies:
     - node.type.library
     - system.menu.main
     - user.role.administrator
-    - user.role.editor
+    - user.role.aps_administrator
   module:
     - node
     - options
@@ -240,7 +240,7 @@ display:
         options:
           role:
             administrator: administrator
-            editor: editor
+            aps_administrator: aps_administrator
       cache:
         type: tag
         options: {  }

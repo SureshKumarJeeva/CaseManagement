@@ -19,8 +19,18 @@ dependencies:
     - field.field.node.job.field_allocated_to_full_name
     - field.field.node.job.field_allocated_to_last_name
     - field.field.node.job.field_allocation_date
+    - field.field.node.job.field_atten_business_name
+    - field.field.node.job.field_atten_business_name_value
+    - field.field.node.job.field_atten_person_delivered_to
+    - field.field.node.job.field_atten_person_delivered_val
+    - field.field.node.job.field_atten_service_details_pos
+    - field.field.node.job.field_attendance_address_served
     - field.field.node.job.field_attendance_case_status
+    - field.field.node.job.field_attendance_date_service
+    - field.field.node.job.field_attendance_method_of_servi
     - field.field.node.job.field_attendance_notes
+    - field.field.node.job.field_attendance_notes2
+    - field.field.node.job.field_attendance_served_by
     - field.field.node.job.field_business_name
     - field.field.node.job.field_business_name_value
     - field.field.node.job.field_business_other
@@ -42,6 +52,7 @@ dependencies:
     - field.field.node.job.field_email
     - field.field.node.job.field_hearing_date
     - field.field.node.job.field_instruction_received
+    - field.field.node.job.field_invoice_number
     - field.field.node.job.field_job_client_id
     - field.field.node.job.field_job_fees
     - field.field.node.job.field_job_types
@@ -73,6 +84,8 @@ dependencies:
     - field.field.node.job.field_served_party
     - field.field.node.job.field_service_address
     - field.field.node.job.field_service_details_position
+    - field.field.node.job.field_side_one_number_of_parties
+    - field.field.node.job.field_side_two_number_of_parties
     - field.field.node.job.field_telephone
     - node.type.job
   module:
@@ -82,7 +95,6 @@ dependencies:
     - field_formatter_class
     - field_group
     - options
-    - telephone
     - text
     - user
 third_party_settings:
@@ -107,7 +119,9 @@ third_party_settings:
     group_party_details:
       children:
         - field_parties
+        - field_side_one_number_of_parties
         - field_party_2
+        - field_side_two_number_of_parties
         - field_other_parties
       label: 'Party Details'
       parent_name: ''
@@ -132,14 +146,14 @@ third_party_settings:
         description: ''
     group_service_details:
       children:
-        - field_served_by_full_name
-        - field_date_service
+        - field_attendance_served_by
         - field_para_address
         - field_method_of_service
-        - field_person_delivered_value
+        - field_person_delivered_to
         - field_service_details_position
-        - field_business_name_value
+        - field_business_name
         - field_notes2
+        - field_date_service
       label: 'Service Details'
       parent_name: ''
       region: content
@@ -173,6 +187,7 @@ third_party_settings:
         - field_instruction_received
         - field_client_ref
         - field_client_s_job_email
+        - field_invoice_number
       label: 'Job Details'
       parent_name: ''
       region: content
@@ -185,9 +200,9 @@ third_party_settings:
     group_served_party_details:
       children:
         - field_name_to_server_value
-        - field_party_to_serve_phone
-        - field_service_address
         - field_served_notes
+        - field_service_address
+        - field_party_to_serve_phone
       label: 'Party to Serve'
       parent_name: ''
       region: content
@@ -199,17 +214,20 @@ third_party_settings:
         description: ''
     group_job_status:
       children:
-        - field_case_status
         - field_job_types
-        - field_admin_status
-        - field_admin_send_to_client_date
-        - field_admin_invoiced_date
-        - field_admin_email_update_date
-        - field_admin_cover_letter_date
-        - field_admin_affidavit_date
-        - field_allocation_date
         - field_allocated_to_full_name
         - field_deadline
+        - field_case_status
+        - field_admin_status
+        - field_admin_cover_letter_date
+        - field_allocation_date
+        - field_admin_email_update_date
+        - field_admin_affidavit_date
+        - field_affidavit_sent_to_agent
+        - field_affidavit_received_from_ag
+        - field_affidavit_sent_to_client
+        - field_admin_invoiced_date
+        - field_admin_send_to_client_date
       label: 'Job Status'
       parent_name: ''
       region: content
@@ -293,7 +311,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: status-affidavit-date
-    weight: 13
+    weight: 15
     region: content
   field_admin_cover_letter_date:
     type: datetime_custom
@@ -315,7 +333,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: status-email-update-date
-    weight: 11
+    weight: 14
     region: content
   field_admin_invoiced_date:
     type: datetime_custom
@@ -326,7 +344,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: status-invoiced-date
-    weight: 10
+    weight: 19
     region: content
   field_admin_send_to_client_date:
     type: datetime_custom
@@ -337,7 +355,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: status-send-to-client-date
-    weight: 9
+    weight: 20
     region: content
   field_admin_status:
     type: list_default
@@ -346,34 +364,40 @@ content:
     third_party_settings:
       field_formatter_class:
         class: status-admin-status-select
-    weight: 8
+    weight: 11
     region: content
   field_affidavit_received_from_ag:
-    type: datetime_default
-    label: above
+    type: datetime_custom
+    label: inline
     settings:
       timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 60
+      date_format: 'd F Y'
+    third_party_settings:
+      field_formatter_class:
+        class: ''
+    weight: 17
     region: content
   field_affidavit_sent_to_agent:
-    type: datetime_default
-    label: above
+    type: datetime_custom
+    label: inline
     settings:
       timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 58
+      date_format: 'd F Y'
+    third_party_settings:
+      field_formatter_class:
+        class: ''
+    weight: 16
     region: content
   field_affidavit_sent_to_client:
-    type: datetime_default
-    label: above
+    type: datetime_custom
+    label: inline
     settings:
       timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 59
+      date_format: 'd F Y'
+    third_party_settings:
+      field_formatter_class:
+        class: ''
+    weight: 18
     region: content
   field_affidavits:
     type: entity_reference_revisions_entity_view
@@ -403,23 +427,18 @@ content:
     third_party_settings:
       field_formatter_class:
         class: status-allocated-to-ref
-    weight: 16
+    weight: 8
     region: content
   field_allocation_date:
-    type: datetime_default
-    label: above
+    type: datetime_custom
+    label: inline
     settings:
       timezone_override: ''
-      format_type: medium
-    third_party_settings: {  }
-    weight: 57
-    region: content
-  field_attendance_case_status:
-    type: list_default
-    label: above
-    settings: {  }
-    third_party_settings: {  }
-    weight: 61
+      date_format: 'd F Y'
+    third_party_settings:
+      field_formatter_class:
+        class: status-allocation-date
+    weight: 13
     region: content
   field_attendance_notes:
     type: entity_reference_revisions_entity_view
@@ -432,14 +451,21 @@ content:
         class: attendance-notes-rendered-entity
     weight: 13
     region: content
-  field_business_name_value:
-    type: string
-    label: inline
+  field_attendance_served_by:
+    type: entity_reference_label
+    label: above
     settings:
-      link_to_entity: false
+      link: false
     third_party_settings:
       field_formatter_class:
-        class: service-business-name-select
+        class: ''
+    weight: 31
+    region: content
+  field_business_name:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
     weight: 36
     region: content
   field_case_no:
@@ -459,7 +485,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: status-case-status-value
-    weight: 6
+    weight: 10
     region: content
   field_client_address:
     type: address_default
@@ -499,8 +525,10 @@ content:
     type: entity_reference_label
     label: inline
     settings:
-      link: true
-    third_party_settings: {  }
+      link: false
+    third_party_settings:
+      field_formatter_class:
+        class: ''
     weight: 10
     region: content
   field_cover_letters:
@@ -521,7 +549,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: service-served-date
-    weight: 31
+    weight: 38
     region: content
   field_deadline:
     type: datetime_custom
@@ -532,7 +560,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: status-deadline-date
-    weight: 17
+    weight: 9
     region: content
   field_division:
     type: string
@@ -584,6 +612,14 @@ content:
         class: status-instructions-date
     weight: 16
     region: content
+  field_invoice_number:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 19
+    region: content
   field_job_client_id:
     type: string
     label: inline
@@ -607,8 +643,10 @@ content:
     type: entity_reference_label
     label: inline
     settings:
-      link: true
-    third_party_settings: {  }
+      link: false
+    third_party_settings:
+      field_formatter_class:
+        class: ''
     weight: 7
     region: content
   field_list:
@@ -665,7 +703,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: party-other-rendered-entity
-    weight: 21
+    weight: 23
     region: content
   field_para_address:
     type: entity_reference_revisions_entity_view
@@ -698,26 +736,21 @@ content:
     third_party_settings:
       field_formatter_class:
         class: party-side-two-rendered-entity
-    weight: 20
+    weight: 21
     region: content
   field_party_to_serve_phone:
-    type: telephone_link
-    label: inline
-    settings:
-      title: ''
-    third_party_settings:
-      field_formatter_class:
-        class: serve-phone
-    weight: 15
-    region: content
-  field_person_delivered_value:
     type: string
-    label: inline
+    label: above
     settings:
       link_to_entity: false
-    third_party_settings:
-      field_formatter_class:
-        class: service-person-delivered-select
+    third_party_settings: {  }
+    weight: 58
+    region: content
+  field_person_delivered_to:
+    type: list_default
+    label: above
+    settings: {  }
+    third_party_settings: {  }
     weight: 34
     region: content
   field_registry:
@@ -730,16 +763,6 @@ content:
         class: court-registry-text
     weight: 7
     region: content
-  field_served_by_full_name:
-    type: string
-    label: inline
-    settings:
-      link_to_entity: false
-    third_party_settings:
-      field_formatter_class:
-        class: service-served-by-ref
-    weight: 30
-    region: content
   field_served_notes:
     type: basic_string
     label: above
@@ -751,14 +774,12 @@ content:
     region: content
   field_service_address:
     type: entity_reference_revisions_entity_view
-    label: hidden
+    label: above
     settings:
       view_mode: default
       link: ''
-    third_party_settings:
-      field_formatter_class:
-        class: serve-address
-    weight: 17
+    third_party_settings: {  }
+    weight: 57
     region: content
   field_service_details_position:
     type: string
@@ -770,11 +791,29 @@ content:
         class: service-relationship-or-position-text
     weight: 35
     region: content
+  field_side_one_number_of_parties:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 20
+    region: content
+  field_side_two_number_of_parties:
+    type: number_integer
+    label: above
+    settings:
+      thousand_separator: ''
+      prefix_suffix: true
+    third_party_settings: {  }
+    weight: 22
+    region: content
   field_telephone:
-    type: telephone_link
+    type: string
     label: inline
     settings:
-      title: ''
+      link_to_entity: false
     third_party_settings: {  }
     weight: 12
     region: content
@@ -785,20 +824,31 @@ hidden:
   field_allocated_to: true
   field_allocated_to_first_name: true
   field_allocated_to_last_name: true
-  field_business_name: true
+  field_atten_business_name: true
+  field_atten_business_name_value: true
+  field_atten_person_delivered_to: true
+  field_atten_person_delivered_val: true
+  field_atten_service_details_pos: true
+  field_attendance_address_served: true
+  field_attendance_case_status: true
+  field_attendance_date_service: true
+  field_attendance_method_of_servi: true
+  field_attendance_notes2: true
+  field_business_name_value: true
   field_business_other: true
   field_case_status_value: true
   field_client: true
   field_client_cid: true
   field_last_mail_time: true
   field_name_to_other: true
-  field_person_delivered_to: true
   field_person_delivered_to_fname: true
   field_person_delivered_to_lname: true
   field_person_delivered_to_other: true
+  field_person_delivered_value: true
   field_primary_postal_code: true
   field_served_by: true
   field_served_by_first_name: true
+  field_served_by_full_name: true
   field_served_by_last_name: true
   field_served_date: true
   field_served_party: true

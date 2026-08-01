@@ -1,0 +1,8 @@
+uuid: ea8fb5b7-23b9-46c4-bedc-4d624df2f59e
+langcode: en
+status: true
+dependencies: {  }
+id: office-menu
+label: 'Office Menu'
+description: ''
+locked: false

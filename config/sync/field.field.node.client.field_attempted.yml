@@ -1,0 +1,23 @@
+uuid: 3a95bbb0-fffb-4d43-89ec-bc5410f17e7e
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attempted
+    - node.type.client
+id: node.client.field_attempted
+field_name: field_attempted
+entity_type: node
+bundle: client
+label: 'Completed – Attempted'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

@@ -14,12 +14,6 @@ settings:
     -
       value: Arjun
       label: Arjun
-    -
-      value: ' '
-      label: ' '
-    -
-      value: 'Suresh Kumar Jeeva'
-      label: 'Suresh Kumar Jeeva'
   allowed_values_function: ''
 module: options
 locked: false

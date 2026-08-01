@@ -7,6 +7,7 @@ dependencies:
     - field.field.node.client.field_agreed_discount
     - field.field.node.client.field_attempted
     - field.field.node.client.field_attendance_update_frequenc
+    - field.field.node.client.field_cancelled
     - field.field.node.client.field_client_address
     - field.field.node.client.field_client_id
     - field.field.node.client.field_completed
@@ -37,6 +38,7 @@ hidden:
   field_agreed_discount: true
   field_attempted: true
   field_attendance_update_frequenc: true
+  field_cancelled: true
   field_client_address: true
   field_client_id: true
   field_completed: true

@@ -28,38 +28,62 @@ settings:
       value: ' '
       label: ' '
     -
-      value: 'Lorenzo Dominico Guiseppe Cazzola'
-      label: 'Lorenzo Dominico Guiseppe Cazzola'
+      value: 'Epping Residential '
+      label: 'Epping Residential '
     -
-      value: 'Sandra Carrera'
-      label: 'Sandra Carrera'
+      value: 'asdlj '
+      label: 'asdlj '
     -
-      value: 'Beverley Dew'
-      label: 'Beverley Dew'
+      value: asd;lfjasdlifj
+      label: asd;lfjasdlifj
     -
-      value: 'New '
-      label: 'New '
+      value: 'Suresh J'
+      label: 'Suresh J'
     -
-      value: 'new suresh kumar'
-      label: 'new suresh kumar'
+      value: 'Test Suresh for new served person'
+      label: 'Test Suresh for new served person'
     -
-      value: 'Suresh Kumar Kokila'
-      label: 'Suresh Kumar Kokila'
+      value: '2 fname 2 lname'
+      label: '2 fname 2 lname'
     -
-      value: 'New 2 fname new 2 lname'
-      label: 'New 2 fname new 2 lname'
+      value: 'Suresh Kumar Je Je'
+      label: 'Suresh Kumar Je Je'
     -
-      value: '2 2'
-      label: '2 2'
+      value: 'John Wang'
+      label: 'John Wang'
     -
-      value: 'Suresh Kumar J'
-      label: 'Suresh Kumar J'
+      value: 'John Smith'
+      label: 'John Smith'
+    -
+      value: '2nd Party Lname'
+      label: '2nd Party Lname'
+    -
+      value: '2nd party 2nd'
+      label: '2nd party 2nd'
     -
       value: 'Denis Gerald Crawford'
       label: 'Denis Gerald Crawford'
     -
-      value: 'Denis Gerald Jeeva'
-      label: 'Denis Gerald Jeeva'
+      value: 'party 2 party 2 lname'
+      label: 'party 2 party 2 lname'
+    -
+      value: 'Suresh Kumar 2 Jeeva'
+      label: 'Suresh Kumar 2 Jeeva'
+    -
+      value: 'Suresh Kumar 1 Jeeva'
+      label: 'Suresh Kumar 1 Jeeva'
+    -
+      value: 'Philip Soldat'
+      label: 'Philip Soldat'
+    -
+      value: 'Suresh Kumar J Jeeva'
+      label: 'Suresh Kumar J Jeeva'
+    -
+      value: 'Epping Residential'
+      label: 'Epping Residential'
+    -
+      value: 'Suresh Kumar Jeeva'
+      label: 'Suresh Kumar Jeeva'
   allowed_values_function: ''
 module: options
 locked: false

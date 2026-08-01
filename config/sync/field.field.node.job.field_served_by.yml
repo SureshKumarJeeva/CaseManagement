@@ -21,8 +21,9 @@ settings:
     target_bundles: null
     sort:
       field: _none
+      direction: ASC
     auto_create: false
     filter:
       type: _none
-    include_anonymous: false
+    include_anonymous: true
 field_type: entity_reference

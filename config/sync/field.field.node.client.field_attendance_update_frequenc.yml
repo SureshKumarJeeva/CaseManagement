@@ -1,0 +1,21 @@
+uuid: 378b4b79-e423-4596-98c5-6d4411a58ad3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attendance_update_frequenc
+    - node.type.client
+id: node.client.field_attendance_update_frequenc
+field_name: field_attendance_update_frequenc
+entity_type: node
+bundle: client
+label: 'Attendance Update - Frequency'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

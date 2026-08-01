@@ -2,7 +2,9 @@ _core:
   default_config_hash: R4IF-ClDHXxblLcG0L7MgsLvfBIMAvi_skumNFQwkDc
 module:
   address: 0
+  admin_menu_fix: 0
   admin_toolbar: 0
+  admin_toolbar_links_access_filter: 0
   admin_toolbar_search: 0
   admin_toolbar_tools: 0
   adminimal_admin_toolbar: 0
@@ -27,6 +29,7 @@ module:
   conditional_fields: 0
   config: 0
   contact: 0
+  content_moderation: 0
   contextual: 0
   csv_serialization: 0
   ctools: 0
@@ -54,13 +57,8 @@ module:
   image: 0
   inline_entity_form: 0
   inline_form_errors: 0
-  jquery_ui: 0
-  jquery_ui_datepicker: 0
-  jquery_ui_slider: 0
-  jquery_ui_touch_punch: 0
   layout_builder: 0
   layout_discovery: 0
-  layout_paragraphs: 0
   link: 0
   mailgun: 0
   mailsystem: 0

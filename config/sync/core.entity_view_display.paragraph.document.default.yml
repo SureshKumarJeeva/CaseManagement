@@ -3,7 +3,6 @@ langcode: en
 status: true
 dependencies:
   config:
-    - field.field.paragraph.document.field_affidavit_template
     - field.field.paragraph.document.field_amount
     - field.field.paragraph.document.field_court_name
     - field.field.paragraph.document.field_date
@@ -34,15 +33,7 @@ content:
       scale: 2
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 6
-    region: content
-  field_court_name:
-    type: entity_reference_label
-    label: inline
-    settings:
-      link: true
-    third_party_settings: {  }
-    weight: 8
+    weight: 5
     region: content
   field_date:
     type: datetime_custom
@@ -53,15 +44,15 @@ content:
     third_party_settings:
       field_formatter_class:
         class: document-date
-    weight: 4
+    weight: 3
     region: content
   field_document_title:
     type: string
-    label: inline
+    label: above
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 0
+    weight: 1
     region: content
   field_name:
     type: string
@@ -69,16 +60,7 @@ content:
     settings:
       link_to_entity: false
     third_party_settings: {  }
-    weight: 5
-    region: content
-  field_notice_period:
-    type: number_integer
-    label: inline
-    settings:
-      thousand_separator: ''
-      prefix_suffix: true
-    third_party_settings: {  }
-    weight: 1
+    weight: 4
     region: content
   field_override_notice_period:
     type: number_integer
@@ -87,7 +69,7 @@ content:
       thousand_separator: ''
       prefix_suffix: true
     third_party_settings: {  }
-    weight: 7
+    weight: 6
     region: content
   field_primary_document:
     type: boolean
@@ -99,7 +81,7 @@ content:
     third_party_settings:
       field_formatter_class:
         class: ''
-    weight: 2
+    weight: 0
     region: content
   field_untitled:
     type: list_default
@@ -108,12 +90,13 @@ content:
     third_party_settings:
       field_formatter_class:
         class: document-dated-issued-select
-    weight: 3
+    weight: 2
     region: content
 hidden:
   entity_print_view_epub: true
   entity_print_view_pdf: true
   entity_print_view_word_docx: true
-  field_affidavit_template: true
+  field_court_name: true
   field_doc_notice_period: true
   field_document: true
+  field_notice_period: true

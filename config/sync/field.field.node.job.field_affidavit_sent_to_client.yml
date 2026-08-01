@@ -1,0 +1,21 @@
+uuid: 3ad3b502-5a20-4527-a3f9-c155fba1ba79
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_affidavit_sent_to_client
+    - node.type.job
+  module:
+    - datetime
+id: node.job.field_affidavit_sent_to_client
+field_name: field_affidavit_sent_to_client
+entity_type: node
+bundle: job
+label: 'Affidavit Sent to Client'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: datetime

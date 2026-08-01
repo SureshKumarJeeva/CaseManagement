@@ -4,7 +4,9 @@
  * and auto-calculates the Total field.
  *
  * Total = (Agreed Fee || Standard Fee) x Units
- * If the client has an agreed discount (%), it is applied to the total.
+ * Precedence: Agreed Fee overrides Standard Fee. The client discount (%) is
+ * applied to the STANDARD fee ONLY — when an Agreed Fee is present the total
+ * is calculated straight, with no discount.
  * The client discount is read from the Job form's field_agreed_discount
  * (id: change-client-discount), which is populated from the associated client.
  *
@@ -75,14 +77,17 @@
     var units = parseFloat($units.val()) || 0;
     var discount = getClientDiscount();
 
-    // Agreed Fee overrides Standard Fee.
-    var baseFee = agreedFee > 0 ? agreedFee : stdFee;
-    var total = baseFee * units;
-
-    // Apply client discount.
-    if (discount > 0) {
-      total = total * (1 - discount / 100);
+    // Agreed Fee takes precedence over Standard Fee.
+    // The client discount applies to the STANDARD fee ONLY. When an Agreed
+    // Fee is entered the total is calculated straight, with no discount.
+    var baseFee;
+    if (agreedFee > 0) {
+      baseFee = agreedFee;
     }
+    else {
+      baseFee = discount > 0 ? stdFee * (1 - discount / 100) : stdFee;
+    }
+    var total = baseFee * units;
 
     // Round to 2 decimal places.
     total = Math.round(total * 100) / 100;

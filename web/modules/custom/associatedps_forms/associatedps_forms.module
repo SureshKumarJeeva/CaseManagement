@@ -21,6 +21,11 @@ use Drupal\associatedps_email_template\Controller\EmailTemplateController;
 use Drupal\Core\Datetime\DrupalDateTime;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Component\Utility\Tags;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItem;
+use Drupal\datetime\Plugin\Field\FieldType\DateTimeItemInterface;
+use Drupal\views\ViewExecutable;
+use Drupal\views\Plugin\views\query\QueryPluginBase;
+use Drupal\Core\Render\Element;
 
 /**
  * Implements hook_preprocess_HOOK() for page title templates.
@@ -313,47 +318,98 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     $roles = $user->getRoles();
     if ($userCurrent->id() > 0 && $roles[1] == "agent") {
 
+      // Agents may edit ONLY the Attendance Note tab. This is an ALLOW-LIST:
+      // every Job field widget is disabled EXCEPT the ones returned by
+      // _associatedps_forms_agent_editable_fields(), so any field added to the
+      // form in future is locked by default. (The previous hard-coded
+      // block-list silently left new fields editable — e.g. Job Status "Case
+      // Status" and the whole Service Details group.) Controls injected purely
+      // client-side by JS (e.g. the "Create New Document" button) never reach
+      // PHP and are handled separately in the theme layer.
       $form['title']['#access'] = FALSE;
-      $form['field_admin_affidavit_date']['#disabled'] = TRUE;
-      $form['field_affidavit_sent_to_agent']['#disabled'] = TRUE;
-      $form['field_admin_cover_letter_date']['#disabled'] = TRUE;
-      $form['field_admin_email_update_date']['#disabled'] = TRUE;
-      $form['field_admin_invoiced_date']['#disabled'] = TRUE;
-      $form['field_admin_send_to_client_date']['#disabled'] = TRUE;
-      $form['field_admin_status']['#disabled'] = TRUE;
-      $form['field_affidavits']['#disabled'] = TRUE;
-      $form['field_agreed_discount']['#disabled'] = TRUE;
-      $form['field_allocated_to']['#disabled'] = TRUE;
-      $form['field_allocation_date']['#disabled'] = TRUE;
-      $form['field_case_no']['#disabled'] = TRUE;
-      $form['field_client']['#disabled'] = TRUE;
-      $form['field_client_ref']['#disabled'] = TRUE;
-      $form['field_client_s_job_email']['#disabled'] = TRUE;
-      $form['field_court']['#disabled'] = TRUE;
-      $form['field_cover_letters']['#disabled'] = TRUE;
-      $form['field_deadline']['#disabled'] = TRUE;
-      $form['field_division']['#disabled'] = TRUE;
-      $form['field_documents']['#disabled'] = TRUE;
-      $form['field_hearing_date']['#disabled'] = TRUE;
-      $form['field_instruction_received']['#disabled'] = TRUE;
-      $form['field_job_fees']['#disabled'] = TRUE;
-      $form['field_job_types']['#disabled'] = TRUE;
-      $form['field_last_mail_time']['#disabled'] = TRUE;
-      $form['field_list']['#disabled'] = TRUE;
-      $form['field_other_parties']['#disabled'] = TRUE;
-      $form['field_parties']['#disabled'] = TRUE;
-      $form['field_party_2']['#disabled'] = TRUE;
-      $form['field_party_to_serve_phone']['#disabled'] = TRUE;
-      $form['field_registry']['#disabled'] = TRUE;
-      $form['field_service_address']['#disabled'] = TRUE;
-      $form['field_served_party']['#disabled'] = TRUE;
-      $form['field_served_notes']['#disabled'] = TRUE;
+      // Hide the "Generate" dropdown (Invoice / Email / Affidavit /
+      // Correspondence) — admin-only action, not for agents.
+      if (isset($form['action']['generate_dropdown'])) {
+        $form['action']['generate_dropdown']['#access'] = FALSE;
+      }
+
+      // Agents may edit the Attendance Note tab AND the Party To Serve tab.
+      $agent_editable = array_merge(
+        _associatedps_forms_agent_editable_fields(),
+        _associatedps_forms_agent_party_to_serve_fields()
+      );
+      foreach (Element::children($form) as $key) {
+        // Only touch real field widgets; leave form system elements (actions,
+        // tokens, form_build_id, vertical tabs, base fields) alone so the form
+        // still submits.
+        if (strpos($key, 'field_') !== 0 || in_array($key, $agent_editable, TRUE)) {
+          continue;
+        }
+        // HIDE (not just disable) every non-Attendance field. This empties the
+        // other tab groups, so field_group drops those tabs entirely — which
+        // also removes JS/modal controls rendered inside them (Create New
+        // Document, Edit Service Details). #disabled left the group non-empty,
+        // so the tab (and its leaking controls) still rendered. Only the
+        // Attendance Note tab remains, and it stays editable for agents.
+        $form[$key]['#access'] = FALSE;
+      }
+
+      // Custom action buttons live INSIDE field groups (not as top-level
+      // field_* keys), so the allow-list loop above never reaches them. Hide the
+      // "Add New User" button in the Job Status tab from agents. (#disabled would
+      // still render a greyed link; #access removes it entirely.)
+      if (isset($form['group_job_status']['open_modal_user'])) {
+        $form['group_job_status']['open_modal_user']['#access'] = FALSE;
+      }
+
+      // Net for elements the render pipeline builds AFTER this hook (AJAX /
+      // #process subforms). JS-injected controls are out of PHP's reach and
+      // handled in the theme (deferred).
+      $form['#after_build'][] = '_associatedps_forms_agent_lock_fields';
 
       $node = $form_state->getFormObject()->getEntity();
       $allocated_to = $node->get('field_allocated_to')->target_id;
       if ($allocated_to != $userCurrent->id()) {
         die();
       }
+    }
+
+    /* Clients get a READ-ONLY view of ONLY the Attendance Note tab. */
+    // Access to the Job itself is already scoped to the client's own jobs (see
+    // associatedps_forms_views_query_alter). Here we lock the edit form: the
+    // Attendance Note tab is shown but read-only, every other field is removed,
+    // every other tab is hidden (in associatedps_forms_field_group_pre_render_alter,
+    // form context) and there are no submit controls.
+    if ($userCurrent->id() > 0 && in_array('client', $roles, TRUE)) {
+      $form['title']['#access'] = FALSE;
+      // View-only: drop Save / Save & Next / Preview / Delete.
+      $form['actions']['#access'] = FALSE;
+      // Hide the "Generate" dropdown (Invoice / Email / Affidavit /
+      // Correspondence) — admin-only action, not for clients.
+      if (isset($form['action']['generate_dropdown'])) {
+        $form['action']['generate_dropdown']['#access'] = FALSE;
+      }
+
+      // The Attendance Note tab field set (reused from the agent allow-list;
+      // it is simply the list of fields on that tab).
+      $attendance_fields = _associatedps_forms_agent_editable_fields();
+      foreach (Element::children($form) as $key) {
+        if (strpos($key, 'field_') !== 0) {
+          continue;
+        }
+        if (in_array($key, $attendance_fields, TRUE)) {
+          // Visible but read-only.
+          $form[$key]['#disabled'] = TRUE;
+        }
+        else {
+          // Any non-Attendance field that is not inside a hidden tab group
+          // (e.g. ungrouped base fields) is removed outright for clients.
+          $form[$key]['#access'] = FALSE;
+        }
+      }
+
+      // Re-apply after the render pipeline builds late elements (AJAX / #process).
+      $form['#after_build'][] = '_associatedps_forms_client_lock_fields';
     }
 
     /* Rename some button labels. */
@@ -504,11 +560,19 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
             'label' => $user_obj->label(),
             'given_name' => $addr['given_name'],
             'family_name' => $addr['family_name'],
+            // IANA timezone of this user (core account setting). Empty when the
+            // user never set one; JS then falls back to the site timezone. Used
+            // to prefill "Date of Service" with now-in-the-served-person's-tz.
+            'timezone' => $user_obj->getTimeZone(),
           ];
         }
       }
     }
     $form['#attached']['drupalSettings']['associatedps_forms']['user_details'] = $user_details;
+    // Site default timezone — the fallback when a served-by user has no
+    // personal timezone set (see the Served By / Date of Service JS).
+    $form['#attached']['drupalSettings']['associatedps_forms']['site_timezone'] =
+      \Drupal::config('system.date')->get('timezone.default') ?: date_default_timezone_get();
 
   }
 
@@ -521,6 +585,13 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
     // Generate dropdown above the tab section.
     $form['generate_dropdown_top'] = $generate_dropdown;
     $form['generate_dropdown_top']['#weight'] = '-100';
+    // Hide this top "Generate" dropdown from agents and clients — it is an
+    // admin-only action. (The bottom copy, $form['action']['generate_dropdown'],
+    // is hidden in the agent/client blocks above; this key is created here,
+    // after those blocks run, so it must be hidden at its own creation point.)
+    if (array_intersect(['agent', 'client'], \Drupal::currentUser()->getRoles())) {
+      $form['generate_dropdown_top']['#access'] = FALSE;
+    }
 
 
 
@@ -701,33 +772,45 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
 
       /* Deadline Date */
 
-      if (!empty($node->field_hearing_date->value) && !empty($node->field_documents->getValue())) {
-
-        $deadline_date = '';
-        $documents = $node->field_documents->getValue();
-        foreach ($documents as $value) {
-          $document = Paragraph::load($value['target_id']);
-          $primary_doc = $document->field_primary_document->value;
-          if ($primary_doc === '1') {
-            if (!empty($document->field_override_notice_period->value)) {
-              $notice_period = $document->field_override_notice_period->value;
-            }
-            if (empty($document->field_override_notice_period->value) && !empty($document->field_notice_period->value)) {
-              $notice_period = $document->field_notice_period->value;
-            }
-            if (!empty($notice_period)) {
-              $hearing_date = date_create($node->field_hearing_date->value);
-              $deadline_date = date_sub($hearing_date, date_interval_create_from_date_string($notice_period . " days"));
-              $deadline_date = date_format($deadline_date, "Y-m-d");
-            }
-          }
-        }
-        if (!empty($deadline_date)) {
-          if ($form['field_deadline']['widget'][0]['value']['#default_value'] === NULL) {
-            $form['field_deadline']['widget'][0]['value']['#default_value'] = DrupalDateTime::createFromTimestamp(strtotime($deadline_date));
-          }
-        }
-      }
+      // COMMENTED OUT 2026-07-23 — superseded by the server-side calculation in
+      // _associatedps_forms_calculate_deadline(), called from
+      // associatedps_forms_node_presave(). Kept for reference; delete once the
+      // presave version has run in production for a while.
+      //
+      // Why this never worked reliably: it runs at form BUILD time, so it only
+      // ever sees values ALREADY SAVED on the node — never what the user just
+      // entered. And it only writes when #default_value is strictly NULL, so on
+      // an edit form (where a value usually exists) it does nothing at all. It
+      // also required the Primary Document checkbox to be ticked, with no
+      // fallback to the first document, and read the paragraph's own
+      // field_notice_period rather than the referenced Document node's.
+      //
+      // if (!empty($node->field_hearing_date->value) && !empty($node->field_documents->getValue())) {
+      //   $deadline_date = '';
+      //   $documents = $node->field_documents->getValue();
+      //   foreach ($documents as $value) {
+      //     $document = Paragraph::load($value['target_id']);
+      //     $primary_doc = $document->field_primary_document->value;
+      //     if ($primary_doc === '1') {
+      //       if (!empty($document->field_override_notice_period->value)) {
+      //         $notice_period = $document->field_override_notice_period->value;
+      //       }
+      //       if (empty($document->field_override_notice_period->value) && !empty($document->field_notice_period->value)) {
+      //         $notice_period = $document->field_notice_period->value;
+      //       }
+      //       if (!empty($notice_period)) {
+      //         $hearing_date = date_create($node->field_hearing_date->value);
+      //         $deadline_date = date_sub($hearing_date, date_interval_create_from_date_string($notice_period . " days"));
+      //         $deadline_date = date_format($deadline_date, "Y-m-d");
+      //       }
+      //     }
+      //   }
+      //   if (!empty($deadline_date)) {
+      //     if ($form['field_deadline']['widget'][0]['value']['#default_value'] === NULL) {
+      //       $form['field_deadline']['widget'][0]['value']['#default_value'] = DrupalDateTime::createFromTimestamp(strtotime($deadline_date));
+      //     }
+      //   }
+      // }
       /* Finish Deadline Date */
     }
 
@@ -1458,6 +1541,45 @@ function _associatedps_forms_ensure_document_option($element, FormStateInterface
  * read dynamically from the form display.
  */
 function associatedps_forms_field_group_pre_render_alter(array &$element, &$group, &$rendering_object) {
+  // Agent + Client roles, Job EDIT form: show ONLY the Attendance Note tab.
+  // Every other field group (all sibling tabs + standalone groups) is removed
+  // from the render tree. Client fields are read-only, the agent's Attendance
+  // fields stay editable — both handled in associatedps_forms_form_alter(); this
+  // hook only controls which TABS render. One merged check, since the tab-hiding
+  // logic is identical for both roles.
+  if (($group->context ?? '') === 'form'
+    && ($group->entity_type ?? '') === 'node'
+    && ($group->bundle ?? '') === 'job') {
+    // The tabs wrapper plus the Attendance Note tab and its nested fieldsets.
+    $keep = [
+      'group_job',                        // the vertical-tabs wrapper itself
+      'group_attendance_note',            // the Attendance Note tab
+      'group_attendance_note_details',    // its inner fieldset
+      'group_attendance_service_details', // nested "Attendance Service Details"
+    ];
+    $current = \Drupal::currentUser();
+    $roles = $current->getRoles();
+    // Agents (only, not clients) additionally keep the "Party To Serve" tab,
+    // with its fields editable (see the agent block in
+    // associatedps_forms_form_alter). When the current group is a Party To Serve
+    // group and the logged-in user is an agent, skip hiding it.
+    $is_agent = in_array('agent', $roles, TRUE);
+    $agent_extra_groups = _associatedps_forms_party_to_serve_groups();
+    $agent_keeps_this = $is_agent
+      && in_array($group->group_name, $agent_extra_groups, TRUE);
+    if ($current->id() > 0
+      && array_intersect(['agent', 'client'], $roles)
+      && !in_array($group->group_name, $keep, TRUE)
+      && !$agent_keeps_this) {
+      // Removes the tab BODY on every field_group version, and the whole tab
+      // (incl. heading) on the version staging runs. NOTE: on the OLDER
+      // field_group version installed locally, the empty tab HEADING remains —
+      // a contrib version drift, not a code bug (align versions to match).
+      $element['#access'] = FALSE;
+    }
+    return;
+  }
+
   if (($group->context ?? '') !== 'view'
     || ($group->entity_type ?? '') !== 'node'
     || ($group->bundle ?? '') !== 'job') {
@@ -1496,10 +1618,128 @@ function associatedps_forms_field_group_pre_render_alter(array &$element, &$grou
 }
 
 /**
+ * Calculate the Job's Deadline from the Hearing Date and the Notice Period.
+ *
+ * Deadline (field_deadline) = Hearing Date (field_hearing_date, Court tab)
+ * minus the Notice Period, in calendar days. Both a Hearing Date and at least
+ * one document are required; if either is missing, or no notice period can be
+ * resolved, the Deadline is left untouched.
+ *
+ * The notice period comes from the job's PRIMARY document paragraph — the first
+ * one with field_primary_document ticked, falling back to the first document
+ * paragraph when none is flagged. Within that paragraph the precedence is:
+ *   1. field_override_notice_period (the paragraph's manual override), then
+ *   2. field_notice_period on the referenced Document NODE.
+ * The paragraph's own field_notice_period / field_doc_notice_period are
+ * deliberately NOT consulted: both are hidden from the user (form.css sets
+ * opacity:0/height:0) and field_doc_notice_period is only a mirror that the
+ * Document select's #ajax callback fills in, so it is empty whenever the user
+ * saves before that callback lands. Reading the Document node directly avoids
+ * depending on that timing.
+ *
+ * Runs from hook_node_presave, so it sees the values actually submitted —
+ * including documents added or changed in the same submit — and applies to both
+ * Save and Save & Next. This replaces two earlier implementations, both now
+ * commented out: a form_alter block in this file (build-time, saw only
+ * already-saved values) and a client-side calculator in the theme's script.js.
+ *
+ * @param \Drupal\node\NodeInterface $node
+ *   The job node being saved.
+ */
+function _associatedps_forms_calculate_deadline(NodeInterface $node) {
+  if (!$node->hasField('field_deadline') || !$node->hasField('field_hearing_date') || !$node->hasField('field_documents')) {
+    return;
+  }
+
+  $hearing_raw = trim((string) $node->get('field_hearing_date')->value);
+  if ($hearing_raw === '') {
+    return;
+  }
+
+  // Pick the primary document paragraph, else the first one.
+  $primary = NULL;
+  foreach ($node->get('field_documents')->referencedEntities() as $paragraph) {
+    if ($primary === NULL) {
+      $primary = $paragraph;
+    }
+    if ($paragraph->hasField('field_primary_document') && (int) $paragraph->get('field_primary_document')->value === 1) {
+      $primary = $paragraph;
+      break;
+    }
+  }
+  if ($primary === NULL) {
+    return;
+  }
+
+  // Resolve the notice period: paragraph override first, then the referenced
+  // Document node's own value.
+  $notice_period = NULL;
+  if ($primary->hasField('field_override_notice_period')) {
+    $override = $primary->get('field_override_notice_period')->value;
+    if ($override !== NULL && $override !== '') {
+      $notice_period = (int) $override;
+    }
+  }
+  if ($notice_period === NULL && $primary->hasField('field_document')) {
+    $doc_node = $primary->get('field_document')->entity;
+    if ($doc_node && $doc_node->hasField('field_notice_period')) {
+      $doc_value = $doc_node->get('field_notice_period')->value;
+      if ($doc_value !== NULL && $doc_value !== '') {
+        $notice_period = (int) $doc_value;
+      }
+    }
+  }
+  if ($notice_period === NULL) {
+    return;
+  }
+
+  // Write in the format the field ACTUALLY uses — do not assume. The storage
+  // setting datetime_type is 'datetime' on local but date-only 'date' on
+  // staging (config drift, 2026-07-23). Both are field type "datetime", so the
+  // Manage-fields UI looks identical; only this setting differs. Writing a
+  // 'Y-m-d\TH:i:s' string into a date-only field saves without error but the
+  // widget cannot parse it back, so the Deadline renders as an empty input
+  // showing just the date placeholder.
+  $deadline_type = $node->get('field_deadline')
+    ->getFieldDefinition()
+    ->getFieldStorageDefinition()
+    ->getSetting('datetime_type');
+
+  // field_hearing_date is date-only (stored 'Y-m-d').
+  $site_tz = new \DateTimeZone(date_default_timezone_get());
+  $hearing = \DateTime::createFromFormat('Y-m-d|', substr($hearing_raw, 0, 10), $site_tz);
+  if (!$hearing) {
+    return;
+  }
+  $hearing->modify('-' . $notice_period . ' days');
+
+  if ($deadline_type === DateTimeItem::DATETIME_TYPE_DATE) {
+    // Date-only: store the plain date. A date-only value is timezone-agnostic,
+    // so converting to UTC here would shift it back a day.
+    $deadline = $hearing->format(DateTimeItemInterface::DATE_STORAGE_FORMAT);
+  }
+  else {
+    // Full datetime (stored in UTC). Only the date part is shown to the user,
+    // so anchor at 00:00 in the SITE timezone and convert to UTC — building it
+    // in UTC directly would shift the displayed date by a day for AEST users.
+    $hearing->setTimezone(new \DateTimeZone(DateTimeItemInterface::STORAGE_TIMEZONE));
+    $deadline = $hearing->format(DateTimeItemInterface::DATETIME_STORAGE_FORMAT);
+  }
+
+  if ((string) $node->get('field_deadline')->value !== $deadline) {
+    $node->set('field_deadline', $deadline);
+  }
+}
+
+/**
  * Implements hook_entity_presave().
  */
 function associatedps_forms_node_presave(NodeInterface $node) {
   if ($node->getType() == 'job') {
+    // Deadline = Hearing Date - Notice Period. Recalculated on every save;
+    // both Save and Save & Next route through here.
+    _associatedps_forms_calculate_deadline($node);
+
     // Accumulate custom ("Other") Person Delivered To values into a global State
     // list so they stay reusable as dropdown options across jobs. A value is
     // "custom" when it is not one of THIS job's party names.
@@ -2268,9 +2508,10 @@ function associatedps_forms_node_insert(NodeInterface $node) {
     EmailTemplateController::createEmailTemplate($nid, 'true');
   }
 
-  // A job created already carrying an instruction-received date counts as
-  // "empty -> valid date", so send the Instructions Received email.
-  if ($node->getType() === 'job' && !empty($node->get('field_instruction_received')->value)) {
+  // A job created with the "Job Logged" checkbox already ticked counts as
+  // "empty -> valid date", so send the Instructions Received email. The
+  // checkbox stamps field_admin_cover_letter_date (see $date_autofill_fields).
+  if ($node->getType() === 'job' && !empty($node->get('field_admin_cover_letter_date')->value)) {
     _associatedps_forms_send_instructions_received_email($node);
   }
 }
@@ -2298,16 +2539,19 @@ function associatedps_forms_node_update(NodeInterface $node) {
       $client_items->get('field_attendance_update_frequenc')->value != 1 &&
       $client_items->get('field_served')->value != 1 &&
       $client_items->get('field_attempted')->value != 1 &&
+      $client_items->get('field_cancelled')->value != 1 &&
       $client_items->get('field_completed')->value != 1){
       Drupal::logger('associatedps_forms')->notice('All update-email events are disabled for client: @client. So, email will not be sent.', ['@client' => $client_items->id()]);
       return;
     }
 
-    // Send the Instructions Received email when the instruction date is set
-    // for the first time (empty -> valid date).
-    $instr_new = $node->get('field_instruction_received')->value;
-    $instr_old = isset($node->original) ? $node->original->get('field_instruction_received')->value : NULL;
-    if (!empty($instr_new) && empty($instr_old)) {
+    // Send the Instructions Received email when the "Job Logged" checkbox
+    // (Job Status tab -> Admin Status) is ticked and saved for the first time.
+    // That checkbox stamps field_admin_cover_letter_date, so the trigger is
+    // that date going empty -> set. It is NOT tied to the Case Status.
+    $logged_new = $node->get('field_admin_cover_letter_date')->value;
+    $logged_old = isset($node->original) ? $node->original->get('field_admin_cover_letter_date')->value : NULL;
+    if (!empty($logged_new) && empty($logged_old)) {
       _associatedps_forms_send_instructions_received_email($node);
     }
 
@@ -2321,11 +2565,14 @@ function associatedps_forms_node_update(NodeInterface $node) {
       $status_key = strtolower(trim(str_replace('–', '-', $case_status)));
 
       // Job update events: Case Status => [client opt-in checkbox, email template title].
-      // The template is a Library node (category "Email") whose title matches.
+      // The template is a Library node (category "Email") whose title matches
+      // EXACTLY — the en-dash below is U+2013, same as the Case Status labels
+      // and the Client checkbox labels.
       $status_map = [
-        'completed - served'    => ['field_served', 'Served'],
-        'completed - attempted' => ['field_attempted', 'Attempted'],
-        'completed - enquiries'  => ['field_completed', 'Completed'],
+        'completed - served'    => ['field_served', 'Completed – Served'],
+        'completed - attempted' => ['field_attempted', 'Completed – Attempted'],
+        'completed - cancelled' => ['field_cancelled', 'Completed – Cancelled'],
+        'completed - enquiries' => ['field_completed', 'Completed – Enquiries'],
       ];
 
       if (isset($status_map[$status_key])) {
@@ -2349,16 +2596,9 @@ function associatedps_forms_node_update(NodeInterface $node) {
           \Drupal::logger('associatedps_forms')->notice('Client opted out of "@field" for job @nid. Email not sent.', ['@field' => $checkbox_field, '@nid' => $nid]);
         }
       }
-      // Legacy "Logged" status uses its own template.
-      elseif ($status_key === 'logged') {
-        $email_template_logged = \Drupal::entityTypeManager()->getStorage('node')->loadByProperties(['type' => 'library', 'field_category' => 'Email', 'title' => 'Logged']);
-        if (!empty($email_template_logged)) {
-          EmailTemplateController::createEmailTemplate(array_key_first($email_template_logged), $nid, 'job');
-        }
-        else {
-          \Drupal::messenger()->addWarning(t('No email template found with category "Email" and title "Logged". Email was not sent.'));
-        }
-      }
+      // NOTE: Case Status "Logged" no longer sends anything. The Instructions
+      // Received email is driven by the "Job Logged" checkbox (Admin Status)
+      // instead — see the field_admin_cover_letter_date trigger above.
     }
   }
 
@@ -2367,9 +2607,12 @@ function associatedps_forms_node_update(NodeInterface $node) {
 /**
  * Send the "Instructions Received" client email for a job.
  *
- * Fires when a job's instruction-received date is first set. Sends only if the
- * linked client opted in (field_instructions_received) and an "Instructions
- * Received" Library/Email template exists. Reuses the 'job' send path.
+ * Fires when the "Job Logged" checkbox (Job Status tab -> Admin Status) is
+ * ticked and saved for the first time, i.e. field_admin_cover_letter_date goes
+ * empty -> set. Sends only if the linked client opted in
+ * (field_instructions_received, labelled "Instructions Received" on the Client
+ * form) and an "Instructions Received" Library/Email template exists. Reuses
+ * the 'job' send path.
  *
  * @param \Drupal\node\NodeInterface $node
  *   The job node being saved.
@@ -2396,4 +2639,176 @@ function _associatedps_forms_send_instructions_received_email(NodeInterface $nod
     return;
   }
   EmailTemplateController::createEmailTemplate(array_key_first($tpl), $node->id(), 'job');
+}
+
+/**
+ * The Job fields an "agent" role user is allowed to edit.
+ *
+ * These are the widgets under the "Attendance Note" tab in the Job form display
+ * (group_attendance_note_details + group_attendance_service_details). Everything
+ * else on the Job form is disabled for agents — see the agent block in
+ * associatedps_forms_form_alter().
+ *
+ * @return string[]
+ *   Field machine names the agent may edit.
+ */
+function _associatedps_forms_agent_editable_fields() {
+  return [
+    'field_attendance_notes',
+    'field_attendance_notes2',
+    'field_attendance_case_status',
+    'field_attendance_served_by',
+    'field_attendance_address_served',
+    'field_attendance_method_of_servi',
+    'field_attendance_date_service',
+    'field_atten_person_delivered_to',
+    'field_atten_service_details_pos',
+    'field_atten_business_name',
+  ];
+}
+
+/**
+ * The Job fields under the "Party To Serve" tab — AGENT-only extra.
+ *
+ * Agents (not clients) additionally get the "Party To Serve" tab with EDITABLE
+ * fields, on top of the Attendance Note tab. Kept SEPARATE from
+ * _associatedps_forms_agent_editable_fields() because that list is shared with
+ * the client read-only block; adding these there would expose them to clients.
+ * Fields are the children of form group group_party_to_serve_details.
+ *
+ * @return string[]
+ *   Field machine names on the Party To Serve tab.
+ */
+function _associatedps_forms_agent_party_to_serve_fields() {
+  return [
+    'field_served_party',
+    'field_service_address',
+    'field_party_to_serve_phone',
+    'field_served_notes',
+  ];
+}
+
+/**
+ * The form field groups making up the "Party To Serve" tab (tab + fieldset).
+ *
+ * Used to keep this tab rendering for agents in
+ * associatedps_forms_field_group_pre_render_alter().
+ *
+ * @return string[]
+ *   Field group machine names.
+ */
+function _associatedps_forms_party_to_serve_groups() {
+  return [
+    'group_party_to_serve',
+    'group_party_to_serve_details',
+  ];
+}
+
+/**
+ * After-build: enforce the agent allow-list on late-built Job form elements.
+ *
+ * Re-applies the "only the Attendance Note tab is editable" rule after the
+ * render pipeline has finished building the form (AJAX-added subforms, #process
+ * children that did not exist when form_alter ran). Purely PHP-side; controls
+ * injected client-side by JS are handled in the theme layer.
+ */
+function _associatedps_forms_agent_lock_fields(array $form, FormStateInterface $form_state) {
+  // Attendance Note tab + Party To Serve tab stay editable for agents.
+  $agent_editable = array_merge(
+    _associatedps_forms_agent_editable_fields(),
+    _associatedps_forms_agent_party_to_serve_fields()
+  );
+  foreach (Element::children($form) as $key) {
+    if (strpos($key, 'field_') !== 0 || in_array($key, $agent_editable, TRUE)) {
+      continue;
+    }
+    // HIDE every non-Attendance field (see the form_alter agent block): empties
+    // the other tab groups so field_group drops those tabs and the JS/modal
+    // controls inside them.
+    $form[$key]['#access'] = FALSE;
+  }
+  return $form;
+}
+
+/**
+ * After-build: enforce the client read-only rule on late-built Job form elements.
+ *
+ * Mirrors the client block in associatedps_forms_form_alter() for elements the
+ * render pipeline builds after form_alter (AJAX-added subforms, #process
+ * children): the Attendance Note tab fields are made read-only (#disabled), and
+ * every other field is removed (#access = FALSE). Whole non-Attendance tabs are
+ * hidden separately in associatedps_forms_field_group_pre_render_alter().
+ */
+function _associatedps_forms_client_lock_fields(array $form, FormStateInterface $form_state) {
+  $attendance_fields = _associatedps_forms_agent_editable_fields();
+  foreach (Element::children($form) as $key) {
+    if (strpos($key, 'field_') !== 0) {
+      continue;
+    }
+    if (in_array($key, $attendance_fields, TRUE)) {
+      _associatedps_forms_disable_element_recursive($form[$key]);
+    }
+    else {
+      $form[$key]['#access'] = FALSE;
+    }
+  }
+  return $form;
+}
+
+/**
+ * Recursively set #disabled on an element and all of its descendants.
+ */
+function _associatedps_forms_disable_element_recursive(array &$element) {
+  $element['#disabled'] = TRUE;
+  foreach (Element::children($element) as $child) {
+    _associatedps_forms_disable_element_recursive($element[$child]);
+  }
+}
+
+/**
+ * Implements hook_views_query_alter().
+ *
+ * Scopes the client-facing "Jobs" listing so a logged-in client only sees Jobs
+ * whose "Generic Email" (field_email) equals their own login email. This is the
+ * code-side equivalent of a contextual filter: Views core
+ * cannot turn the current user's uid into their email in the UI, so we inject
+ * the condition here instead of adding a Views argument-default plugin.
+ *
+ * Bound to the view machine name below — change VIEW_ID if the client Jobs page
+ * uses a different view.
+ */
+function associatedps_forms_views_query_alter(ViewExecutable $view, QueryPluginBase $query) {
+  // The view that backs the client-menu "Jobs" page (label "Job Page Per
+  // Client"). If your page is a different view, change this one string.
+  $view_id = 'job_page_per_user';
+  if ($view->id() !== $view_id) {
+    return;
+  }
+
+  // Only a Views SQL query exposes ensureTable()/addWhere().
+  if (!$query instanceof \Drupal\views\Plugin\views\query\Sql) {
+    return;
+  }
+
+  // Match on the logged-in account's email. Anonymous or an account with no
+  // email gets a sentinel that cannot match any real Job, so the list is empty
+  // rather than leaking every Job with a blank email field.
+  $mail = \Drupal::currentUser()->getEmail();
+  if ($mail === NULL || $mail === '') {
+    $mail = '__no_client_email__';
+  }
+
+  // Make sure the email field's table is joined to the base node table.
+  $definition = [
+    'table' => 'node__field_email',
+    'field' => 'entity_id',
+    'left_table' => 'node_field_data',
+    'left_field' => 'nid',
+  ];
+  $join = \Drupal::service('plugin.manager.views.join')
+    ->createInstance('standard', $definition);
+  $alias = $query->ensureTable('node__field_email', NULL, $join);
+
+  // WHERE node__field_email.field_email_value = :mail
+  $query->addWhere(0, "$alias.field_email_value", $mail, '=');
 }

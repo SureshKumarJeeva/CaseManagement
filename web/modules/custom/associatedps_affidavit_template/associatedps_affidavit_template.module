@@ -126,21 +126,70 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
     ];
   }
   if (isset($form['field_available_tokens'])) {
-    $form['field_available_tokens']['#states'] = [
-      'visible' => [
-        ':input[name="field_category"]' => ['value' => 'Email'],
+    // Replace the hand-maintained token textarea with an auto-generated,
+    // searchable Chosen picker built from the LIVE Job form display. Selecting a
+    // token copies its [node:...] value to the clipboard to paste into the body.
+    // The email resolver now reads tokens straight out of the body (body-scan in
+    // _associatedps_pdf_templates_library_data), so this textarea is no longer
+    // needed as the substitution list. It is HIDDEN, not removed, so any legacy
+    // stored value stays on the node and existing templates are untouched.
+    $form['field_available_tokens']['#access'] = FALSE;
+
+    $token_options = (new \Drupal\associatedps_affidavit_template\Service\EmailTemplateTokenMapper())
+      ->getEmailTokenOptions();
+
+    $form['available_tokens_picker'] = [
+      '#type' => 'select',
+      '#title' => t('Available Tokens'),
+      '#description' => t('Search and select a field — its token is copied to your clipboard. Paste it into the email body where you want the value to appear.'),
+      // Option value = the [node:...] token that gets copied; option label = the
+      // readable "<Tab>-<Section>-...-<Field>" path (same labels as the DocuSign
+      // token picker). Form-only helper — never submitted or saved.
+      '#options' => ['' => t('- Select a token to copy -')] + $token_options,
+      '#chosen' => TRUE,
+      '#default_value' => '',
+      '#weight' => $form['field_available_tokens']['#weight'] ?? 10,
+      // js-aps-token-picker is the shared hook the copy-on-select behavior binds
+      // to (both this Job picker and the Online Instruction picker below).
+      '#attributes' => ['id' => 'aps-email-token-picker', 'class' => ['js-aps-token-picker']],
+      '#states' => [
+        'visible' => [
+          ':input[name="field_category"]' => ['value' => 'Email'],
+        ],
       ],
     ];
+    $form['#attached']['library'][] = 'associatedps_affidavit_template/email-token-picker';
   }
-  // Online Instruction token list — only relevant to Email templates, same as
-  // field_available_tokens. Holds the [node:*] tokens for the online_instruction
-  // bundle (used when this template drives the Online Instruction admin email).
+  // Online Instruction token list — the [node:*] tokens for the
+  // online_instruction bundle (used when this template drives the Online
+  // Instruction admin email). Same treatment as field_available_tokens: hide
+  // the hand-maintained textarea and offer a Chosen copy picker instead. The
+  // online_instruction form has no tabs (only fieldsets), so the mapper builds
+  // its labels with includeUntabbed = TRUE. The resolver body-scans this
+  // template's body for [node:*] tokens too (see
+  // _associatedps_pdf_templates_library_data), so the textarea is only hidden.
   if (isset($form['field_instruction_tokens'])) {
-    $form['field_instruction_tokens']['#states'] = [
-      'visible' => [
-        ':input[name="field_category"]' => ['value' => 'Email'],
+    $form['field_instruction_tokens']['#access'] = FALSE;
+
+    $instruction_options = (new \Drupal\associatedps_affidavit_template\Service\EmailTemplateTokenMapper())
+      ->getInstructionTokenOptions();
+
+    $form['instruction_tokens_picker'] = [
+      '#type' => 'select',
+      '#title' => t('Instruction Received - Available Tokens'),
+      '#description' => t('Search and select an Online Instruction field — its token is copied to your clipboard. Paste it into the email body where you want the value to appear.'),
+      '#options' => ['' => t('- Select a token to copy -')] + $instruction_options,
+      '#chosen' => TRUE,
+      '#default_value' => '',
+      '#weight' => $form['field_instruction_tokens']['#weight'] ?? 11,
+      '#attributes' => ['id' => 'aps-instruction-token-picker', 'class' => ['js-aps-token-picker']],
+      '#states' => [
+        'visible' => [
+          ':input[name="field_category"]' => ['value' => 'Email'],
+        ],
       ],
     ];
+    $form['#attached']['library'][] = 'associatedps_affidavit_template/email-token-picker';
   }
   // PandaDoc kill-switch: when active, only PandaDoc logic runs; when
   // inactive (default), only DocuSign logic runs. The two integrations

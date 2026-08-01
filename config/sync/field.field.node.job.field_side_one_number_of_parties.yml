@@ -1,0 +1,23 @@
+uuid: 3c704b75-da31-4e1b-95cf-a7db9c0559f4
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_side_one_number_of_parties
+    - node.type.job
+id: node.job.field_side_one_number_of_parties
+field_name: field_side_one_number_of_parties
+entity_type: node
+bundle: job
+label: 'Side One Number of Parties'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  min: 0
+  max: null
+  prefix: ''
+  suffix: ''
+field_type: integer

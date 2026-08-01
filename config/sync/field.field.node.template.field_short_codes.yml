@@ -1,0 +1,21 @@
+uuid: 898eadb0-5e3a-4a90-95ac-b6c4899eef98
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_short_codes
+    - node.type.template
+  module:
+    - options
+id: node.template.field_short_codes
+field_name: field_short_codes
+entity_type: node
+bundle: template
+label: 'Short Codes - Fields'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: list_string

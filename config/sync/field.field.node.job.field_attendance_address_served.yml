@@ -1,0 +1,64 @@
+uuid: 28a5cb61-6bde-4212-b40a-7e8a25d5bc53
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attendance_address_served
+    - node.type.job
+    - paragraphs.paragraphs_type.address
+  module:
+    - entity_reference_revisions
+id: node.job.field_attendance_address_served
+field_name: field_attendance_address_served
+entity_type: node
+bundle: job
+label: 'Attendance Address Served'
+description: ''
+required: false
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings:
+  handler: 'default:paragraph'
+  handler_settings:
+    target_bundles:
+      address: address
+    negate: 0
+    target_bundles_drag_drop:
+      address:
+        weight: 13
+        enabled: true
+      addresses:
+        weight: 14
+        enabled: false
+      affidavit:
+        weight: 15
+        enabled: false
+      attendance_note:
+        weight: 16
+        enabled: false
+      cover_letter:
+        weight: 17
+        enabled: false
+      document:
+        weight: 18
+        enabled: false
+      from_library:
+        weight: 19
+        enabled: false
+      job_fees:
+        weight: 20
+        enabled: false
+      party:
+        weight: 21
+        enabled: false
+      party_other:
+        weight: 22
+        enabled: false
+      party_side_two:
+        weight: 23
+        enabled: false
+      party_side_two_:
+        weight: 24
+        enabled: false
+field_type: entity_reference_revisions

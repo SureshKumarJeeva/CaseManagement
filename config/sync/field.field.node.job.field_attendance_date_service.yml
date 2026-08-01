@@ -1,0 +1,24 @@
+uuid: ac00fcf0-69b1-46b1-9fc3-7253071c7601
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_attendance_date_service
+    - node.type.job
+  module:
+    - datetime
+id: node.job.field_attendance_date_service
+field_name: field_attendance_date_service
+entity_type: node
+bundle: job
+label: 'Attendance Date Served'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    default_date_type: now
+    default_date: now
+default_value_callback: ''
+settings: {  }
+field_type: datetime

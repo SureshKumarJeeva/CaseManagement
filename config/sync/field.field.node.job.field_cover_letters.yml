@@ -30,6 +30,9 @@ settings:
       address:
         weight: 9
         enabled: false
+      addresses:
+        weight: 14
+        enabled: false
       affidavit:
         weight: 10
         enabled: false
@@ -45,8 +48,17 @@ settings:
       from_library:
         weight: 14
         enabled: true
+      job_fees:
+        weight: 20
+        enabled: false
       party:
         weight: 15
+        enabled: false
+      party_other:
+        weight: 22
+        enabled: false
+      party_side_two:
+        weight: 23
         enabled: false
       party_side_two_:
         weight: 16

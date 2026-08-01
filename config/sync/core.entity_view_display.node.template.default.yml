@@ -1,15 +1,13 @@
-uuid: d74f1140-964c-4d93-bed9-18a496af4575
+uuid: ed017f2a-611d-490a-91b8-f627d8ed1356
 langcode: en
 status: true
 dependencies:
   config:
     - field.field.node.template.field_file_upload
-    - field.field.node.template.field_paragraph_test
     - field.field.node.template.field_short_codes
     - field.field.node.template.field_template_editor
     - node.type.template
   module:
-    - entity_reference_revisions
     - file
     - options
     - text
@@ -25,30 +23,21 @@ content:
     settings:
       use_description_as_link_text: true
     third_party_settings: {  }
-    weight: 104
-    region: content
-  field_paragraph_test:
-    type: entity_reference_revisions_entity_view
-    label: above
-    settings:
-      view_mode: default
-      link: ''
-    third_party_settings: {  }
-    weight: 102
+    weight: 101
     region: content
   field_short_codes:
     type: list_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 105
+    weight: 103
     region: content
   field_template_editor:
     type: text_default
     label: above
     settings: {  }
     third_party_settings: {  }
-    weight: 103
+    weight: 102
     region: content
   links:
     settings: {  }

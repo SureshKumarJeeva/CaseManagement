@@ -1,0 +1,23 @@
+uuid: be74a927-b09e-49b7-becd-2471bee20763
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_instructions_received
+    - node.type.client
+id: node.client.field_instructions_received
+field_name: field_instructions_received
+entity_type: node
+bundle: client
+label: 'Instructions Received'
+description: ''
+required: false
+translatable: false
+default_value:
+  -
+    value: 1
+default_value_callback: ''
+settings:
+  on_label: 'On'
+  off_label: 'Off'
+field_type: boolean

@@ -1,0 +1,14 @@
+uuid: 317695ac-e173-4a2a-a6c3-c42d7ba18995
+langcode: en
+status: true
+dependencies:
+  config:
+    - user.role.aps_administrator
+  module:
+    - user
+id: user_add_role_action.aps_administrator
+label: 'Add the APS Administrator role to the selected user(s)'
+type: user
+plugin: user_add_role_action
+configuration:
+  rid: aps_administrator
