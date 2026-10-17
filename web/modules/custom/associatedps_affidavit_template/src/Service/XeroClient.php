@@ -333,6 +333,62 @@ class XeroClient {
     }
   }
 
+  /*
+  * Read ONE invoice from Xero, as it stands now, by its InvoiceNumber.
+  *
+  * Used by the Job's invoice-document download: the document is merged from
+  * the invoice as finalised in Xero (staff may change lines and amounts there
+  * after Generate Invoice), not from what the app originally sent.
+  *
+  * Xero accepts the InvoiceNumber in place of the InvoiceID on this endpoint,
+  * and the single-invoice GET is the one that always returns LineItems (the
+  * filtered list endpoint omits them unless paged).
+  *
+  * @return array
+  *   The invoice array (Invoices[0]), or ['error' => '...'] — the message is
+  *   shown to staff, so it says what to do.
+  */
+  public function getInvoiceByNumber(string $invoiceNumber): array {
+    if (!$this->isConnected()) {
+      return ['error' => 'Xero is not connected, so the invoice details cannot be read. Connect Xero and try again.'];
+    }
+    try {
+      $tokenData = $this->getValidAccessToken();
+
+      $response = $this->httpClient->get($this->servicesAPIBase . $this->servicesAPIPath . $this->invoicesPath . '/' . rawurlencode($invoiceNumber), [
+        'headers' => [
+          'Authorization' => 'Bearer ' . $tokenData['access_token'],
+          'xero-tenant-id' => $tokenData['tenant_id'],
+          'Accept' => 'application/json',
+        ],
+      ]);
+      $data = json_decode((string) $response->getBody(), TRUE);
+      if (empty($data['Invoices'][0])) {
+        return ['error' => 'Invoice ' . $invoiceNumber . ' was not found in Xero.'];
+      }
+      return $data['Invoices'][0];
+    }
+    catch (\GuzzleHttp\Exception\RequestException $e) {
+      $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'N/A';
+      \Drupal::logger('associatedps_affidavit_template_Xero')->error('Xero getInvoiceByNumber @number HTTP @status: @body', [
+        '@number' => $invoiceNumber,
+        '@status' => $statusCode,
+        '@body' => $e->hasResponse() ? (string) $e->getResponse()->getBody() : 'No response body',
+      ]);
+      if ((string) $statusCode === '404') {
+        return ['error' => 'Invoice ' . $invoiceNumber . ' was not found in Xero.'];
+      }
+      return ['error' => 'Xero is unavailable (HTTP ' . $statusCode . '), so the invoice details cannot be read. Please try again later.'];
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('associatedps_affidavit_template_Xero')->error('Xero getInvoiceByNumber @number: @msg', [
+        '@number' => $invoiceNumber,
+        '@msg' => $e->getMessage(),
+      ]);
+      return ['error' => 'Xero is unavailable, so the invoice details cannot be read: ' . $e->getMessage()];
+    }
+  }
+
 
   /*
   * Whether the site has been authorized against Xero (i.e. a token row exists).

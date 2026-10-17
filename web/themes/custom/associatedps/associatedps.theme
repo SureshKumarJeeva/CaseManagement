@@ -61,6 +61,10 @@ function associatedps_preprocess_page(&$vars, $hook) {
       $address = reset($address);
       $vars['username'] = $address['given_name'] . ' ' . $address['family_name'];
     }
+    $vars['user_phone'] = '';
+    if (isset($user->field_phone) && !$user->field_phone->isEmpty()) {
+      $vars['user_phone'] = $user->field_phone->value;
+    }
   }
 }
 
@@ -92,5 +96,31 @@ function associatedps_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $f
   if ($form_id == '_role_login_page_form') {
     $form['name']['#description'] = 'Enter your Associated Process Servers username.';
     $form['pass']['#description'] = 'Enter the password that accompanies your username.';
+  }
+}
+
+/**
+ * Implements hook_page_attachments_alter().
+ *
+ * Loads Chosen's Claro integration stylesheet, which the module itself refuses
+ * to load for us.
+ *
+ * chosen.module attaches 'chosen/chosen.claro' only when
+ * `\Drupal::theme()->getActiveTheme()->getName() === 'claro'` — an EXACT name
+ * match, not a base-theme check. This theme is 'associatedps' with
+ * `base theme: claro`, so the comparison fails and the stylesheet never loads.
+ *
+ * Its practical job is one rule: `.form-element.chosen-container-single
+ * .chosen-single b { background: none !important; }`. Without it, Chosen's own
+ * dual up/down chevron paints on top of the single down arrow Claro already
+ * draws on .form-element, so every Chosen select shows TWO arrow icons.
+ *
+ * Attached globally rather than per-element: it is a handful of rules, only
+ * matches .chosen-* markup, and doing it here keeps us tracking the module's
+ * own file instead of forking those rules into the theme's style.css.
+ */
+function associatedps_page_attachments_alter(array &$attachments) {
+  if (\Drupal::moduleHandler()->moduleExists('chosen')) {
+    $attachments['#attached']['library'][] = 'chosen/chosen.claro';
   }
 }

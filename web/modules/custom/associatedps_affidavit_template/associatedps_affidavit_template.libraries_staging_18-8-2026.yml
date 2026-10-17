@@ -1,0 +1,119 @@
+template-handler:
+  version: 1.x
+  js:
+    assets/js/template_functions.js: {}
+    assets/js/app_shortcodes.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+    - core/drupalSettings
+    - core/ckeditor5
+
+token-picker:
+  # Bump this whenever token_picker.js changes: an explicit version makes
+  # Drupal emit ?v=<version>, which the cache-busting query string does NOT
+  # override, so browsers hold the old file through a cache rebuild.
+  version: 1.1
+  js:
+    assets/js/token_picker.js: {}
+
+pandadoc-editor:
+  version: 1.x
+  js:
+    assets/js/pandadoc_editor.js: { attributes: { type: module } }
+  dependencies:
+    - associatedps_affidavit_template/token-picker
+
+pandadoc-generate:
+  version: 1.x
+  js:
+    assets/js/pandadoc_generate.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+
+pandadoc-document-editor:
+  version: 1.x
+  js:
+    assets/js/pandadoc_document_editor.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+
+generate-email:
+  version: 1.x
+  js:
+    assets/js/generate_email.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+
+pandadoc-library-form:
+  version: 1.x
+  js:
+    assets/js/pandadoc_library_form.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+    - core/drupalSettings
+    - associatedps_affidavit_template/token-picker
+
+docusign-editor:
+  version: 1.1
+  js:
+    assets/js/docusign_editor.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+    - associatedps_affidavit_template/token-picker
+
+docusign-library-form:
+  version: 1.x
+  js:
+    assets/js/docusign_library_form.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+    - core/drupalSettings
+
+email-token-picker:
+  # Bump this on any edit to email_token_picker.js/.css: an explicit version
+  # makes Drupal emit ?v=<version>, which the cache-busting query string does
+  # NOT override, so browsers hold the old file through a cache rebuild.
+  version: 1.1
+  css:
+    theme:
+      assets/css/email_token_picker.css: {}
+  js:
+    assets/js/email_token_picker.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+
+docusign-generate:
+  # Bump on every docusign_generate.js edit — an explicit version pins the ?v=
+  # URL, which the global cache-busting string does NOT override, so browsers
+  # hold the old file through a cache rebuild (2026-07-27: generate loader).
+  version: 1.1
+  js:
+    assets/js/docusign_generate.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings
+
+docusign-envelope-editor:
+  version: 1.x
+  js:
+    assets/js/docusign_envelope_editor.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/drupalSettings

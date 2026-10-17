@@ -4,6 +4,7 @@ namespace Drupal\associatedps_affidavit_template\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\node\Entity\Node;
+use Drupal\node\NodeInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -338,6 +339,7 @@ class DocuSignController extends ControllerBase {
 
     $libraryNode = NULL;
     $docusignTemplateId = '';
+    $method = 'tabs';
 
     // User selected a template explicitly from the modal.
     $request = \Drupal::request();
@@ -345,11 +347,13 @@ class DocuSignController extends ControllerBase {
 
     if (!empty($manualLibraryNid)) {
       $candidate = Node::load($manualLibraryNid);
-      if ($candidate && $candidate->bundle() === 'library'
-        && $candidate->hasField('field_docusign_template_id')
-        && !empty($candidate->field_docusign_template_id->value)) {
-        $libraryNode = $candidate;
-        $docusignTemplateId = $candidate->field_docusign_template_id->value;
+      if ($candidate && $candidate->bundle() === 'library') {
+        $resolved = $this->resolveLibraryTemplate($candidate);
+        if ($resolved) {
+          $libraryNode = $candidate;
+          $docusignTemplateId = $resolved['id'];
+          $method = $resolved['method'];
+        }
       }
     }
 
@@ -388,7 +392,10 @@ class DocuSignController extends ControllerBase {
           if ($candidate->field_category->value !== $category) {
             continue;
           }
-          if (!$candidate->hasField('field_docusign_template_id') || empty($candidate->field_docusign_template_id->value)) {
+          // "Valid" means the Library item carries a template of EITHER kind —
+          // a tab template or a document-generation one. Which it is only
+          // changes what happens after resolution, not whether it qualifies.
+          if ($this->resolveLibraryTemplate($candidate) === NULL) {
             continue;
           }
 
@@ -408,8 +415,10 @@ class DocuSignController extends ControllerBase {
 
       $chosen = $primaryCandidate ?: $firstCandidate;
       if ($chosen) {
+        $resolved = $this->resolveLibraryTemplate($chosen);
         $libraryNode = $chosen;
-        $docusignTemplateId = $chosen->field_docusign_template_id->value;
+        $docusignTemplateId = $resolved['id'];
+        $method = $resolved['method'];
       }
     }
 
@@ -420,6 +429,17 @@ class DocuSignController extends ControllerBase {
         'job_id' => $jobId,
         'message' => "No {$category} template linked to this job's documents. Please select a template.",
       ], 200);
+    }
+
+    // Document-generation templates take a different route from here on: the
+    // data is merged into the DOCX and DocuSign re-renders it, rather than
+    // being written into positioned tabs on a fixed document. Everything up to
+    // this point — which Library item, which category, primary-document
+    // precedence — is common, so the user presses the same button either way.
+    if ($method === DocuSignDocGenController::METHOD) {
+      /** @var \Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController $docGen */
+      $docGen = \Drupal::classResolver(DocuSignDocGenController::class);
+      return $docGen->generateForJob($jobNode, $libraryNode, $docusignTemplateId, $category);
     }
 
     /** @var \Drupal\associatedps_affidavit_template\Service\DocuSignClient $client */
@@ -550,12 +570,18 @@ class DocuSignController extends ControllerBase {
    * Route: /docusign/templates-by-category/{category}
    */
   public function listTemplatesByCategory($category) {
+    // Offer templates of BOTH kinds — the user is choosing a document, not a
+    // mechanism, and generateViaDocuSign() routes on whichever they pick.
     $query = \Drupal::entityQuery('node')
       ->condition('type', 'library')
-      ->condition('field_docusign_template_id', '', '<>')
       ->condition('field_category', $category)
       ->accessCheck(TRUE)
       ->sort('title', 'ASC');
+
+    $hasTemplate = $query->orConditionGroup()
+      ->condition('field_docusign_template_id', '', '<>')
+      ->condition('field_docgen_template_id', '', '<>');
+    $query->condition($hasTemplate);
 
     $nids = $query->execute();
     $templates = [];
@@ -563,10 +589,14 @@ class DocuSignController extends ControllerBase {
     if ($nids) {
       $nodes = Node::loadMultiple($nids);
       foreach ($nodes as $node) {
+        $resolved = $this->resolveLibraryTemplate($node);
         $templates[] = [
           'nid' => $node->id(),
           'title' => $node->getTitle(),
           'category' => $node->field_category->value ?? '',
+          // Shown as a badge in the selection modal so staff can tell a
+          // regenerating document apart from a fixed one before choosing.
+          'method' => $resolved['method'] ?? 'tabs',
         ];
       }
     }
@@ -800,6 +830,35 @@ class DocuSignController extends ControllerBase {
     $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
 
     return $response;
+  }
+
+  /**
+   * Which DocuSign template — if any — a Library item carries, and of what kind.
+   *
+   * A Library item holds at most one: the method popup on the Library form
+   * makes the choice once, at upload time, and writes to the matching field.
+   * Doc Gen is checked first so that an item migrated from a tab template to a
+   * document-generation one uses the newer template even if the old ID was
+   * never cleared out.
+   *
+   * @return array|null
+   *   ['id' => <template GUID>, 'method' => 'docgen'|'tabs'], or NULL when the
+   *   item has no usable template.
+   */
+  protected function resolveLibraryTemplate(NodeInterface $libraryNode): ?array {
+    if ($libraryNode->hasField('field_docgen_template_id') && !empty($libraryNode->field_docgen_template_id->value)) {
+      return [
+        'id' => $libraryNode->field_docgen_template_id->value,
+        'method' => DocuSignDocGenController::METHOD,
+      ];
+    }
+    if ($libraryNode->hasField('field_docusign_template_id') && !empty($libraryNode->field_docusign_template_id->value)) {
+      return [
+        'id' => $libraryNode->field_docusign_template_id->value,
+        'method' => 'tabs',
+      ];
+    }
+    return NULL;
   }
 
   /**

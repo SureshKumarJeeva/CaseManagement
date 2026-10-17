@@ -337,3 +337,202 @@ function associatedps_affidavit_template_update_8008() {
     ]);
   }
 }
+
+/**
+ * Add field_docgen_template_id to the Library content type.
+ *
+ * Created in code rather than exported config because config/sync is known to
+ * have drifted from both running environments, so importing a single new file
+ * is not safe here — see the deploy notes. Running this update on each
+ * environment produces the field identically without touching anything else.
+ *
+ * Kept separate from field_docusign_template_id on purpose: a Library item
+ * belongs to exactly one DocuSign mechanism, and two distinct fields make that
+ * legible at a glance in the UI, in views, and in resolveLibraryTemplate().
+ */
+function associatedps_affidavit_template_update_8009() {
+  if (!\Drupal\field\Entity\FieldStorageConfig::loadByName('node', 'field_docgen_template_id')) {
+    \Drupal\field\Entity\FieldStorageConfig::create([
+      'field_name' => 'field_docgen_template_id',
+      'entity_type' => 'node',
+      'type' => 'string',
+      'cardinality' => 1,
+      'settings' => [
+        'max_length' => 255,
+        'case_sensitive' => FALSE,
+        'is_ascii' => FALSE,
+      ],
+    ])->save();
+  }
+
+  if (!\Drupal\field\Entity\FieldConfig::loadByName('node', 'library', 'field_docgen_template_id')) {
+    \Drupal\field\Entity\FieldConfig::create([
+      'field_name' => 'field_docgen_template_id',
+      'entity_type' => 'node',
+      'bundle' => 'library',
+      'label' => 'DocuSign Doc Gen Template ID',
+      'description' => 'Set automatically when a document is uploaded via the Document Generation method. Read-only.',
+      'required' => FALSE,
+    ])->save();
+  }
+
+  $display = \Drupal::entityTypeManager()
+    ->getStorage('entity_form_display')
+    ->load('node.library.default');
+  if ($display && !$display->getComponent('field_docgen_template_id')) {
+    // Weight 10 puts it directly under field_docusign_template_id (weight 9).
+    $display->setComponent('field_docgen_template_id', [
+      'type' => 'string_textfield',
+      'weight' => 10,
+      'region' => 'content',
+      'settings' => ['size' => 60, 'placeholder' => ''],
+      'third_party_settings' => [],
+    ])->save();
+  }
+
+  return t('Added field_docgen_template_id to the Library content type.');
+}
+
+/**
+ * Add the method column to docusign_envelopes.
+ *
+ * Rows now come from two mechanisms against two different DocuSign accounts.
+ * Without this column a template ID alone cannot tell you which account holds
+ * it, which makes the table useless for support. Existing rows all predate
+ * document generation, so they backfill to 'tabs'.
+ */
+function associatedps_affidavit_template_update_8010() {
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('docusign_envelopes') && !$schema->fieldExists('docusign_envelopes', 'method')) {
+    // No index: the column is read for support/reporting, never joined or
+    // filtered on in a hot path, and MySQL's addField() cannot normalize an
+    // index over a column that does not exist yet without repeating the whole
+    // table spec.
+    $schema->addField('docusign_envelopes', 'method', [
+      'type' => 'varchar',
+      'length' => 20,
+      'not null' => TRUE,
+      'default' => 'tabs',
+      'description' => 'Which DocuSign mechanism produced this row: tabs or docgen.',
+    ]);
+  }
+
+  return t('Added the method column to docusign_envelopes.');
+}
+
+/**
+ * Add credential_fingerprint to docusign_tokens.
+ *
+ * An access token is only re-minted once it expires, so until now editing the
+ * credentials in .env had no effect for up to an hour — the app kept using the
+ * cached token belonging to the OLD integration key and user. That turns a
+ * credential mistake into a silent one: the flow keeps working against the
+ * wrong account and gives no error, which is exactly the wrong feedback when
+ * you are trying to point document generation at a different account.
+ *
+ * The fingerprint records which credential set minted the row so a mismatch can
+ * force a re-mint immediately. Existing rows get an empty value, which counts
+ * as a mismatch — the first call after this update re-mints once, by design.
+ */
+function associatedps_affidavit_template_update_8011() {
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('docusign_tokens') && !$schema->fieldExists('docusign_tokens', 'credential_fingerprint')) {
+    $schema->addField('docusign_tokens', 'credential_fingerprint', [
+      'type' => 'varchar',
+      'length' => 64,
+      'not null' => TRUE,
+      'default' => '',
+      'description' => 'Hash of the credentials that minted this token; a mismatch forces a re-mint.',
+    ]);
+  }
+
+  return t('Added the credential_fingerprint column to docusign_tokens.');
+}
+
+/**
+ * Create the m365_edit_sessions table.
+ *
+ * Maps a Library node to the SharePoint copy of its template while the author
+ * is editing it in Word for the web. Without this the Done button has no way to
+ * know which SharePoint file belongs to which node — the ids are minted by
+ * Microsoft and mean nothing to us on their own.
+ *
+ * Deliberately a separate table from docusign_envelopes: different vendor,
+ * different lifecycle, and merging them would make both harder to reason about.
+ */
+function associatedps_affidavit_template_update_8012() {
+  $schema = \Drupal::database()->schema();
+  if ($schema->tableExists('m365_edit_sessions')) {
+    return t('m365_edit_sessions already exists; nothing to do.');
+  }
+
+  $schema->createTable('m365_edit_sessions', [
+    'description' => 'Tracks Word-for-the-web editing sessions against SharePoint.',
+    'fields' => [
+      'id' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary key.',
+      ],
+      'library_nid' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Library node whose field_import_template is being edited.',
+      ],
+      'drive_id' => [
+        'type' => 'varchar',
+        'length' => 512,
+        'not null' => TRUE,
+        'description' => 'SharePoint drive (document library) id. Stored alongside item_id because a driveItem id is only unique WITHIN its drive.',
+      ],
+      'item_id' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'SharePoint driveItem id for the uploaded copy.',
+      ],
+      'file_name' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'Name the file was uploaded under.',
+      ],
+      'c_tag' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => FALSE,
+        'description' => 'cTag at upload time. Changes only when the CONTENT changes, so comparing it on pull tells us whether the author actually edited anything.',
+      ],
+      'uid' => [
+        'type' => 'int',
+        'not null' => FALSE,
+        'description' => 'User who started the editing session.',
+      ],
+      'status' => [
+        'type' => 'varchar',
+        'length' => 32,
+        'not null' => TRUE,
+        'default' => 'open',
+        'description' => 'open | pulled | abandoned.',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'When the file was pushed to SharePoint.',
+      ],
+      'updated' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => 'Last state change.',
+      ],
+    ],
+    'primary key' => ['id'],
+    'indexes' => [
+      // The Done button looks a session up by node, newest first.
+      'library_nid_status' => ['library_nid', 'status'],
+      'item_id' => ['item_id'],
+    ],
+  ]);
+
+  return t('Created the m365_edit_sessions table.');
+}

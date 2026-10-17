@@ -79,6 +79,7 @@
         "phpoffice/phpword": "*",
         "psr/http-message": "^2.0",
         "psr/log": "^3.0",
+        "sabre/dav": "^4.7",
         "smalot/pdfparser": "*",
         "symfony-cmf/routing": "^3.0",
         "symfony/cache": "^7.3.2",

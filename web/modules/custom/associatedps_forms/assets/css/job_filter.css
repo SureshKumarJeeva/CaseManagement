@@ -1,9 +1,56 @@
 /* Job Filter Form Styles */
+
+/* Boxes the search controls — the Advanced Search rows plus Add Filter / Search
+   / Reset — as one panel. The Results-per-page select is rendered after the
+   closing tag (JobFilterForm weights it past 'actions') so it stays outside
+   this border. */
+/* No horizontal margin of its own: the theme now gives every page's
+   .layout-container a 1rem gutter, so an inset here would stack on top of it
+   (--space-s is 0.75rem, so the panel would sit 28px in while the rest of the
+   app sits 16px in). Same reason for the per-page select, Create New Job
+   button, table, count line and pager below. */
+.job-filter-panel {
+  border: 1px solid #c9c9c9;
+  border-radius: 4px;
+  padding: 12px;
+  margin-inline: var(--space-m);
+  background: #fff;
+}
+
+/* The buttons are the last thing in the box, so drop the stock actions margin
+   that would otherwise show as dead space above the bottom border. */
+.job-filter-panel .form-actions {
+  margin-top: 12px;
+  margin-bottom: 0;
+}
+
+/* One row below the panel: results count on the left, Results-per-page on the
+   right. space-between does the splitting, so neither child needs an auto
+   margin. The row carries the horizontal inset now — its children must not, or
+   the count and the select would be pushed in twice. */
+.job-filter-summary-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-inline: var(--space-m);
+}
+
+.form-item--per-page {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+
+.form-item--per-page select {
+  width: auto;
+}
+
 .job-filter-row {
   display: flex;
   align-items: flex-end;
   gap: 12px;
-  margin-bottom: 10px;
   padding: 10px;
   background: #f5f5f5;
   border-radius: 4px;
@@ -31,6 +78,25 @@
 
 .job-filter-row .form-item.job-filter-value {
   flex: 1 1 0;
+}
+
+/* Line the Create New Job button up with the left edge of the panel below it —
+   both now sit flush against the page gutter, with no extra offset on the
+   button itself. */
+.job-filter-create-job-wrapper {
+  margin-left: 0;
+  margin-bottom: 10px;
+}
+
+#edit-create-job{
+  margin-left: 0;
+}
+
+/* The panel now supplies the horizontal inset, so the old per-side margins on
+   the actions would indent the buttons twice. */
+#job-filter-form #edit-actions{
+  margin-left: 0;
+  margin-right: 0;
 }
 
 /* Widgets must track the shrunken form-item rather than their content width. */
@@ -77,13 +143,21 @@
   margin: 0;
 }
 
-.form-actions .form-item--per-page {
-  margin-left: auto;
+/* Full width inside the page gutter, so the table's edges line up with the panel
+   and the Create New Job button above it. The earlier width:calc() and side
+   margins are gone with the panel's own inset — the gutter is on the shared
+   .layout-container now, so there is nothing left to pull the table in from. */
+#job-filter-results-table {
+  width: 100%;
 }
 
+/* All margins dropped: the count is a flex child of .job-filter-summary-row
+   now, which supplies both the inset and the vertical rhythm. Its old
+   margin-block would have knocked it out of vertical centre against the
+   select. */
 .job-filter-count {
   font-weight: bold;
-  margin: 15px 0 10px;
+  margin: 0;
 }
 
 .job-filter-results {

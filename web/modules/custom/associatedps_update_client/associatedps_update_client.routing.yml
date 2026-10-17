@@ -1,7 +1,12 @@
-associatedps_update_client: 
-  path: 'add/client_update/{nid}'
+associatedps_update_client.update_email:
+  path: '/node/{node}/update-email'
   defaults:
-    _form: '\Drupal\associatedps_update_client\Form\UpdateClientForm'
-    _title: 'Client Update'
+    _controller: '\Drupal\associatedps_update_client\Controller\UpdateEmailController::send'
+    _title: 'Update Email'
   requirements:
-    _permission: 'access content'
+    _entity_access: 'node.view'
+    _csrf_token: 'TRUE'
+  options:
+    parameters:
+      node:
+        type: entity:node

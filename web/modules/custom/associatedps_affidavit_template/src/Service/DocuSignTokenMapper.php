@@ -215,6 +215,51 @@ class DocuSignTokenMapper {
   }
 
   /**
+   * The same picker options, with each value wrapped as a Jinja2 placeholder.
+   *
+   * For the Microsoft 365 / Word for the web authoring path only. Those .docx
+   * templates are merged by our Python docxtpl service, which is Jinja2: it
+   * substitutes "{{ Client_Mail }}" and ignores a bare "Client_Mail". The braces
+   * are also what later unlocks {%tr for %} loops for repeating table rows.
+   *
+   * ⚠ WHY THIS IS A SEPARATE METHOD rather than a change to
+   * getJobVariableOptions(): DocuSign's own merge matches the BARE name against
+   * a tab's Data Label, and both DocuSign editor pages read that method. Adding
+   * braces there would break template authoring at DocuSign without any visible
+   * error — the tokens would simply stop resolving at generate time.
+   *
+   * The LABEL is untouched, so an author sees the same field path in either
+   * picker and only the pasted text differs.
+   *
+   * @return array
+   *   List of ['label' => ..., 'value' => '{{ ... }}'].
+   */
+  public function getJobVariableOptionsJinja(): array {
+    return array_map(
+      fn(array $option) => [
+        'label' => $option['label'],
+        'value' => $this->toJinjaToken($option['value']),
+      ],
+      $this->getJobVariableOptions()
+    );
+  }
+
+  /**
+   * Wrap one canonical variable name as a Jinja2 placeholder.
+   *
+   * Single place the syntax is decided, so a later change (a filter, different
+   * delimiters) is one edit rather than a search across call sites. Already
+   * wrapped values are returned untouched, so this is safe to apply twice.
+   */
+  public function toJinjaToken(string $variable): string {
+    $variable = trim($variable);
+    if ($variable === '' || str_starts_with($variable, '{{')) {
+      return $variable;
+    }
+    return '{{ ' . $variable . ' }}';
+  }
+
+  /**
    * Sub-field labels of a reference field, keyed by sub-field machine name.
    *
    * A reference field may allow several bundles; where the same sub-field
@@ -452,6 +497,280 @@ class DocuSignTokenMapper {
 
   protected function looksLikeDate(string $value): bool {
     return $value !== '' && (bool) preg_match('/^\d{4}-\d{2}-\d{2}/', $value);
+  }
+
+  /**
+   * Build the docGenFormFields PUT payload for a document-generation envelope.
+   *
+   * The tab flow matches on tabLabel, which the author pastes verbatim, so an
+   * exact string compare is enough there. Document generation can't rely on
+   * that: sender-field names are authored in the Agreement Template Builder or
+   * the Word add-in, and neither accepts the dot in our canonical names
+   * (Client.Mail). Authors inevitably write Client_Mail, ClientMail or
+   * client mail instead. So matching is two-pass — exact name first, then a
+   * normalized compare that strips case and every non-alphanumeric character.
+   *
+   * Fields DocuSign declares but we can't resolve are left untouched rather
+   * than blanked, so anything the sender is expected to type themselves
+   * survives into the sender view.
+   *
+   * @param array $docGenFormFields
+   *   The docGenFormFields array exactly as returned by
+   *   DocuSignClient::getDocGenFormFields().
+   * @param array $resolved
+   *   Output of resolveTokensForJob(): list of ['name' => ..., 'value' => ...].
+   *
+   * @return array
+   *   ['payload' => <docGenFormFields shape for the PUT>,
+   *    'matched' => <int>, 'unmatched' => <field names left for the sender>].
+   */
+  public function resolvedToDocGenFields(array $docGenFormFields, array $resolved): array {
+    $byName = [];
+    $byNormalized = [];
+    foreach ($resolved as $entry) {
+      $name = (string) ($entry['name'] ?? '');
+      if ($name === '') {
+        continue;
+      }
+      $value = (string) ($entry['value'] ?? '');
+      $byName[$name] = $value;
+      $normalized = $this->normalizeFieldName($name);
+      // First writer wins: canonical names are unique before normalization,
+      // so a collision here means two different Job fields flattened to the
+      // same key and neither is a safer pick than the other.
+      if ($normalized !== '' && !isset($byNormalized[$normalized])) {
+        $byNormalized[$normalized] = $value;
+      }
+    }
+
+    $payload = [];
+    $matched = 0;
+    $unmatched = [];
+
+    foreach ($docGenFormFields as $document) {
+      $documentId = $document['documentId'] ?? '';
+      if ($documentId === '') {
+        continue;
+      }
+
+      $fields = [];
+      foreach ($document['docGenFormFieldList'] ?? [] as $field) {
+        // DocuSign has returned this key as both "name" and "Name".
+        $fieldName = (string) ($field['name'] ?? $field['Name'] ?? '');
+        if ($fieldName === '') {
+          continue;
+        }
+
+        // Dynamic tables carry rowValues instead of a scalar value; they have
+        // no single Job field to map from, so leave them to the sender.
+        if (($field['type'] ?? '') === 'TableRow' || isset($field['rowValues'])) {
+          $unmatched[] = $fieldName;
+          continue;
+        }
+
+        $value = NULL;
+        if (array_key_exists($fieldName, $byName)) {
+          $value = $byName[$fieldName];
+        }
+        else {
+          $normalized = $this->normalizeFieldName($fieldName);
+          if ($normalized !== '' && array_key_exists($normalized, $byNormalized)) {
+            $value = $byNormalized[$normalized];
+          }
+        }
+
+        if ($value === NULL || $value === '') {
+          $unmatched[] = $fieldName;
+          continue;
+        }
+
+        $fields[] = ['name' => $fieldName, 'value' => $value];
+        $matched++;
+      }
+
+      if ($fields) {
+        $payload[] = [
+          'documentId' => $documentId,
+          'docGenFormFieldList' => $fields,
+        ];
+      }
+    }
+
+    return [
+      'payload' => $payload,
+      'matched' => $matched,
+      'unmatched' => $unmatched,
+    ];
+  }
+
+  /**
+   * Reduce a field name to a case- and punctuation-insensitive key.
+   *
+   * Client.Mail, Client_Mail, "client mail" and ClientMail all collapse to
+   * clientmail.
+   */
+  protected function normalizeFieldName(string $name): string {
+    return strtolower(preg_replace('/[^a-z0-9]+/i', '', $name) ?? '');
+  }
+
+  /**
+   * Structured table rows for a Job, for docxtpl's `{%tr for %}` loops.
+   *
+   * WHY THIS EXISTS SEPARATELY FROM resolveTokensForJob(): that method
+   * flattens a multi-value field into one comma-joined string per sub-field,
+   * so three fee lines arrive as
+   *   Job_Fees.Description => "Delivery Fee, Collection Fee, Service Fee"
+   *   Job_Fees.Amount      => "35.00, 34.94, 12.00"
+   * Parallel strings cannot be walked as rows, and re-splitting them on commas
+   * would corrupt any value that legitimately contains one (an address, a
+   * party name). The rows have to be read from the entities directly.
+   *
+   * resolveTokensForJob() is deliberately left untouched: DocuSign's tab flow
+   * depends on its exact output.
+   *
+   * @return array
+   *   ['Job_Fees' => [['Description' => 'Delivery Fee', 'Amount' => '35.00'], ...]]
+   *   keyed by the same parent name the token picker shows, so a template
+   *   author loops over the name they already know.
+   */
+  public function resolveTableRowsForJob(NodeInterface $jobNode): array {
+    $tables = [];
+    $jobFields = $this->fieldManager->getFieldDefinitions('node', 'job');
+
+    foreach ($jobFields as $fieldName => $fieldDefinition) {
+      if ($fieldDefinition->getFieldStorageDefinition()->isBaseField()) {
+        continue;
+      }
+      if (!in_array($fieldDefinition->getType(), ['entity_reference', 'entity_reference_revisions'], TRUE)) {
+        continue;
+      }
+      // Single-value references are scalars, not tables.
+      if ($fieldDefinition->getFieldStorageDefinition()->getCardinality() === 1) {
+        continue;
+      }
+      if ($jobNode->get($fieldName)->isEmpty()) {
+        continue;
+      }
+
+      $rows = [];
+      foreach ($jobNode->get($fieldName) as $item) {
+        $entity = $item->entity;
+        if (!$entity) {
+          continue;
+        }
+        $row = $this->rowFromEntity($entity);
+        if ($row) {
+          $rows[] = $row;
+        }
+      }
+
+      if ($rows) {
+        $tables[$this->formatVariableName($fieldName)] = $rows;
+      }
+    }
+
+    return $tables;
+  }
+
+  /**
+   * One-column lists drawn from the same rows, for one-item-per-paragraph output.
+   *
+   * WHY THIS EXISTS: the flat pairs from resolveTokensForJob() are unusable for
+   * a multi-value paragraph field. The legacy resolver renders the whole parent
+   * field and assigns that single render to EVERY sub-token of it, so on a Job
+   * with two documents all of these come back identical and glued together —
+   *   Documents.Document_Title => "test document - 5 issued on 25 July 2026
+   *                               test 1 $12.00test document 2"
+   * (the run-on is strip_tags() eating the <li> boundaries), while
+   *   Documents.Affidavit_Template => ""
+   * comes back empty despite both documents naming a template.
+   *
+   * The rows resolveTableRowsForJob() builds already hold the right values, one
+   * entity at a time. This turns each column of those rows into an ordered list
+   * under the SAME dotted name the token picker already offers, so an author
+   * writes the token they already know — {{ Documents.Affidavit_Template }} —
+   * and the merge service expands it to one paragraph per document.
+   *
+   * ⚠ resolveTokensForJob() is deliberately not corrected instead: DocuSign's
+   * tab flow depends on its exact output. This is an addition for the Word
+   * merge path only.
+   *
+   * Empty cells are skipped rather than kept as blanks — a document with no
+   * template should leave no empty bullet behind. That means the lists of two
+   * different columns are NOT row-aligned; each one stands alone.
+   *
+   * @return array
+   *   ['Documents.Affidavit_Template' => ['Test Affidavit 5', 'QCAT - ...'],
+   *    'Job_Fees.Description' => ['Delivery Fee', 'Collection Fee'], ...]
+   *   in the order the paragraphs appear on the Job.
+   */
+  public function resolveListTokensForJob(NodeInterface $jobNode): array {
+    $lists = [];
+
+    foreach ($this->resolveTableRowsForJob($jobNode) as $parent => $rows) {
+      foreach ($rows as $row) {
+        foreach ($row as $column => $cell) {
+          $cell = trim((string) $cell);
+          if ($cell === '') {
+            continue;
+          }
+          $lists[$parent . '.' . $column][] = $cell;
+        }
+      }
+    }
+
+    return $lists;
+  }
+
+  /**
+   * Flatten one referenced entity into a row of scalar cells.
+   *
+   * Keys use formatVariableName() so a cell is addressed the same way the
+   * corresponding token is — `{{ fee.Description }}` for field_description.
+   * ⚠ That Ucfirst-ing is also what keeps the Python side safe: cell names are
+   * looked up as attributes there, and capitalised names cannot collide with
+   * Python's own lowercase string methods.
+   */
+  protected function rowFromEntity($entity): array {
+    $row = [];
+
+    foreach ($entity->getFieldDefinitions() as $subName => $subDefinition) {
+      if ($subDefinition->getFieldStorageDefinition()->isBaseField()) {
+        continue;
+      }
+      if ($entity->get($subName)->isEmpty()) {
+        continue;
+      }
+      $row[$this->formatVariableName($subName)] = $this->cellValue($entity->get($subName));
+    }
+
+    return $row;
+  }
+
+  /**
+   * Render one field of a row as plain text.
+   *
+   * Deliberately simple: a table cell holds a value, not markup. Nested
+   * references render as their label — going deeper would produce a row whose
+   * shape varies by entity, which a template cannot loop over reliably.
+   */
+  protected function cellValue($fieldItemList): string {
+    $parts = [];
+
+    foreach ($fieldItemList as $item) {
+      if (!empty($item->entity) && $item->entity instanceof \Drupal\Core\Entity\EntityInterface) {
+        $parts[] = (string) $item->entity->label();
+        continue;
+      }
+      $value = $item->value ?? '';
+      if (is_scalar($value)) {
+        // Strip markup the same way resolveTokensForJob() does, so a value
+        // looks identical whether it arrives as a token or a table cell.
+        $parts[] = trim(strip_tags((string) $value));
+      }
+    }
+
+    return implode(', ', array_filter($parts, fn($p) => $p !== ''));
   }
 
 }

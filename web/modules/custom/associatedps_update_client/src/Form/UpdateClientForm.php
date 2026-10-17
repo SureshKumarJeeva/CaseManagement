@@ -79,7 +79,7 @@ class UpdateClientForm extends FormBase {
     $node->field_client_update_on->value = date('Y-m-d\Th:i:s', time());
     $node->save();
     $nid = $node->nid->value;
-
+    \drupal::logger('associatedps_update_client')->notice('Client Update node created with NID: @nid', ['@nid' => $nid]);
     EmailTemplateController::createEmailTemplate($nid, $values['job_ref']);
   }
 

@@ -88,8 +88,18 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         $generate_library = 'associatedps_affidavit_template/pandadoc-generate';
       }
       else {
-        $affidavit_url = Url::fromUri('base://docusign/generate-affidavit/' . $nid)->toString();
-        $correspondence_url = Url::fromUri('base://docusign/generate-correspondence/' . $nid)->toString();
+        // Points at our own in-house generator, NOT DocuSign — but this is not
+        // a switchover. WordTemplateController resolves the job's template and
+        // merges it here only when it is a .docx authored in Word for the web;
+        // for a DocuSign tab or doc-gen template, and for the "no template"
+        // selection modal, it hands the request straight to
+        // DocuSignController and the behaviour is identical to before.
+        //
+        // Routing this way round — ours first, deferring to DocuSign — keeps
+        // the new flow out of the controller we are retiring. See
+        // WordTemplateController's class docblock.
+        $affidavit_url = Url::fromUri('base://word-template/generate-affidavit/' . $nid)->toString();
+        $correspondence_url = Url::fromUri('base://word-template/generate-correspondence/' . $nid)->toString();
         $generate_btn_class = 'docusign-generate-btn';
         $generate_library = 'associatedps_affidavit_template/docusign-generate';
       }
@@ -199,6 +209,57 @@ function associatedps_forms_form_alter(&$form, FormStateInterface $form_state, $
         ],
         '#weight' => -10,
       ];
+    }
+
+    // Invoice document download icon, AFTER the "Invoice Drafted" checkbox and
+    // its date (the date box is hidden until ticked, so the icon then sits
+    // right next to the checkbox). Placing it before the checkbox pushed that
+    // row out of line with the other Admin Status rows.
+    // Clicking it downloads private://invoices/[invoice_number].docx,
+    // generating it first (template picker → Xero's current invoice → Python
+    // merge) when it does not exist yet. See InvoiceDocumentController and
+    // assets/js/invoice_document.js in associatedps_affidavit_template.
+    // Saved jobs only; the SAVED invoice number travels on the button so the JS
+    // can tell when the form holds a new, unsaved one.
+    if (isset($form['field_admin_invoiced_date']) && !$job_entity->isNew()) {
+      $saved_invoice_number = $job_entity->hasField('field_invoice_number')
+        ? trim((string) $job_entity->get('field_invoice_number')->value)
+        : '';
+      $form['field_admin_invoiced_date']['invoice_document'] = [
+        '#type' => 'inline_template',
+        '#template' => '<button type="button" class="aps-invoice-doc-btn{{ saved ? \'\' : \' is-disabled\' }}" data-job-id="{{ job_id }}" data-invoice-number="{{ saved }}" title="{{ title }}" aria-label="{{ title }}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1zM5 19h14a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2z"/></svg></button>',
+        '#context' => [
+          'job_id' => $job_entity->id(),
+          'saved' => $saved_invoice_number,
+          'title' => $saved_invoice_number !== ''
+            ? t('Download invoice document (@number.docx)', ['@number' => $saved_invoice_number])
+            : t('Invoice document — generate the invoice in Xero and save the job first'),
+        ],
+        // After the widget (the date); date_autofill.css also gives it the
+        // last flex `order`, so the position never depends on weights alone.
+        '#weight' => 100,
+      ];
+      $form['#attached']['library'][] = 'associatedps_affidavit_template/invoice-document';
+    }
+
+    // Affidavit download icon, AFTER the "Affidavit Drafted" checkbox and its
+    // date — same placement as the invoice icon above. Clicking it downloads
+    // private://affidavits/[job number].docx (saved by every Generate
+    // Affidavit, replacing the previous one), or generates it first via the
+    // Generate Affidavit picker when missing. See
+    // WordTemplateController::affidavitStatus() and
+    // assets/js/affidavit_document.js in associatedps_affidavit_template.
+    if (isset($form['field_admin_affidavit_date']) && !$job_entity->isNew()) {
+      $form['field_admin_affidavit_date']['affidavit_document'] = [
+        '#type' => 'inline_template',
+        '#template' => '<button type="button" class="aps-affidavit-doc-btn" data-job-id="{{ job_id }}" title="{{ title }}" aria-label="{{ title }}"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M12 3a1 1 0 0 1 1 1v9.59l3.3-3.3a1 1 0 1 1 1.4 1.42l-5 5a1 1 0 0 1-1.4 0l-5-5a1 1 0 1 1 1.4-1.42l3.3 3.3V4a1 1 0 0 1 1-1zM5 19h14a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2z"/></svg></button>',
+        '#context' => [
+          'job_id' => $job_entity->id(),
+          'title' => t('Download affidavit (@number.docx)', ['@number' => $job_entity->label()]),
+        ],
+        '#weight' => 100,
+      ];
+      $form['#attached']['library'][] = 'associatedps_affidavit_template/affidavit-document';
     }
 
     // Inline layout for "Affidavit Drafted": the field wrapper
@@ -1181,6 +1242,33 @@ function _associatedps_forms_client_summary_html($client) {
 }
 
 /**
+ * Implements hook_field_widget_single_element_WIDGET_TYPE_form_alter().
+ *
+ * Job Fees and Attendance Notes lists: the row Edit / Remove buttons (and the
+ * inline Remove confirm / Cancel) show Drupal's full-page centred progress
+ * spinner instead of the default throbber inserted next to the clicked button,
+ * which pushed the row out of shape. Set here because #ajax settings are
+ * compiled during form processing — an #after_build is too late.
+ */
+function associatedps_forms_field_widget_single_element_inline_entity_form_complex_table_view_mode_form_alter(&$element, FormStateInterface $form_state, $context) {
+  if (!in_array($context['items']->getName(), ['field_job_fees', 'field_attendance_notes'], TRUE) || empty($element['entities'])) {
+    return;
+  }
+  foreach (Element::children($element['entities']) as $delta) {
+    foreach (['ief_entity_edit', 'ief_entity_remove'] as $button) {
+      if (isset($element['entities'][$delta]['actions'][$button]['#ajax'])) {
+        $element['entities'][$delta]['actions'][$button]['#ajax']['progress'] = ['type' => 'fullscreen'];
+      }
+    }
+    foreach (['ief_remove_confirm', 'ief_remove_cancel'] as $button) {
+      if (isset($element['entities'][$delta]['form']['actions'][$button]['#ajax'])) {
+        $element['entities'][$delta]['form']['actions'][$button]['#ajax']['progress'] = ['type' => 'fullscreen'];
+      }
+    }
+  }
+}
+
+/**
  * Implements hook_field_widget_single_element_form_alter().
  */
 function associatedps_forms_field_widget_single_element_form_alter(&$element, FormStateInterface $form_state, $context) {
@@ -1410,7 +1498,105 @@ function associatedps_forms_inline_entity_form_table_fields_alter(&$fields, $con
       'callback' => '_associatedps_forms_attendance_table_time',
       'weight' => 2,
     ];
+    // Notes column, between Time and Operations (IEF appends Operations last).
+    $fields['attendance_notes'] = [
+      'type' => 'callback',
+      'label' => t('Notes'),
+      'callback' => '_associatedps_forms_attendance_table_notes',
+      'weight' => 3,
+    ];
   }
+
+  // Address Served lists (Service Details popups on the Job Status and
+  // Attendance Note tabs): replace the "Label" column (which showed the
+  // paragraph label "Job … > Address Served") with the street address.
+  // (Works because the address paragraph has no ief_table view display.)
+  if (in_array($context['field_name'], ['field_para_address', 'field_attendance_address_served'], TRUE)) {
+    unset($fields['label']);
+    $fields['address_served'] = [
+      'type' => 'callback',
+      'label' => t('Address Served'),
+      'callback' => '_associatedps_forms_address_served_table_street',
+      'weight' => 1,
+    ];
+  }
+
+  // Job Fees list: add a "Discount" column between Agreed Fee (weight 3) and
+  // Units (weight 4). The other columns come from the
+  // paragraph.job_fees.ief_table view display; this alter runs after it, and
+  // IEF sorts the columns by weight.
+  if ($context['field_name'] === 'field_job_fees') {
+    $fields['discount'] = [
+      'type' => 'callback',
+      'label' => t('Discount'),
+      'callback' => '_associatedps_forms_job_fees_table_discount',
+      'weight' => 3.5,
+    ];
+  }
+}
+
+/**
+ * IEF table callback: the discount amount on a Job Fees row, or '-' when none.
+ *
+ * Fee rules (see service_fee_sync.js):
+ * - Agreed Fee entered: total = agreed * units, NO discount (even when the
+ *   client has a discount %).
+ * - Otherwise: total = standard * units - discount, where
+ *   discount = standard * units * client discount % / 100.
+ * The discount % lives on the client entity (field_agreed_discount), reached
+ * via the row's parent Job. A row added before the Job is first saved has no
+ * parent yet; for it the discount is standard * units - total, which is the
+ * same figure because Total was calculated with the client's discount.
+ */
+function _associatedps_forms_job_fees_table_discount($entity, $variables) {
+  $value = function ($field) use ($entity) {
+    return ($entity->hasField($field) && !$entity->get($field)->isEmpty()) ? (float) $entity->get($field)->value : 0.0;
+  };
+  $standard = $value('field_standard_fee');
+  $agreed = $value('field_agreed_fee');
+  $units = $value('field_units');
+
+  if ($agreed > 0 || $standard <= 0 || $units <= 0) {
+    return ['#plain_text' => '-'];
+  }
+
+  $job = method_exists($entity, 'getParentEntity') ? $entity->getParentEntity() : NULL;
+  if ($job instanceof NodeInterface && $job->hasField('field_client') && !$job->get('field_client')->isEmpty()) {
+    $client = $job->get('field_client')->entity;
+    $percent = ($client && $client->hasField('field_agreed_discount')) ? (float) $client->get('field_agreed_discount')->value : 0.0;
+    $discount = round($standard * $units * $percent / 100, 2);
+  }
+  else {
+    $discount = round($standard * $units - $value('field_total'), 2);
+  }
+
+  if ($discount <= 0) {
+    return ['#plain_text' => '-'];
+  }
+  // Same prefix/suffix as the other fee columns (e.g. "$"), from the Standard
+  // Fee field settings.
+  $definition = $entity->getFieldDefinition('field_standard_fee');
+  $prefix = $definition ? (string) $definition->getSetting('prefix') : '';
+  $suffix = $definition ? (string) $definition->getSetting('suffix') : '';
+  return ['#plain_text' => $prefix . number_format($discount, 2, '.', '') . $suffix];
+}
+
+/**
+ * IEF table callback: an Address Served paragraph's street as "line1 - line3".
+ *
+ * The second street line users see is address_line3: addressLine2 is HIDDEN
+ * on field_address (field overrides), so address_line2 is always empty.
+ */
+function _associatedps_forms_address_served_table_street($entity, $variables) {
+  if (!$entity->hasField('field_address') || $entity->get('field_address')->isEmpty()) {
+    return ['#markup' => ''];
+  }
+  $a = $entity->get('field_address')->first()->getValue();
+  $street = array_filter([
+    trim($a['address_line1'] ?? ''),
+    trim($a['address_line3'] ?? ''),
+  ], 'strlen');
+  return ['#plain_text' => implode(' - ', $street)];
 }
 
 /**
@@ -1425,6 +1611,17 @@ function _associatedps_forms_attendance_table_date($entity, $variables) {
  */
 function _associatedps_forms_attendance_table_time($entity, $variables) {
   return ['#markup' => _associatedps_forms_attendance_dt_format($entity, 'h:i A')];
+}
+
+/**
+ * IEF table callback: an attendance note's Notes (field_notes), line breaks
+ * kept.
+ */
+function _associatedps_forms_attendance_table_notes($entity, $variables) {
+  if (!$entity->hasField('field_notes') || $entity->get('field_notes')->isEmpty()) {
+    return ['#plain_text' => ''];
+  }
+  return ['#markup' => nl2br(Html::escape(trim((string) $entity->get('field_notes')->value)))];
 }
 
 /**
@@ -1448,6 +1645,7 @@ function associatedps_forms_inline_entity_form_entity_form_alter(array &$entity_
   if ($entity_form['#entity_type'] == 'paragraph' && isset($entity_form['#ief_labels']) && in_array('field_service_address', $entity_form['#parents'], TRUE)) {
     $entity_form['#ief_labels']['singular'] = t('Address');
     $entity_form['#ief_labels']['plural'] = t('Addresses');
+    $entity_form['#after_build'][] = '_associatedps_forms_after_build_ief_service_address';
   }
   // Rename IEF labels for Job Fees and add after_build to override button text.
   if ($entity_form['#entity_type'] == 'paragraph' && in_array('field_job_fees', $entity_form['#parents'], TRUE)) {
@@ -1462,6 +1660,31 @@ function associatedps_forms_inline_entity_form_entity_form_alter(array &$entity_
     $entity_form['#ief_labels']['singular'] = t('Attendance');
     $entity_form['#ief_labels']['plural'] = t('Attendances');
     $entity_form['#after_build'][] = '_associatedps_forms_after_build_ief_attendance';
+
+    // New attendance note: default Employee to the job's SAVED Allocated To.
+    // The stored job is reloaded (loadUnchanged) so an unsaved change to
+    // Allocated To on the Job Status tab is NOT picked up — allocation and
+    // attendance entry are done by different people, so only a saved
+    // allocation counts. A new (never saved) job has no allocation yet.
+    if (($entity_form['#op'] ?? '') === 'add'
+        && isset($entity_form['field_by']['widget'][0]['target_id'])
+        && empty($entity_form['field_by']['widget'][0]['target_id']['#default_value'])) {
+      $job = $form_state->getFormObject()->getEntity();
+      if ($job instanceof NodeInterface && !$job->isNew()) {
+        $saved_job = \Drupal::entityTypeManager()->getStorage('node')->loadUnchanged($job->id());
+        if ($saved_job && $saved_job->hasField('field_allocated_to') && !$saved_job->get('field_allocated_to')->isEmpty()) {
+          $allocated = $saved_job->get('field_allocated_to')->entity;
+          if ($allocated) {
+            $entity_form['field_by']['widget'][0]['target_id']['#default_value'] = $allocated;
+          }
+        }
+      }
+    }
+  }
+  // Address Served (Service Details popups on the Job Status and Attendance
+  // Note tabs): rename the inline add/edit save buttons.
+  if ($entity_form['#entity_type'] == 'paragraph' && array_intersect(['field_para_address', 'field_attendance_address_served'], $entity_form['#parents'])) {
+    $entity_form['#after_build'][] = '_associatedps_forms_after_build_ief_address_served';
   }
 }
 
@@ -2030,11 +2253,10 @@ function _associatedps_forms_address_signature($node, $field) {
     return '';
   }
 
-  // The "address" paragraph bundle has THREE editable subfields, all watched so
-  // a change to any one triggers the copy:
+  // The "address" paragraph bundle has TWO editable subfields, both watched so
+  // a change to either one triggers the copy:
   //   field_address                  (Service Address — full address columns)
   //   field_party_to_serve_addresses (Party to Serve Addresses — list_string)
-  //   field_selected_address         (Selected Address — string)
   $parts = [];
 
   if ($para->hasField('field_address') && !$para->get('field_address')->isEmpty()) {
@@ -2054,8 +2276,6 @@ function _associatedps_forms_address_signature($node, $field) {
 
   $parts[] = ($para->hasField('field_party_to_serve_addresses') && !$para->get('field_party_to_serve_addresses')->isEmpty())
     ? trim((string) $para->get('field_party_to_serve_addresses')->value) : '';
-  $parts[] = ($para->hasField('field_selected_address') && !$para->get('field_selected_address')->isEmpty())
-    ? trim((string) $para->get('field_selected_address')->value) : '';
 
   return implode('|', $parts);
 }
@@ -2109,6 +2329,30 @@ function _associatedps_forms_after_build_ief_attendance($element, FormStateInter
 }
 
 /**
+ * After build callback: rename the Party To Serve address IEF add button
+ * from "Create Address" to "Save Address".
+ */
+function _associatedps_forms_after_build_ief_service_address($element, FormStateInterface $form_state) {
+  if (isset($element['actions']['ief_add_save'])) {
+    $element['actions']['ief_add_save']['#value'] = t('Save Address');
+  }
+  return $element;
+}
+
+/**
+ * After build: rename IEF add/edit save buttons for Address Served.
+ */
+function _associatedps_forms_after_build_ief_address_served($element, FormStateInterface $form_state) {
+  if (isset($element['actions']['ief_add_save'])) {
+    $element['actions']['ief_add_save']['#value'] = t('Save Address Served');
+  }
+  if (isset($element['actions']['ief_edit_save'])) {
+    $element['actions']['ief_edit_save']['#value'] = t('Update Address Served');
+  }
+  return $element;
+}
+
+/**
  * After build callback to fix horizontal tabs group mechanism.
  */
 function _associatedps_forms_job_form_after_build($form, FormStateInterface $form_state) {
@@ -2119,6 +2363,12 @@ function _associatedps_forms_job_form_after_build($form, FormStateInterface $for
   // Rename the Attendance Notes IEF "Add new …" button to "Add New Attendance".
   if (isset($form['field_attendance_notes']['widget']['actions']['ief_add'])) {
     $form['field_attendance_notes']['widget']['actions']['ief_add']['#value'] = t('Add New Attendance');
+  }
+  // Rename the Address Served IEF "Add new …" buttons (Service Details popups).
+  foreach (['field_para_address', 'field_attendance_address_served'] as $address_served_field) {
+    if (isset($form[$address_served_field]['widget']['actions']['ief_add'])) {
+      $form[$address_served_field]['widget']['actions']['ief_add']['#value'] = t('Add Address Served');
+    }
   }
 
   return $form;
@@ -2142,6 +2392,7 @@ function _associatedps_forms_after_build_fix_ief_address_selects($form, FormStat
   // restricted to it — the field's global allowed_values otherwise lists
   // addresses from every job.
   $job_addresses = [];
+  $line3_map = [];
   $job = $form_state->getFormObject()->getEntity();
   if ($job instanceof NodeInterface && $job->hasField('field_service_address')) {
     foreach ($job->get('field_service_address')->referencedEntities() as $addr_para) {
@@ -2150,10 +2401,20 @@ function _associatedps_forms_after_build_fix_ief_address_selects($form, FormStat
       }
       $a = $addr_para->get('field_service_address')->first()->getValue();
       $key = ($a['address_line1'] ?? '') . '-' . ($a['locality'] ?? '') . '-' . ($a['administrative_area'] ?? '') . '-' . ($a['postal_code'] ?? '');
-      $job_addresses[$key] = $a['address_line1'] ?? $key;
+      // The second street line users see is address_line3: addressLine2 is
+      // HIDDEN on field_service_address (field overrides), so address_line2 is
+      // always empty. Label "line1 - line3" when line3 is present. The option
+      // VALUE is unchanged: the popup JS parses it to fill the address fields.
+      $line3 = trim($a['address_line3'] ?? '');
+      $label = $a['address_line1'] ?? $key;
+      if ($line3 !== '') {
+        $label .= ' - ' . $line3;
+      }
+      $job_addresses[$key] = $label;
+      $line3_map[$key] = $line3;
     }
   }
-  _associatedps_forms_recurse_fix_address_selects($form, $job_addresses);
+  _associatedps_forms_recurse_fix_address_selects($form, $job_addresses, $line3_map);
   return $form;
 }
 
@@ -2162,15 +2423,19 @@ function _associatedps_forms_after_build_fix_ief_address_selects($form, FormStat
  * select elements, restrict their options to this job's addresses, and inject
  * the submitted value into #options.
  */
-function _associatedps_forms_recurse_fix_address_selects(&$elements, array $job_addresses = []) {
+function _associatedps_forms_recurse_fix_address_selects(&$elements, array $job_addresses = [], array $line3_map = []) {
   foreach (\Drupal\Core\Render\Element::children($elements) as $key) {
     if ($key === 'field_party_to_serve_addresses') {
       // Found the field — look for widget > select inside it.
       _associatedps_forms_inject_address_option($elements[$key], $job_addresses);
+      // Street line 3 is not encoded in the option value; hand it to the popup
+      // JS (party_to_serve_sync.js) keyed by option value. Attached on the
+      // field itself (not the form root) so IEF AJAX responses carry it too.
+      $elements[$key]['#attached']['drupalSettings']['apsPartyServeAddressLine3'] = $line3_map;
     }
     // Recurse into children.
     if (is_array($elements[$key])) {
-      _associatedps_forms_recurse_fix_address_selects($elements[$key], $job_addresses);
+      _associatedps_forms_recurse_fix_address_selects($elements[$key], $job_addresses, $line3_map);
     }
   }
 }
@@ -2811,4 +3076,77 @@ function associatedps_forms_views_query_alter(ViewExecutable $view, QueryPluginB
 
   // WHERE node__field_email.field_email_value = :mail
   $query->addWhere(0, "$alias.field_email_value", $mail, '=');
+}
+
+/**
+ * The app list pages whose search box gets type-ahead suggestions.
+ *
+ * App pages only (user decision 2026-10-15) — Drupal's own /admin/... lists
+ * are left alone. Each of these has one exposed "combine" search filter.
+ */
+function associatedps_forms_list_search_views(): array {
+  return [
+    'document_page',
+    'client_page',
+    'templates',
+    'job_page',
+    'job_page_per_agent',
+    'job_page_per_user',
+    'online_instruction',
+    'online_instruction_manager',
+    'court_name_page',
+    'services',
+    'user_page',
+  ];
+}
+
+/**
+ * The view's exposed search ("combine") filter: its identifier and fields.
+ *
+ * @return array|null
+ *   ['identifier' => 'search', 'fields' => ['title', ...]], or NULL.
+ */
+function associatedps_forms_list_search_filter(ViewExecutable $view): ?array {
+  foreach ($view->display_handler->getOption('filters') as $filter) {
+    if (($filter['plugin_id'] ?? '') === 'combine' && !empty($filter['exposed']) && !empty($filter['expose']['identifier'])) {
+      return [
+        'identifier' => $filter['expose']['identifier'],
+        'fields' => array_keys($filter['fields'] ?? []),
+      ];
+    }
+  }
+  return NULL;
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for views_exposed_form.
+ *
+ * Turns the search box on the app's list pages into a type-ahead: as the user
+ * types, a dropdown suggests matching values from that page's own entities
+ * (see ListSearchAutocompleteController). Picking one only FILLS the box — the
+ * user still presses the page's Apply/Search button (user decision).
+ *
+ * Not Drupal's #autocomplete_route_name: core autocomplete treats commas as
+ * separators between several values, which would mangle addresses and names
+ * containing a comma. assets/js/list_search_autocomplete.js drives jQuery UI
+ * autocomplete directly instead.
+ */
+function associatedps_forms_form_views_exposed_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $view = $form_state->get('view');
+  if (!$view instanceof ViewExecutable || !in_array($view->id(), associatedps_forms_list_search_views(), TRUE)) {
+    return;
+  }
+  $filter = associatedps_forms_list_search_filter($view);
+  if (!$filter || !isset($form[$filter['identifier']])) {
+    return;
+  }
+
+  $form[$filter['identifier']]['#attributes']['class'][] = 'aps-list-search';
+  $form[$filter['identifier']]['#attributes']['data-aps-list-search-url'] = Url::fromRoute('associatedps_forms.list_search_autocomplete', [
+    'view_id' => $view->id(),
+    'display_id' => $view->current_display,
+  ])->toString();
+  // The browser's own autofill dropdown would cover ours.
+  $form[$filter['identifier']]['#attributes']['autocomplete'] = 'off';
+  $form['#attached']['library'][] = 'associatedps_forms/list_search_autocomplete';
 }

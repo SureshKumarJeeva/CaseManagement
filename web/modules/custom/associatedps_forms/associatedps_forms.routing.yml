@@ -57,3 +57,13 @@ associatedps_forms.job_filter:
     # Avoids depending on plain 'access content', which clients/agents also have
     # and which has drifted between environments.
     _permission: 'access content overview'
+
+# Type-ahead suggestions for the search box on the app's list pages. The
+# controller only serves the allow-listed views and also checks the view
+# display's own access, so it never reveals more than the page itself.
+associatedps_forms.list_search_autocomplete:
+  path: '/list-search/autocomplete/{view_id}/{display_id}'
+  defaults:
+    _controller: '\Drupal\associatedps_forms\Controller\ListSearchAutocompleteController::suggest'
+  requirements:
+    _permission: 'access content'

@@ -21,9 +21,6 @@ class JobFilterController extends ControllerBase {
 
     $build['#attached']['library'][] = 'associatedps_forms/job_filter';
 
-    // Render the filter form.
-    $build['filter_form'] = \Drupal::formBuilder()->getForm('Drupal\associatedps_forms\Form\JobFilterForm');
-
     // Read filter parameters from query string.
     $filter_fields = $request->query->all('filter_field');
     $filter_values = $request->query->all('filter_value');
@@ -39,6 +36,18 @@ class JobFilterController extends ControllerBase {
 
     // Get the total count (without pager limit).
     $total_count = $this->getTotalCount($filter_fields, $filter_values);
+
+    // Render the filter form. It is built AFTER the count because the count
+    // shares a row with the form's Results-per-page select, so the form needs
+    // the label as a build argument. Passing it through getForm() (rather than
+    // injecting markup into the returned array) is what keeps the line alive
+    // across the Add Filter / Remove AJAX rebuilds: those replace the whole
+    // #job-filter-form-wrapper from buildForm() alone, and build_info args are
+    // preserved and handed back to buildForm on every rebuild.
+    $build['filter_form'] = \Drupal::formBuilder()->getForm(
+      'Drupal\associatedps_forms\Form\JobFilterForm',
+      $this->resultCountLabel($filter_fields, $filter_values, $total_count)
+    );
 
     // Build results table.
     $build['results'] = $this->buildResultsTable($results, $filter_fields, $filter_values, $total_count);
@@ -219,16 +228,53 @@ class JobFilterController extends ControllerBase {
   }
 
   /**
+   * Whether any filter row carries both a field and a value.
+   *
+   * @param array $filter_fields
+   *   Field names from the query string.
+   * @param array $filter_values
+   *   Values from the query string, positionally matched to $filter_fields.
+   *
+   * @return bool
+   *   TRUE when at least one complete filter pair is present.
+   */
+  protected function hasActiveFilters(array $filter_fields, array $filter_values): bool {
+    foreach ($filter_fields as $i => $f) {
+      if (!empty($f) && ($filter_values[$i] ?? '') !== '') {
+        return TRUE;
+      }
+    }
+
+    return FALSE;
+  }
+
+  /**
+   * The "N job(s) found." / "Total jobs: N" line shown above the results.
+   *
+   * Handed to JobFilterForm as a build argument so it can be rendered on the
+   * same row as the Results-per-page select.
+   *
+   * @param array $filter_fields
+   *   Field names from the query string.
+   * @param array $filter_values
+   *   Values from the query string, positionally matched to $filter_fields.
+   * @param int $total_count
+   *   Total matching jobs, ignoring the pager.
+   *
+   * @return \Drupal\Core\StringTranslation\TranslatableMarkup
+   *   The label, worded according to whether filters are active.
+   */
+  protected function resultCountLabel(array $filter_fields, array $filter_values, int $total_count) {
+    return $this->hasActiveFilters($filter_fields, $filter_values)
+      ? $this->t('@count job(s) found.', ['@count' => $total_count])
+      : $this->t('Total jobs: @count', ['@count' => $total_count]);
+  }
+
+  /**
    * Builds the results table render array.
    */
   protected function buildResultsTable(array $results, array $filter_fields, array $filter_values, int $total_count): array {
-    $has_active_filters = FALSE;
-    foreach ($filter_fields as $i => $f) {
-      if (!empty($f) && ($filter_values[$i] ?? '') !== '') {
-        $has_active_filters = TRUE;
-        break;
-      }
-    }
+    $has_active_filters = $this->hasActiveFilters($filter_fields, $filter_values);
 
     // Columns backed by a real Job field get a 'field' key so the table theme
     // renders a sort link; Postal Code and Allocated To are derived live from
@@ -259,28 +305,30 @@ class JobFilterController extends ControllerBase {
         $node->get('field_deadline')->value ?? '',
         $this->allocatedToName($node),
         $node->get('field_case_status')->value ?? '',
-        Link::fromTextAndUrl(
-          $this->t('Edit'),
-          $edit_url
-        )->toString(),
+        // Cell has to be given as ['data' => …] so the table theme renders the
+        // dropbutton render array instead of casting it to a string; the other
+        // cells above stay plain scalars.
+        ['data' => $this->jobOperations($node)],
       ];
     }
 
     $build = [];
 
-    $count_label = $has_active_filters
-      ? $this->t('@count job(s) found.', ['@count' => $total_count])
-      : $this->t('Total jobs: @count', ['@count' => $total_count]);
-
-    $build['count'] = [
-      '#markup' => '<p id="job-filter-results" class="job-filter-count">' . $count_label . '</p>',
-    ];
-
+    // The count line is no longer rendered here — it now sits on the same row
+    // as the Results-per-page select, which lives inside the filter form. See
+    // page() and JobFilterForm::buildForm().
     $build['table'] = [
       '#type' => 'table',
       '#header' => $header,
       '#rows' => $rows,
       '#empty' => $has_active_filters ? $this->t('No jobs match the selected filters.') : $this->t('Use the filters above to search for jobs.'),
+      // Matches the entity list views (Documents, Clients, …), which set the
+      // equivalent "sticky: true" in their Views table style. Adds the
+      // 'sticky-header' class and core/drupal.tableheader, which in this Drupal
+      // version is pure CSS: table.sticky-header thead gets position:sticky at
+      // top: var(--drupal-displace-offset-top). The theme adds the green nav
+      // bar's height on top of that offset — see style.css.
+      '#sticky' => TRUE,
       '#attributes' => ['id' => 'job-filter-results-table', 'class' => ['job-filter-results']],
     ];
 
@@ -289,6 +337,56 @@ class JobFilterController extends ControllerBase {
     ];
 
     return $build;
+  }
+
+  /**
+   * Builds the Operations dropbutton for one Job row.
+   *
+   * Mirrors the Operations column on the entity list views (Documents, Clients,
+   * …): a dropbutton showing Edit, with Delete behind the toggle. '#type' =>
+   * 'operations' attaches core/drupal.dropbutton itself, so no extra library is
+   * needed here.
+   *
+   * Delete points at the node's own delete-form rather than deleting inline, so
+   * the standard confirmation step, permissions and hook_node_delete() all still
+   * run — a single click never destroys a job. Its destination query returns the
+   * user to this filtered list (current filters, sort and page intact) once the
+   * confirmation is submitted.
+   *
+   * Edit deliberately carries NO destination, unlike the equivalent views link:
+   * a ?destination= on the Job form would override that form's own redirect and
+   * break "Save & Next", which moves the user through the tabs and on to a new
+   * job. This keeps the existing Edit behaviour byte for byte.
+   *
+   * @param \Drupal\node\NodeInterface $node
+   *   The job node.
+   *
+   * @return array
+   *   An 'operations' render array; empty of links if the user may do neither.
+   */
+  protected function jobOperations($node): array {
+    $links = [];
+
+    if ($node->access('update')) {
+      $links['edit'] = [
+        'title' => $this->t('Edit'),
+        'url' => $node->toUrl('edit-form'),
+      ];
+    }
+
+    if ($node->access('delete')) {
+      $links['delete'] = [
+        'title' => $this->t('Delete'),
+        'url' => $node->toUrl('delete-form', [
+          'query' => \Drupal::destination()->getAsArray(),
+        ]),
+      ];
+    }
+
+    return [
+      '#type' => 'operations',
+      '#links' => $links,
+    ];
   }
 
   /**

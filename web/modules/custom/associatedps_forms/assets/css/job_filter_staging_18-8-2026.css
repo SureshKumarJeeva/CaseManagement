@@ -1,0 +1,91 @@
+/* Job Filter Form Styles */
+.job-filter-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 10px;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 4px;
+}
+
+.job-filter-row .form-item {
+  margin: 0;
+  /* min-width:0 is the essential bit: a flex child defaults to min-width:auto
+     and so refuses to shrink below the width of its widest <option>, and the
+     field labels are now long tab/section paths ("Attendance Note-Attendance
+     Note Details-..."). Without it the row overflows and the page gets a
+     horizontal scrollbar. */
+  min-width: 0;
+}
+
+/* Fix the field selector at 60% so it does NOT resize when a value widget
+   appears next to it. Before this, the lone selector was full width and then
+   visibly shrank on selection to make room for the value box — a jarring
+   reflow. Now the selector holds 60% whether or not a value box is present;
+   the value box (tagged .job-filter-value) fills the remaining 40%, and until
+   a field is chosen that space simply stays empty. */
+.job-filter-row .form-item.job-filter-field {
+  flex: 0 0 60%;
+}
+
+.job-filter-row .form-item.job-filter-value {
+  flex: 1 1 0;
+}
+
+/* Widgets must track the shrunken form-item rather than their content width. */
+.job-filter-row .form-item select,
+.job-filter-row .form-item input,
+.job-filter-row .form-item textarea {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* Chosen sets an inline pixel width from the widest option when it initialises,
+   which survives the rule above; override it so the dropdown shrinks too. The
+   long label is kept on one line and ellipsised when the box is narrow, and
+   still shows in full in the open drop. */
+.job-filter-row .chosen-container {
+  width: 100% !important;
+  max-width: 100%;
+}
+
+.job-filter-row .chosen-container .chosen-single span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.job-filter-row .form-item label {
+  font-size: 0.85em;
+  margin-bottom: 4px;
+}
+
+.job-filter-row .button--danger {
+  flex: 0 0 auto;
+}
+
+.form-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.form-actions .form-item {
+  margin: 0;
+}
+
+.form-actions .form-item--per-page {
+  margin-left: auto;
+}
+
+.job-filter-count {
+  font-weight: bold;
+  margin: 15px 0 10px;
+}
+
+.job-filter-results {
+  margin-top: 10px;
+}

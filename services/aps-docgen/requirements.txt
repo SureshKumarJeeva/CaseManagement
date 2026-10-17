@@ -1,0 +1,23 @@
+# APS document generation service.
+#
+# Pinned deliberately: this runs unattended on the app server, and a silent
+# minor bump in docxtpl or jinja2 changes how placeholders are parsed. That
+# would surface as randomly unmerged tokens in client affidavits rather than
+# as an error, so the versions are fixed and upgraded on purpose.
+#
+# Resolved and verified against Python 3.14.7 on 2026-08-26.
+fastapi==0.141.1
+uvicorn[standard]==0.52.4
+docxtpl==0.20.2
+python-multipart==0.0.32
+
+# Transitive, but pinned too: docxtpl delegates all placeholder parsing to
+# Jinja2 and all OOXML handling to python-docx/lxml, so an unpinned bump in
+# either changes merge behaviour without changing our code.
+Jinja2==3.1.6
+python-docx==1.2.0
+lxml==6.1.2
+
+# Test-only. httpx backs fastapi's TestClient.
+pytest==9.1.1
+httpx==0.28.1

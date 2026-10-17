@@ -5,17 +5,17 @@
   <header class="content-header clearfix">
     <div class="layout-container">
       <div class="logo-wrapper">
-        <img src="/themes/custom/associatedps/logo.png" alt="Associated Process Server">
+        <img class="logo-icon" src="/themes/custom/associatedps/Logo_Icon.png" alt="Associated Process Server">
+        <img class="logo-text" src="/themes/custom/associatedps/Logo_Text.png" alt="Associated Process Server">
       </div>
       <div class="page-title-header">
-        <div id="block-associatedps-page-title" class="block block-core block-page-title-block">
-          <h1 class="page-title">
-            <span class="field field--name-title field--type-string field--label-hidden">Associated Process Servers</span>
-          </h1>
-        </div>
-        <div>
+        <div class="header-user-block">
         {% if user_name is not same as("Anonymous") %}
         <input type="hidden" id="user_role" class="logged-in-user-role" value={{ user_role }}>
+          {% if user_phone %}
+          <span class="header-contact">Contact us - {{ user_phone }}</span>
+          <span class="header-divider">|</span>
+          {% endif %}
           <div class="login-btn">
             <h2><a href={{ user_url }}>{{ user_name }}</a>
               <p class="dropdown-menu">

@@ -391,6 +391,119 @@ associatedps_affidavit_template.docusign_signing_callback:
     # cookie) does the authenticated work.
     _access: 'TRUE'
 
+# --- DocuSign Document Generation Routes ---
+#
+# A parallel surface to the DocuSign routes above, not a replacement: template
+# upload and document generation are two different DocuSign products and the
+# app supports both. Everything here runs against the separate Doc Gen sandbox
+# account (DOCUSIGN_DOCGEN_* credentials).
+#
+# There is deliberately no docusign-docgen generate-affidavit route — the Job
+# form's single Generate button keeps calling /docusign/generate-affidavit,
+# which routes to the docgen flow when the resolved Library template is one.
+
+associatedps_affidavit_template.docusign_docgen_config:
+  path: '/admin/config/associatedps/docusign-docgen'
+  defaults:
+    _form: '\Drupal\associatedps_affidavit_template\Form\DocuSignDocGenConfigForm'
+    _title: 'DocuSign Document Generation'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.docusign_docgen_oauth_start:
+  path: '/admin/config/associatedps/docusign-docgen/authorize'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenOAuthController::authorize'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.docusign_docgen_oauth_callback:
+  path: '/docusign-docgen/oauth/callback'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenOAuthController::callback'
+  requirements:
+    _access: 'TRUE'
+
+associatedps_affidavit_template.docusign_docgen_ajax_upload:
+  path: '/admin/content/docusign-docgen/ajax-upload'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::ajaxUpload'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.docusign_docgen_ajax_edit_view:
+  path: '/admin/content/docusign-docgen/ajax-edit-view'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::ajaxCreateEditView'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.docusign_docgen_editor:
+  path: '/admin/content/docusign-docgen/editor/{docgenTemplateId}/{nid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::editorPage'
+    _title: 'DocuSign Document Generation Template Editor'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_docgen_editor_callback:
+  path: '/admin/content/docusign-docgen/editor-callback'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::editorCallback'
+    _title: 'DocuSign Doc Gen Editor Callback'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_docgen_status:
+  path: '/docusign-docgen/status/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::checkStatus'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_docgen_envelope_editor:
+  path: '/docusign-docgen/envelope-editor/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::envelopeEditorPage'
+    _title: 'Review Generated Document'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_docgen_sender_view:
+  path: '/docusign-docgen/sender-view/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::createSenderViewAjax'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+associatedps_affidavit_template.docusign_docgen_download:
+  path: '/docusign-docgen/download/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::downloadPdf'
+  requirements:
+    _permission: 'access content'
+
+associatedps_affidavit_template.docusign_docgen_template_editor_bounce:
+  path: '/docusign-docgen/template-editor-bounce'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::templateEditorBounce'
+  requirements:
+    # Anonymous for the same SameSite-cookie reason as the routes above: the
+    # DocuSign iframe's redirect back to us is cross-origin, so the browser
+    # withholds the session cookie. This page only postMessages the parent.
+    _access: 'TRUE'
+
+associatedps_affidavit_template.docusign_docgen_sender_callback:
+  path: '/docusign-docgen/sender-callback/{envelopeId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\DocuSignDocGenController::senderCallback'
+  requirements:
+    # Anonymous — same reason as the bounce route above.
+    _access: 'TRUE'
+
 associatedps_affidavit_template.docusign_template_editor_bounce:
   path: '/docusign/template-editor-bounce'
   defaults:
@@ -401,3 +514,163 @@ associatedps_affidavit_template.docusign_template_editor_bounce:
     # so the parent window can run the protected editor-callback URL via
     # a top-level same-site navigation that DOES carry the session cookie.
     _access: 'TRUE'
+
+# --- Microsoft 365 / Word for the web template authoring ---------------------
+
+# Push the chosen .docx to SharePoint and return its edit URL as JSON. Called
+# from the Library form's file-input handler; the browser has already opened a
+# blank tab by then and only needs the URL to put in it.
+associatedps_affidavit_template.m365_ajax_upload:
+  path: '/admin/content/m365/ajax-upload'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\M365TemplateController::ajaxUpload'
+  requirements:
+    _permission: 'access content'
+  methods: [POST]
+
+# The Done button. Downloads the edited document and writes it back onto the
+# node's field_import_template.
+associatedps_affidavit_template.m365_pull:
+  path: '/admin/content/m365/pull/{nid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\M365TemplateController::pull'
+  requirements:
+    _permission: 'access content'
+    nid: \d+
+  methods: [POST]
+
+# Abandon an editing session and remove the SharePoint copy.
+associatedps_affidavit_template.m365_discard:
+  path: '/admin/content/m365/discard/{nid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\M365TemplateController::discard'
+  requirements:
+    _permission: 'access content'
+    nid: \d+
+  methods: [POST]
+
+# Connectivity + permission report. Nothing above works until an admin grants
+# Sites.ReadWrite.All, and the failure without it is a bare 403 that reads like
+# a bug, so this page names exactly what is missing.
+associatedps_affidavit_template.m365_status:
+  path: '/admin/config/services/m365-templates'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\M365TemplateController::status'
+    _title: 'Microsoft 365 template editing'
+  requirements:
+    _permission: 'administer site configuration'
+
+associatedps_affidavit_template.m365_reset_token:
+  path: '/admin/config/services/m365-templates/reset-token'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\M365TemplateController::resetToken'
+  requirements:
+    _permission: 'administer site configuration'
+
+# Re-open an existing template for another round of editing — the "Update at
+# DocuSign" equivalent. Needs no stored id: the authoritative copy is ours, so
+# this simply pushes field_import_template up again.
+associatedps_affidavit_template.m365_reopen:
+  path: '/admin/content/m365/reopen/{nid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\M365TemplateController::reopen'
+  requirements:
+    _permission: 'access content'
+    nid: \d+
+  methods: [POST]
+
+# In-house affidavit generation: merges a .docx Library template with the Job's
+# values via our own Python docxtpl service. This is the entry point for
+# Feeds the template picker the Generate button opens: every Library template of
+# the category that holds a .docx, plus which one this job already points at.
+associatedps_affidavit_template.word_templates:
+  path: '/word-template/templates/{category}/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\WordTemplateController::listTemplates'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+
+
+# Generate -> Affidavit. The picker sends the chosen template as ?library_nid=;
+# a job whose template is an old DocuSign one gets a message telling the user to
+# replace it, and no DocuSign call is made.
+associatedps_affidavit_template.word_generate_affidavit:
+  path: '/word-template/generate-affidavit/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\WordTemplateController::generateAffidavit'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+
+
+associatedps_affidavit_template.word_generate_correspondence:
+  path: '/word-template/generate-correspondence/{jobId}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\WordTemplateController::generateCorrespondence'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+
+
+# Generated affidavits live in private://, which Apache cannot serve, so every
+# download comes through Drupal and is permission-checked.
+associatedps_affidavit_template.word_download:
+  path: '/word-template/download/{fid}'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\WordTemplateController::download'
+  requirements:
+    _permission: 'access content'
+    fid: \d+
+
+# Invoice document — the download icon beside "Invoice Drafted" on the Job.
+# status -> (templates -> generate) -> download. The controller also requires
+# edit access to the Job itself.
+associatedps_affidavit_template.invoice_document_status:
+  path: '/invoice-document/{jobId}/status'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\InvoiceDocumentController::status'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+
+
+associatedps_affidavit_template.invoice_document_templates:
+  path: '/invoice-document/{jobId}/templates'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\InvoiceDocumentController::templates'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+
+
+associatedps_affidavit_template.invoice_document_generate:
+  path: '/invoice-document/{jobId}/generate'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\InvoiceDocumentController::generate'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+
+
+associatedps_affidavit_template.invoice_document_download:
+  path: '/invoice-document/{jobId}/download'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\InvoiceDocumentController::download'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+
+
+# Affidavit document — the download icon beside "Affidavit Drafted" on the Job.
+# Serves private://affidavits/[job number].docx; when missing, the icon falls
+# back to the Generate Affidavit picker + word_generate_affidavit route. The
+# controller also requires edit access to the Job itself.
+associatedps_affidavit_template.affidavit_document_status:
+  path: '/affidavit-document/{jobId}/status'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\WordTemplateController::affidavitStatus'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+
+
+associatedps_affidavit_template.affidavit_document_download:
+  path: '/affidavit-document/{jobId}/download'
+  defaults:
+    _controller: '\Drupal\associatedps_affidavit_template\Controller\WordTemplateController::affidavitDownload'
+  requirements:
+    _permission: 'access content'
+    jobId: \d+

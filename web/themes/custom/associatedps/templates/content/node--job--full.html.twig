@@ -109,5 +109,7 @@
   {% if user_role in roles %}
     <a class="use-ajax button button-action button--primary button--small edit" href="/job_list/{{node.id}}" data-dialog-type="modal">Generate Reports</a>
   {% endif %}
-  <a class="button button-action button--primary button--small edit" href="/add/client_update/{{node.id}}">Client Update</a>
+  {# Sends the client the "Attendance Update" email directly (no form);
+     path() adds the CSRF token the route requires. #}
+  <a class="button button-action button--primary button--small edit" href="{{ path('associatedps_update_client.update_email', {'node': node.id}) }}">Update Email</a>
 </article>

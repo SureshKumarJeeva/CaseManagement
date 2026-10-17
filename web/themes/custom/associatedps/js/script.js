@@ -492,16 +492,9 @@
             }
           });
 
-          // Default 'Employee' to 'Allocated to' (same user).
-
-          $('#edit-field-allocated-to').change(function (e) {
-
-            var $allocatedUser = $('#edit_field_allocated_to_chosen a span').text();
-            var $allocatedUserId = $('#edit-field-allocated-to option').filter(':selected').val();
-
-              $('div[id*="_subform_field_by"] a span').text($allocatedUser);
-              $('select[id*="-subform-field-by"] option[value="' + $allocatedUserId + '"]').attr('selected', 'selected');
-          });
+          // (Removed: copying an unsaved 'Allocated to' into Attendance Note
+          // 'Employee'. A new note's Employee now defaults server-side to the
+          // job's SAVED Allocated To — associatedps_forms module.)
 
           // Label overrides.
 
@@ -511,11 +504,6 @@
 
           $(document).ajaxComplete(function () {
 
-            // Trigger the Existing Address function.
-
-           /* existingAddress($addressSelectedKey);
-            $('.draggable .field--name-field-party-to-serve-addresses select').trigger('change');
-            */
             // Label overrides.
 
             $('input[data-drupal-selector=edit-field-client-form-inline-entity-form-actions-ief-add-save]').val('Save');
@@ -977,123 +965,6 @@
             $('.draggable .field--name-field-party-to-serve-addresses select').trigger('change');
           });*/
 
-          var $addressSelectedKey = '';
-
-          // Function to allow populating new address field values with previously entered address values.
-
-          /*function existingAddress($addressSelectedKey) {
-            $('.draggable').on('change focus', '.field--name-field-party-to-serve-addresses select', function (key, value) {
-
-              var $addressLine1 = [];
-              var $addressLine2 = [];
-              var $addressLocality = [];
-              var $addressState = [];
-              var $addressCompany = [];
-              var $addressPostCode = [];
-
-              // Get the list of added addresses.
-
-              $('.party-served-details .field--name-field-address').each(function (index) {
-                $addressLine1.push('[data-drupal-selector="edit-field-service-address-' + index + '-subform-field-address-0-address-address-line1"]');
-                $addressLine2.push('[data-drupal-selector="edit-field-service-address-' + index + '-subform-field-address-0-address-address-line2"]');
-                $addressLocality.push('[data-drupal-selector="edit-field-service-address-' + index + '-subform-field-address-0-address-locality"]');
-                $addressState.push('[data-drupal-selector="edit-field-service-address-' + index + '-subform-field-address-0-address-administrative-area"]');
-                $addressCompany.push('[data-drupal-selector="edit-field-service-address-' + index + '-subform-field-address-0-address-organization"]');
-                $addressPostCode.push('[data-drupal-selector="edit-field-service-address-' + index + '-subform-field-address-0-address-postal-code"]');
-              });
-
-              var $dataSelector = $(this).parent().parent().parent().attr('data-drupal-selector');
-              var $addressSelectedKey = $('div[data-drupal-selector="' + $dataSelector + '"] .field--name-field-selected-address .form-item .form-text').val();
-
-              // Store the newly selected option.
-
-              var $newAddressSelectedKey = $(this).find(':selected').val();
-
-              if ($newAddressSelectedKey == '_none') {
-                $newAddressSelectedKey = $addressSelectedKey;
-              }
-              else if ($newAddressSelectedKey.length < 1) {
-                $addressSelectedKey = '';
-              }
-
-              var $addressLine1Value = [];
-              var $addressLine2Value = [];
-              var $addressLocalityValue = [];
-              var $addressStateValue = [];
-              var $addressCompanyValue = [];
-              var $addressPostCodeValue = [];
-              var $addressIndex = 0;
-              $.each($addressLine1, function (index, value) {
-                $addressLine1Value.push($(value).val());
-                if ($newAddressSelectedKey == $(value).val()) {
-                  $addressIndex = $addressIndex + index;
-                }
-              });
-
-              $.each($addressLine2, function (index, value) {
-                $addressLine2Value.push($(value).val());
-              });
-
-              $.each($addressLocality, function (index, value) {
-                $addressLocalityValue.push($(value).val());
-              });
-
-              $.each($addressState, function (index, value) {
-                $addressStateValue.push($(value).val());
-              });
-
-              $.each($addressCompany, function (index, value) {
-                $addressCompanyValue.push($(value).val());
-              });
-
-              $.each($addressPostCode, function (index, value) {
-                $addressPostCodeValue.push($(value).val());
-              });
-
-              // Remove the Existing Address select menu options.
-
-              $(this).empty();
-
-              $(this).append($('<option>', { value: '' }).text('- None -'));
-
-              // Add addresses to the Existing Address select menu.
-
-              var $selector = $(this);
-
-              $.each($addressLine1Value, function (key, value) {
-                if (value.length > 1) {
-                  $($selector).append($('<option>', { value: value }).text(value));
-                }
-              });
-
-              // Auto populate the address fields with the selected address values.
-
-              if ($newAddressSelectedKey.length > 0) {
-
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .field--name-field-selected-address input').val($newAddressSelectedKey);
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .address-line1').val($addressLine1Value[$addressIndex]);
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .address-line2').val($addressLine2Value[$addressIndex]);
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .locality').val($addressLocalityValue[$addressIndex]);
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .organization').val($addressCompanyValue[$addressIndex]);
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .administrative-area option[value="' + $addressStateValue[$addressIndex] + '"]').attr('selected', 'selected');
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .administrative-area').val($addressStateValue[$addressIndex]);
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .postal-code').val($addressPostCodeValue[$addressIndex]);
-              }
-              else {
-                $('.draggable div[data-drupal-selector="' + $dataSelector + '"] .field--name-field-selected-address input').val($newAddressSelectedKey);
-
-              }
-
-              // Add back the selected option attribute.
-
-              $('option[value="' + $newAddressSelectedKey + '"]', this).attr('selected', 'selected');
-
-            }).trigger('change', [$addressSelectedKey]);
-          }
-          existingAddress($addressSelectedKey);*/
-
-          // $('.draggable .field--name-field-party-to-serve-addresses select').trigger('change');
-
           // Do some things before submitting the form.
 
           $('#edit-submit').click(function (e) {
@@ -1143,7 +1014,10 @@
             $('.fieldset--service-details').show();
           }
 
-          if ($('.fieldset--attendance-notes .attendance-employee-ref .field__item').text().length > 0) {
+          // Show whenever the job has at least one attendance note. (Was keyed
+          // on the Employee name, which is empty on some notes, so jobs whose
+          // notes all lacked it hid the whole section.)
+          if ($('.fieldset--attendance-notes .paragraph--type--attendance-note').length > 0) {
             $('.fieldset--attendance-notes').show();
           }
 
@@ -1291,5 +1165,49 @@
       });
     }
   }
+
+  /**
+   * Flags the pre-content nav bar while it is pinned to the top of the viewport.
+   *
+   * The pinning itself is pure CSS (position: sticky on .region-pre-content).
+   * CSS has no selector for "this sticky element is currently stuck", so the
+   * logo that should appear only once pinned needs a class toggled from here.
+   *
+   * Detection uses the "sticky sentinel" technique: a zero-height marker is
+   * inserted immediately before the bar, so it holds the spot the bar occupies
+   * in normal flow. Unstuck, the two share a top edge; stuck, the bar's top
+   * freezes at the sticky offset while the sentinel keeps scrolling up. That
+   * comparison needs no knowledge of the offset itself, which matters because
+   * the offset varies with the admin toolbar (0 / 39px / 79px).
+   */
+  Drupal.behaviors.apsStickyPreContent = {
+    attach: function (context, settings) {
+      once('aps-sticky-pre-content', '.region-pre-content', context).forEach(function (bar) {
+        var sentinel = document.createElement('div');
+        sentinel.className = 'region-pre-content-sentinel';
+        bar.parentNode.insertBefore(sentinel, bar);
+
+        var update = function () {
+          var stuck = sentinel.getBoundingClientRect().top < bar.getBoundingClientRect().top;
+          $(bar).toggleClass('is-stuck', stuck);
+
+          // Publish the bar's height so sticky list-table headers can park
+          // directly below it instead of behind it. Core pins them at
+          // var(--drupal-displace-offset-top), which only accounts for the
+          // admin toolbar; style.css adds this on top. Measured rather than
+          // hardcoded because the bar's height changes with the logo that the
+          // .is-stuck state reveals, and with the responsive breakpoints.
+          document.documentElement.style.setProperty(
+            '--aps-sticky-nav-height',
+            bar.offsetHeight + 'px'
+          );
+        };
+
+        window.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('resize', update);
+        update();
+      });
+    }
+  };
 
 })(jQuery, Drupal, once);

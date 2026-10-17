@@ -6,11 +6,24 @@ html {
   background-size: 150px;
 }
 
+/* App-wide content text size. Claro leaves `body` unsized, so everything with no
+   font-size of its own inherited the 16px from `html { font-size: 100% }` —
+   table cells, list items, links and bare divs among them, while p/.field__item
+   were force-set to 14px lower down. Setting it here is what makes content one
+   consistent size instead of a 14/16 patchwork.
+
+   ⭐ The exclusions need NO extra work and must stay that way: the page title
+   (23px), nav items (.94rem), username (1.5rem) and the logout/dropdown links
+   (.94rem) all declare their own size, and `rem` resolves against the ROOT
+   <html>, never against this. Do not restate any of them in px — that would
+   re-couple them to this value.
+   ⚠ Corollary: any %/em size elsewhere now measures from 14px, not 16px. */
 body {
   background: #f1f1f1;
   padding-top: 0;
   visibility: hidden;
   width: 100%;
+  font-size: 15px;
 }
 
 body.role-anonymous {
@@ -20,6 +33,224 @@ body.role-anonymous {
 
 p, .field__item, .field__label, .inline-entity-form-node-label {
   font-size: 14px !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Global text colour
+   Body copy is dark grey app-wide, anchors are the brand green, and menu/nav
+   items stay white. Deliberately placed HIGH in the file and written with low
+   specificity so every rule further down still wins — the white menu links
+   (~line 420), the white-on-grey table headers, the coloured buttons and the
+   light text in the dark banner are all intentional exceptions and must keep
+   overriding these.
+   --------------------------------------------------------------------------- */
+:root {
+  --aps-text: #363737;
+  --aps-link: #6e7500;
+}
+
+body,
+h1, h2, h3, h4, h5, h6,
+p, li, dt, dd, th, td, caption, legend, label,
+.field__label, .field__item, .form-item label,
+.inline-entity-form-node-label {
+  color: var(--aps-text);
+}
+
+td{
+  padding: .25rem var(--space-m) !important;
+  height: 3rem !important;
+}
+
+.button {
+  margin-block-end: 0 !important;
+  margin-inline: var(--space-m) !important;
+  padding: calc(var(--space-xs) - 1px) calc(var(--space-m) - 1px) !important;
+}
+
+/* Primary buttons (Save, Search, Save & Next, action-link "Add new …"): the
+   SAME reflected-gradient 3D treatment as the default buttons below, rebuilt in
+   the brand olive rather than grey. Light at both rims, darkest through the
+   middle band, mirrored about 50%; a solid 3px side wall carries the height.
+
+   ⚠ Every declaration here needs !important. Unlike the default-button rule —
+   which earns its win on specificity via two :not()s — this selector is a bare
+   (0,1,0) class, exactly tying Claro's own .button--primary, and Claro's
+   :hover/:active variants outrank it outright. The existing background-color
+   and color were already !important for that reason; the gradient, border and
+   shadows have to follow or Claro repaints them on interaction.
+
+   ⚠ background-color stays as the flat fallback: if the gradient is ever
+   dropped, the button must still be olive, never transparent. */
+.button--primary,
+.button--primary:hover,
+.button--primary:focus {
+  background-color: #6e7500 !important;
+  background-image: linear-gradient(180deg,
+    #939c05 0%,
+    #7d8600 20%,
+    #565c00 50%,
+    #757e00 80%,
+    #8a9300 100%) !important;
+  color: white !important;
+  border: 1px solid #414600 !important;
+  border-radius: 4px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 3px 0 #3a3e00,
+    0 4px 6px -1px rgba(0, 0, 0, 0.35) !important;
+  transition: box-shadow 0.08s ease-out, transform 0.08s ease-out,
+    background-image 0.08s ease-out;
+}
+
+/* Hover: same mirror geometry, every stop ~12 units brighter. */
+.button--primary:hover,
+.button--primary:focus {
+  background-image: linear-gradient(180deg,
+    #a6b006 0%,
+    #8e9800 20%,
+    #656d00 50%,
+    #869000 80%,
+    #9ca600 100%) !important;
+}
+
+/* Pressed: reflection flips (dark rims, lit belly) and the face drops the full
+   3px the side wall stood — same physics as the default buttons. */
+.button--primary:active {
+  background-image: linear-gradient(180deg,
+    #4a4f00 0%,
+    #5c6300 20%,
+    #7a8300 50%,
+    #616800 80%,
+    #4f5500 100%) !important;
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 0 #3a3e00,
+    0 1px 2px rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Default buttons: deep dark grey with white labels (Add Filter, Reset,
+   Preview, IEF Edit, Add another item, …), copied from the reference artwork
+   Cosmetics-UI-changes-shared/mobile-button-web-buttons-click-*.webp.
+
+   ⚠ The label had to flip from black to WHITE with this palette — that is not a
+   style preference, it is what makes the design legible at all. Black on the
+   #2e2e2e middle band is 1.4:1 (invisible); white is 13.6:1. Any later attempt
+   to darken this button further must keep the label white.
+
+   The two :not()s are load-bearing, not tidiness: they lift specificity to
+   (0,3,0) so this beats Claro's own .button (0,1,0) WITHOUT !important — but
+   that also means it would outrank .button--danger (0,1,0) and repaint the red
+   Delete/Remove buttons grey. Excluding both variants covers every case called
+   out: Save / Search / a confirm form's Delete / Cancel account are all
+   #button_type 'primary' (ConfirmFormBase), and Delete on entity edit forms is
+   #button_type 'danger' (EntityForm::actions()).
+
+   Hover/focus repeat the same colours on purpose — otherwise Claro's own
+   .button:hover would flash the button back to its light grey.
+
+   ⭐ REFLECTED (mirrored) gradient: light at BOTH the top and bottom rims,
+   darkest through the MIDDLE band, both halves mirrored about 50%. That is the
+   signature of a convex metal/plastic bar — the rims catch the light source and
+   the horizon reflection, the belly catches neither.
+
+   A reflected LINEAR was chosen over a radial dome on purpose: a radial darkens
+   toward the CORNERS, which on a short wide button just looks grubby, and a
+   radial sized larger than its element paints only the bright inner portion —
+   the falloff lands off-canvas and the face reads flat however the stops are
+   tuned. A linear's 0%/100% are always the element's own edges, so it needs no
+   sizing care.
+
+   3D treatment: the raised look is three layers in one box-shadow —
+     inset 0 1px 0 rgba(255,255,255,.18) → lit top edge
+     0 3px 0 #1c1c1c                     → SOLID, un-blurred: the button's side
+                                           wall, i.e. how tall it stands proud
+     0 4px 6px -1px rgba(0,0,0,.4)       → soft shadow cast on the page
+   :active drops the wall to 0 and pushes the face down by exactly the same 3px,
+   so the press travels the height it stood — that 1:1 match is what reads as a
+   physical button rather than a sliding one. */
+.button:not(.button--primary):not(.button--danger),
+.button:not(.button--primary):not(.button--danger):hover,
+.button:not(.button--primary):not(.button--danger):focus {
+  background-color: #3a3a3a;
+  background-image: linear-gradient(180deg,
+    #5e5e5e 0%,
+    #4a4a4a 20%,
+    #2e2e2e 50%,
+    #454545 80%,
+    #565656 100%);
+  color: #fff;
+  border: 1px solid #232323;
+  border-radius: 4px;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    0 3px 0 #1c1c1c,
+    0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.08s ease-out, transform 0.08s ease-out,
+    background-image 0.08s ease-out;
+}
+
+/* Hover keeps the identical mirror geometry and only raises every stop ~10
+   units — more light on the same object, not a different shape. */
+.button:not(.button--primary):not(.button--danger):hover,
+.button:not(.button--primary):not(.button--danger):focus {
+  background-image: linear-gradient(180deg,
+    #6d6d6d 0%,
+    #585858 20%,
+    #3b3b3b 50%,
+    #525252 80%,
+    #646464 100%);
+}
+
+/* Pressed: the reflection FLIPS. Dark at both rims, light through the middle —
+   the exact inverse of the raised state, which is what a concave face does
+   (the rims fall into shadow, the belly catches the light). Mirroring about
+   the same 50% axis is what keeps it recognisable as the same button. */
+.button:not(.button--primary):not(.button--danger):active {
+  background-image: linear-gradient(180deg,
+    #262626 0%,
+    #353535 20%,
+    #4e4e4e 50%,
+    #383838 80%,
+    #2b2b2b 100%);
+  transform: translateY(3px);
+  box-shadow:
+    inset 0 2px 4px rgba(0, 0, 0, 0.6),
+    0 0 0 #1c1c1c,
+    0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+table {
+  width: -webkit-fill-available !important;
+}
+
+/* Status/warning/error messages keep white text: Claro draws them on a dark
+   #353641 panel and sets the white on .messages itself, meaning its children
+   only INHERIT it — and the element selectors above (p, li, …) target those
+   children directly, which beats inheritance whatever the specificity. So the
+   white has to be restated on the children here. Falls back to #fff if Claro
+   ever stops publishing --messages-fg-color. */
+.messages,
+.messages h1, .messages h2, .messages h3, .messages h4, .messages h5, .messages h6,
+.messages p, .messages li, .messages dt, .messages dd,
+.messages th, .messages td, .messages caption, .messages label {
+  color: var(--messages-fg-color, #fff);
+}
+
+/* Anchors take the brand green. No exclusion is needed for links rendered as
+   buttons (Reset, Create New Job, IEF operations) or as menu items: a class
+   selector such as .button or the menu rules outrank this bare element
+   selector, so those keep their own colours. */
+a {
+  color: var(--aps-link);
+}
+
+a:hover,
+a:focus {
+  color: var(--aps-link);
 }
 
 .tabs.secondary .is-active a {
@@ -49,8 +280,23 @@ p, .field__item, .field__label, .inline-entity-form-node-label {
 .logo-wrapper {
   position: relative;
   left: -33px;
-  width: 76px;
+  width: auto;
   float: left;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Compact/skinnier icon + text images, vertically centered in the banner. */
+.logo-wrapper .logo-icon {
+  height: 44px;
+  width: auto;
+  margin-left: 1rem;
+}
+.logo-wrapper .logo-text {
+  height: 34px;
+  width: auto;
 }
 
 .logo {
@@ -59,6 +305,25 @@ p, .field__item, .field__label, .inline-entity-form-node-label {
   height: auto;
 }
 
+/* Override Claro's core content-header.css padding/margin to keep the banner compact. */
+.content-header {
+  padding-top: 3px !important;
+  padding-bottom: 3px !important;
+  margin-bottom: 0 !important;
+  /* Claro's own content-header.css sets `overflow: hidden` (a float-containment
+     hangover). That CLIPS anything drawn outside the banner box — including the
+     profile flyout below, which hangs past the banner's bottom edge. Must stay
+     visible or the dropdown renders but is invisible. */
+  overflow: visible !important;
+}
+/* Page gutter: every page's content below the nav bar gets the same 1rem inset,
+   matching the logo and page title in the bar above it. page.html.twig uses
+   .layout-container twice — this is the one wrapping the breadcrumb and main
+   content; the banner's copy is exempted by the more specific rule below. */
+.layout-container {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
 .content-header .layout-container {
   margin: 0;
   display:flex;
@@ -67,7 +332,7 @@ p, .field__item, .field__label, .inline-entity-form-node-label {
   left: 0;
 }
 .content-header .page-title-header {
-  height: 75px;
+  height: 54px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -81,33 +346,233 @@ p, .field__item, .field__label, .inline-entity-form-node-label {
   margin: 0;
   width: 100%;
 }
+/* Profile flyout (Logout). Triggered by hovering the whole .login-btn — the menu
+   is a DOM descendant, so moving the pointer down into it keeps the parent's
+   :hover alive and the menu stays open. `top: 100%` puts its top edge exactly on
+   the trigger's bottom edge, leaving no dead gap to cross. */
 .content-header .page-title-header .login-btn:hover .dropdown-menu {
   display: block;
 }
+/* ⭐ position:absolute is the fix, not decoration. As an in-flow <p> inside the
+   <h2>, revealing this grew the h2 on hover, which pushed the username up inside
+   the 54px banner. Out of flow, the username + person icon never move.
+   z-index 200: above the sticky green nav bar (100) so the menu isn't painted
+   over, still below the Drupal toolbar (502). */
 .content-header .page-title-header .login-btn .dropdown-menu {
   display: none;
   list-style: none;
-  padding: 0;
+  position: absolute;
+  top: 90%;
+  right: 0;
+  z-index: 200;
+  min-width: 100%;
+  margin: 0;
+  padding: 6px 0;
+  background-color: var(--color-gray-050);
+  border: 0px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  white-space: nowrap;
 }
 .content-header .region-header .block-local-tasks-block nav .tabs.primary {
   margin: 0;
   padding: 0;
 }
 .region.region-pre-content {
-  background-color: #a9a9a9;
+  background-color: #6e7500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Sticky nav: the bar scrolls with the page until it reaches the top of the
+     viewport, then pins there. z-index stays below the Drupal toolbar (502) so
+     the toolbar keeps overlapping it, but above page content. */
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+/* Pin BELOW the admin toolbar rather than under it — this theme forces
+   #toolbar-bar to position:fixed (see the rule further down), so top:0 would
+   hide the bar behind it for anyone with toolbar access. */
+body.toolbar-fixed .region.region-pre-content {
+  top: 39px;
+}
+body.toolbar-fixed.toolbar-horizontal.toolbar-tray-open .region.region-pre-content {
+  top: 79px;
+}
+/* Zero-height marker the JS inserts to detect the stuck state — must never take
+   up space or paint. */
+.region-pre-content-sentinel {
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+/* Lifted look once pinned, so the bar reads as floating over the content. */
+.region.region-pre-content.is-stuck {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+/* Logo appears only while the bar is pinned (the .is-stuck class is toggled by
+   Drupal.behaviors.apsStickyPreContent in js/script.js — CSS alone cannot tell
+   whether a position:sticky element is currently stuck). Drawn as a ::before
+   background so no block template override is needed to inject an <img>. */
+.region.region-pre-content.is-stuck #block-associatedps-page-title .page-title::before {
+  content: '';
+  display: inline-block;
+  width: 48px;
+  height: 48px;
+  margin-right: 10px;
+  vertical-align: middle;
+  background-image: url(../Logo_Icon_outline.png);
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+}
+/* ===========================================================================
+   MAIN NAVIGATION — ONE global treatment for every role's menu
+   ---------------------------------------------------------------------------
+   Each role is served a DIFFERENT block pointing at a DIFFERENT menu, all of
+   them placed in this same pre-content region:
+
+     block                          menu              role
+     associatedps_mainnavigation    main              aps_administrator
+     associatedps_officemenu        office-menu       office
+     associatedps_managermenu       manager-menu      editor ("Manager")
+     associatedps_agentmenu         agent-menu        agent
+     clientmenu                     client-menu       client
+     loginnavigation                login-navigation  anonymous (disabled)
+
+   ⭐ These rules are deliberately keyed on `.region-pre-content .block-menu`
+   and plain ul/li/a — NOT on block IDs and NOT on menu-name classes. That is
+   the whole point: previously each block was styled by ID, so the six lists had
+   to be kept in sync by hand and drifted badly (office/manager/agent were
+   missing from the dropdown rules entirely, so those roles had no working
+   flyout, and only the admin's block got the green-bar treatment while everyone
+   else kept the old grey pills).
+
+   `.block-menu` is safe to rely on: core's
+   block--system-menu-block.html.twig stamps `block block-menu navigation
+   menu--<name>` onto EVERY system_menu_block, whatever its ID or menu.
+
+   ⚠ Structural selectors also side-step a real markup split. The main, client
+   and login menus have twig overrides emitting BEM classes
+   (`c-menu-main__item--expanded`); office/manager/agent have no override and
+   emit default markup (`menu-item--expanded`). Styling the STATE class would
+   need both spellings — `li` and `li ul` need neither.
+
+   ⚠ Scoped to .region-pre-content, so a menu block placed in some other region
+   gets none of this. All six live here today (verified in block config).
+   =========================================================================== */
+
+/* Right-align + vertically centre whichever menu block this role gets. */
+.region.region-pre-content .block-menu {
+  margin-right: 15px;
+}
+
+/* The bar itself is transparent — the region's own #6e7500 shows through. */
+.region.region-pre-content .block-menu ul {
+  list-style-type: none;
+  display: flex;
+  margin: 0;
+  padding: 0;
+  background-color: transparent;
+}
+
+/* position:relative on EVERY item, at every depth, makes each one the
+   containing block for its own flyout — no --expanded class needed. */
+.region.region-pre-content .block-menu li {
+  display: inline-block;
+  position: relative;
+  padding: 0;
+  padding-right: 4px;
+}
+
+/* Links must be block-level: as inline elements their 8px vertical padding
+   overflowed the line box, so the <li> stayed text-height and the flyout's
+   `top: 100%` resolved *inside* the parent button. Block-level makes the <li>
+   the full button height, so the dropdown opens at its true bottom edge — and
+   it makes each submenu row clickable across its full width. */
+.region.region-pre-content .block-menu a {
+  display: block;
+  color: white;
+  padding: 8px 2rem;
+  background-color: transparent;
+  font-weight: 600;
+  font-size: .94rem;
+  text-decoration: none;
+}
+
+.region.region-pre-content .block-menu a.is-active {
+  text-decoration: underline;
+}
+
+/* Flyout = any <ul> nested inside an <li>. Must restate display:none/block to
+   beat the flex on the bar's own <ul> above (which this inherits by selector).
+   z-index is small on purpose: the sticky bar already carries `z-index: 100`
+   AND creates its own stacking context, so everything in here floats above the
+   page as a unit — 10 only orders it against its siblings inside the bar. */
+.region.region-pre-content .block-menu li ul {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  min-width: 100%;
+  margin: 0;
+  padding: 0;
+  z-index: 10;
+  background-color: #6e7500;
+}
+
+.region.region-pre-content .block-menu li:hover > ul {
+  display: block;
+}
+
+/* Submenu rows stack instead of sitting in the parent's flex row. */
+.region.region-pre-content .block-menu li li {
+  display: block;
+  padding-right: 0;
+  background-color: #6e7500;
+  white-space: nowrap;
+}
+
+/* No hover background on nav items — top-level links stay transparent so the
+   green bar shows through, submenu items fall back to the flyout's #6e7500. */
+#block-associatedps-page-title {
+  margin: 0 !important;
 }
 .region-pre-content #block-associatedps-page-title .page-title {
-  color: black;
+  color: var(--aps-text);
+  font-size: 23px;
   margin: 0;
-  padding: 20px 15px;
+  margin-left: 1rem;
+  padding: 8px 15px;
   text-transform: uppercase;
 }
 
-.region-content #block-associatedps-content {
-  padding-top: 30px;
+.region-content #job-filter-form-wrapper {
+  padding-top: 0px;
 }
+
+.region-content{
+  margin-inline: var(--space-l);
+}
+/* Push user block to the right of the banner; lay out contact | profile inline. */
+.content-header .page-title-header .header-user-block {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.content-header .page-title-header .header-contact {
+  color: #a7a9ac;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.content-header .page-title-header .header-divider {
+  color: #a7a9ac;
+}
+/* Containing block for the profile flyout — without this the absolutely
+   positioned .dropdown-menu would anchor to the page, not to the username. */
 .page-title-header .login-btn {
   padding: 0 20px;
+  position: relative;
 }
 .page-title-header .login-btn h2 {
   /*display: flex;*/
@@ -116,12 +581,24 @@ p, .field__item, .field__label, .inline-entity-form-node-label {
 .page-title-header .login-btn h2 a {
   color:#a7a9ac;
   text-decoration: none;
+  font-size: 1.5rem;
 }
 .page-title-header .login-btn h2 .dropdown-menu {
   text-align: right;
 }
+/* Full-width block rows so the whole strip is a click target, not just the word.
+   ⚠ Colour is NOT the banner's #a7a9ac any more — that grey was chosen against
+   the dark banner and drops to 2.2:1 on the flyout's white panel. */
 .page-title-header .login-btn h2 .dropdown-menu a {
-  color:#a7a9ac;
+  color: var(--aps-text);
+  font-size: .94rem;
+  display: block;
+  padding: 6px 16px;
+}
+.page-title-header .login-btn h2 .dropdown-menu a:hover,
+.page-title-header .login-btn h2 .dropdown-menu a:focus {
+  background-color: #f0f1e6;
+  color: var(--aps-link);
 }
 .page-title-header .login-btn h2:before {
   background-image: url(../images/person.svg);
@@ -232,92 +709,17 @@ tr.paragraph-type--attendance-note {
   margin-top: 0;
 }
 
-/* main-navigation menu & login-navigation menu & client-menu */
+/* main-navigation / login-navigation / client-menu / office / manager / agent
+   ---------------------------------------------------------------------------
+   REMOVED 2026-08-10. This was seven comma-separated selector lists naming six
+   block IDs, and it had to be edited by hand every time a role menu was added —
+   which is exactly how office/manager/agent ended up missing from the dropdown
+   rules and how only the admin block got the green-bar treatment.
 
-#block-mainnavigation .o-menu.c-menu-main,
-#block-loginnavigation .o-menu.c-menu-login-navigation,
-#block-clientmenu .o-menu.c-menu-client-menu,
-#block-associatedps-officemenu ul,
-#block-associatedps-managermenu ul,
-#block-associatedps-agentmenu ul,
-#block-associatedps-mainnavigation .o-menu.c-menu-main{
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  margin-left: 0;
-  background-color: #ebebeb;
-  margin-bottom: 20px;
-}
-#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item,
-#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item,
-#block-associatedps-officemenu ul li,
-#block-associatedps-managermenu ul li,
-#block-associatedps-agentmenu ul li,
-#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item {
-  display: inline-block;
-  padding: 0;
-  padding-right: 4px;
-}
-#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item a,
-#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item a,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item a,
-#block-associatedps-officemenu ul li a,
-#block-associatedps-managermenu ul li a,
-#block-associatedps-agentmenu ul li a,
-#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item a {
-  color: white;
-  padding: 8px 2rem;
-  background-color: #6b6b6b;
-  font-weight: 600;
-}
-#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item a.is-active,
-#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item a.is-active,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item a.is-active,
-#block-associatedps-officemenu ul li a.is-active,
-#block-associatedps-managermenu ul li a.is-active,
-#block-associatedps-agentmenu ul li a.is-active,
-#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item a.is-active{
-text-decoration: underline;
-}
-#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded,
-#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded,
-#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded {
-  position: relative;
-}
-#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul,
-#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul,
-#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin: 0;
-  padding: 0;
-  z-index: 9;
-}
-#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li,
-#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul li,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul li,
-#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li {
-  display: block;
-  background-color: #6b6b6b;
-}
-#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li a,
-#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded ul li a,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded ul li a,
-#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded ul li a {
-  display: inline-block;
-}
-#block-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded:hover ul,
-#block-loginnavigation .o-menu.c-menu-login-navigation .c-menu-login-navigation__item.c-menu-login-navigation__item--expanded:hover ul,
-#block-clientmenu .o-menu.c-menu-client-menu .c-menu-client-menu__item.c-menu-client-menu__item--expanded:hover ul,
-#block-associatedps-mainnavigation .o-menu.c-menu-main .c-menu-main__item.c-menu-main__item--expanded:hover ul {
-  display: block;
-}
+   All of it now lives in the ONE region-scoped group up at "MAIN NAVIGATION —
+   ONE global treatment for every role's menu". Do not reintroduce per-block
+   styling here: ID selectors are (1,0,0) and would silently outrank that group,
+   bringing back the grey #6b6b6b pills for whichever role you named. */
 
 .block-page-title-block {
   line-height: 0;
@@ -651,7 +1053,9 @@ summary {
 
 .page-title span {
   margin-top: 0 !important;
-  font-size: 30px !important;
+  font-size: 23px !important;
+  margin-left: 1rem;
+  color: #363737;
 }
 
 .paragraphs-dropdown-actions input {
@@ -754,10 +1158,6 @@ input[name="field_documents_document_add_more"] {
 }
 
 .field--name-field-service-address .field--name-field-party-to-serve-addresses {
-  display: none !important;
-}
-
-.draggable .field--name-field-selected-address {
   display: none !important;
 }
 
@@ -911,12 +1311,75 @@ input[name="field_documents_document_add_more"] {
 .wrapper-form-add-document .form-submit {
     margin: 0;
 }
-.view-client-page thead tr th, .view-job-page thead tr th, .view-user-page thead tr th, .view-services thead tr th, .view-document-page thead tr th, .view-court-name-page thead tr th, .view-templates thead tr th, .view-job-page-per-user thead tr th, .view-job-page-per-agent thead tr th, .view-online-instruction thead tr th, .view-online-instruction-manager thead tr th {
+/* #job-filter-results-table is the Job filter page's list table: a #type=>table
+   built in JobFilterController, not a view, so it carries no .view-* class and
+   must be named here to get the same grey header as the other list pages. */
+.view-content thead tr th, .view-client-page thead tr th, .view-job-page thead tr th, .view-user-page thead tr th, .view-services thead tr th, .view-document-page thead tr th, .view-court-name-page thead tr th, .view-templates thead tr th, .view-job-page-per-user thead tr th, .view-job-page-per-agent thead tr th, .view-online-instruction thead tr th, .view-online-instruction-manager thead tr th,
+#job-filter-results-table thead tr th {
   background-color: #6b6b6b;
   color: white;
 }
-.view-client-page thead tr th a, .view-job-page thead tr th a, .view-user-page thead tr th a, .view-services thead tr th a, .view-document-page thead tr th a, .view-court-name-page thead tr th a, .view-templates thead tr th a, .view-job-page-per-user thead tr th a, .view-job-page-per-agent thead tr th a, .view-online-instruction thead tr th a, .view-online-instruction-manager thead tr th a {
+.view-content thead tr th a, .view-client-page thead tr th a, .view-job-page thead tr th a, .view-user-page thead tr th a, .view-services thead tr th a, .view-document-page thead tr th a, .view-court-name-page thead tr th a, .view-templates thead tr th a, .view-job-page-per-user thead tr th a, .view-job-page-per-agent thead tr th a, .view-online-instruction thead tr th a, .view-online-instruction-manager thead tr th a,
+#job-filter-results-table thead tr th a {
   color: white;
+}
+
+/* White sort indicators to match the white header text. Claro draws these as a
+   background SVG data URI with the fill baked in (%23000f33 unsorted,
+   %23003ecc active — see core/themes/claro/css/components/tablesort-indicator.css),
+   so the colour cannot be set with a `color` property: the whole data URI has to
+   be restated with fill='%23ffffff'. The paths are otherwise byte-identical to
+   core's. Claro also dims the unsorted arrow to opacity .5, which reads as muddy
+   on the grey header, so it is restored to full. */
+.view-content thead tr th .tablesort, .view-client-page thead tr th .tablesort, .view-job-page thead tr th .tablesort, .view-user-page thead tr th .tablesort, .view-services thead tr th .tablesort, .view-document-page thead tr th .tablesort, .view-court-name-page thead tr th .tablesort, .view-templates thead tr th .tablesort, .view-job-page-per-user thead tr th .tablesort, .view-job-page-per-agent thead tr th .tablesort, .view-online-instruction thead tr th .tablesort, .view-online-instruction-manager thead tr th .tablesort,
+#job-filter-results-table thead tr th .tablesort {
+  opacity: 1;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8'%3e%3cpath d='M1.75.25v1.5h10.5V.25zm0 3v1.5h7.5v-1.5zm0 3v1.5h4.5v-1.5z' fill='%23ffffff'/%3e%3c/svg%3e");
+}
+.view-content thead tr th .tablesort--asc, .view-client-page thead tr th .tablesort--asc, .view-job-page thead tr th .tablesort--asc, .view-user-page thead tr th .tablesort--asc, .view-services thead tr th .tablesort--asc, .view-document-page thead tr th .tablesort--asc, .view-court-name-page thead tr th .tablesort--asc, .view-templates thead tr th .tablesort--asc, .view-job-page-per-user thead tr th .tablesort--asc, .view-job-page-per-agent thead tr th .tablesort--asc, .view-online-instruction thead tr th .tablesort--asc, .view-online-instruction-manager thead tr th .tablesort--asc,
+#job-filter-results-table thead tr th .tablesort--asc {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='16' viewBox='0 0 10 12'%3e%3cpath d='M5 .44L.719 4.718 1.78 5.78 4.25 3.313v7.937h1.5V3.312l2.469 2.47L9.28 4.718 5 .439z' fill='%23ffffff'/%3e%3c/svg%3e");
+}
+.view-content thead tr th .tablesort--desc, .view-client-page thead tr th .tablesort--desc, .view-job-page thead tr th .tablesort--desc, .view-user-page thead tr th .tablesort--desc, .view-services thead tr th .tablesort--desc, .view-document-page thead tr th .tablesort--desc, .view-court-name-page thead tr th .tablesort--desc, .view-templates thead tr th .tablesort--desc, .view-job-page-per-user thead tr th .tablesort--desc, .view-job-page-per-agent thead tr th .tablesort--desc, .view-online-instruction thead tr th .tablesort--desc, .view-online-instruction-manager thead tr th .tablesort--desc,
+#job-filter-results-table thead tr th .tablesort--desc {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='16' viewBox='0 0 10 12'%3e%3cpath d='M4.25.75v7.938l-2.469-2.47L.72 7.282 5 11.561l4.281-4.28L8.22 6.22 5.75 8.687V.75h-1.5z' fill='%23ffffff'/%3e%3c/svg%3e");
+}
+
+/* The three-bars "sortable" hint on every sortable column. This is a DIFFERENT
+   icon from the .tablesort rules above: core renders a .tablesort span only on
+   the column actually being sorted, while this one is drawn by Claro as
+   .sortable-heading > a::after (core/themes/claro/css/components/tables.css).
+   Claro adds the .sortable-heading class to any header cell whose link carries
+   order+sort in its query, which covers both the views and the #type=>table
+   path (claro.theme lines ~1158 and ~1210). Only background-image is overridden
+   so Claro's `no-repeat 50% 50%` and background-size:contain still apply, and
+   the 0.5 opacity is lifted because white at half strength turns muddy on the
+   grey header. */
+.view-content thead tr th.sortable-heading > a::after, .view-client-page thead tr th.sortable-heading > a::after, .view-job-page thead tr th.sortable-heading > a::after, .view-user-page thead tr th.sortable-heading > a::after, .view-services thead tr th.sortable-heading > a::after, .view-document-page thead tr th.sortable-heading > a::after, .view-court-name-page thead tr th.sortable-heading > a::after, .view-templates thead tr th.sortable-heading > a::after, .view-job-page-per-user thead tr th.sortable-heading > a::after, .view-job-page-per-agent thead tr th.sortable-heading > a::after, .view-online-instruction thead tr th.sortable-heading > a::after, .view-online-instruction-manager thead tr th.sortable-heading > a::after,
+#job-filter-results-table thead tr th.sortable-heading > a::after {
+  opacity: 1;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='14' height='8'%3e%3cpath d='M1.75.25v1.5h10.5V.25zm0 3v1.5h7.5v-1.5zm0 3v1.5h4.5v-1.5z' fill='%23ffffff'/%3e%3c/svg%3e");
+}
+
+/* Sticky list-table headers come to rest directly BELOW the green nav bar.
+   Core parks them at var(--drupal-displace-offset-top), which counts the admin
+   toolbar but knows nothing about our sticky bar — so the header would stop at
+   the same line and simply cover it (thead z-index 500 beats the bar's 100).
+   Adding the bar's measured height moves it down to sit against the bar.
+   --aps-sticky-nav-height is published by Drupal.behaviors.apsStickyPreContent
+   in js/script.js and falls back to 0, so pages without the bar are unaffected.
+   Applies to every sticky list table (Documents, Clients, Jobs, …), not just
+   the Job filter page. */
+table.sticky-header thead {
+  top: calc(var(--drupal-displace-offset-top, 0px) + var(--aps-sticky-nav-height, 0px));
+  /* Core sets z-index:500 here, which put the header above the nav bar's
+     dropdown flyouts: the sticky bar has z-index:100 and so forms a stacking
+     context, capping every descendant — including the "Contents" flyout — at
+     100 no matter what z-index the flyout itself is given. Dropping the header
+     below 100 lets the menus open over it. Any positive value still keeps the
+     header above the table body, whose rows are unpositioned. Fixed here rather
+     than by raising the bar, which would push it past the Drupal toolbar. */
+  z-index: 90;
 }
 
 @media (max-width: 600px) {
@@ -942,14 +1405,16 @@ input[name="field_documents_document_add_more"] {
   .tabs.primary {
     margin-left: -31px !important;
   }
-  .logo-wrapper img {
-    max-height: 60px;
-  }
   .logo-wrapper {
-    width: 60px;
-    height: 60px;
+    width: auto;
+    height: auto;
     left: -20px;
-    max-height: 60px;
+  }
+  .logo-wrapper .logo-icon {
+    height: 34px;
+  }
+  .logo-wrapper .logo-text {
+    height: 22px;
   }
   .block-page-title-block {
     margin-top: 22px;
@@ -986,4 +1451,14 @@ input[name="field_documents_document_add_more"] {
   .page-node-type-job .page-content {
     top: 100px;
   }
+}
+
+@media screen and (min-width: 38em) {
+    .page-content {
+        margin-top: 0rem;
+    }
+    .layout-container {
+        margin-right: 1em !important; 
+        margin-left: 1em !important;
+    }
 }

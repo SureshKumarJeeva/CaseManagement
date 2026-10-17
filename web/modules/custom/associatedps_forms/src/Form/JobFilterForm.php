@@ -262,7 +262,7 @@ class JobFilterForm extends FormBase {
   /**
    * {@inheritdoc}
    */
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state, $count_label = '') {
     $filterable_fields = $this->getFilterableFields();
 
     // Build field selector options.
@@ -302,9 +302,20 @@ class JobFilterForm extends FormBase {
       '#suffix' => '</div>',
     ];
 
+    // The filter rows and the Add Filter / Search / Reset buttons read as one
+    // control panel, so they are boxed together by a border. The box is opened
+    // here and closed on 'actions' below rather than by nesting both under a
+    // real container element: nesting would change #array_parents and break the
+    // "field just changed" test further down (which compares against
+    // ['filters', 'row_N', 'filter_field']). Explicit weights keep the two ends
+    // of the straddle in order — 'actions' defaults to #weight 100, and
+    // 'per_page' is weighted past it so the Results-per-page select renders
+    // AFTER the closing tag, i.e. deliberately outside the border.
     $form['filters'] = [
       '#type' => 'container',
       '#tree' => TRUE,
+      '#weight' => 0,
+      '#prefix' => '<div class="job-filter-panel">',
       '#attributes' => ['id' => 'job-filters-container'],
     ];
 
@@ -327,7 +338,7 @@ class JobFilterForm extends FormBase {
 
       $form['filters']['row_' . $i]['filter_field'] = [
         '#type' => 'select',
-        '#title' => $this->t('Field'),
+        '#title' => $this->t('Advanced Search'),
         '#options' => $field_options,
         '#default_value' => $selected_field,
         // Force Chosen on every environment. Auto-enhancement depends on the
@@ -399,6 +410,9 @@ class JobFilterForm extends FormBase {
 
     $form['actions'] = [
       '#type' => 'actions',
+      '#weight' => 100,
+      // Closes the .job-filter-panel opened on 'filters'.
+      '#suffix' => '</div>',
     ];
 
     $form['actions']['add_filter'] = [
@@ -425,9 +439,34 @@ class JobFilterForm extends FormBase {
       '#attributes' => ['class' => ['button']],
     ];
 
-    $form['actions']['per_page'] = [
+    // Results summary and Results-per-page share one row below the panel:
+    // count on the left, select on the right. The row is straddled with
+    // #prefix/#suffix for the same reason the panel above is — see the note on
+    // 'filters'. The count is passed in from JobFilterController rather than
+    // counted here so the query is not run twice, and passing it as a build
+    // ARGUMENT (not by editing the built array) is what keeps it present after
+    // the Add Filter / Remove AJAX rebuilds.
+    // Never hidden with #access: that would drop the #prefix too and leave the
+    // closing </div> on 'per_page' unbalanced. An empty label just renders no
+    // paragraph, and the row still lays the select out on the right.
+    $form['count'] = [
+      '#markup' => $count_label !== ''
+        ? '<p id="job-filter-results" class="job-filter-count">' . $count_label . '</p>'
+        : '',
+      '#weight' => 199,
+      '#prefix' => '<div class="job-filter-summary-row">',
+    ];
+
+    // Sits OUTSIDE the bordered panel (see the note on 'filters'): it is a
+    // display preference for the results table, not one of the search controls.
+    // Still a top-level element, so submitForm's getValue('per_page') is
+    // unaffected by the move out of 'actions'.
+    $form['per_page'] = [
       '#type' => 'select',
       '#title' => $this->t('Results per page'),
+      '#weight' => 200,
+      // Closes the .job-filter-summary-row opened on 'count'.
+      '#suffix' => '</div>',
       '#wrapper_attributes' => ['class' => ['form-item--per-page']],
       // Render as a plain native select, not Chosen. The site's chosen
       // minimum_single is 1, so Chosen would otherwise wrap even this small

@@ -14,7 +14,13 @@ token-picker:
   # Bump this whenever token_picker.js changes: an explicit version makes
   # Drupal emit ?v=<version>, which the cache-busting query string does NOT
   # override, so browsers hold the old file through a cache rebuild.
-  version: 1.1
+  # (2026-09-06: opt-in multiSelect mode that copies a {%p for %} block;
+  #  2026-09-06: the dropdown no longer closes on every selection, and two or
+  #  more fields are joined with line() so a blank value takes its separator
+  #  with it;
+  #  2026-09-06: removing chips from the tray no longer re-opens the dropdown —
+  #  it opens on the search box only.)
+  version: '1.5'
   js:
     assets/js/token_picker.js: {}
 
@@ -73,13 +79,65 @@ docusign-editor:
     - associatedps_affidavit_template/token-picker
 
 docusign-library-form:
-  version: 1.x
+  # Bump on every docusign_library_form.js edit — an explicit version pins the
+  # ?v= URL, which the global cache-busting string does NOT override, so
+  # browsers hold the old file through a cache rebuild
+  # (2026-08-10: upload method popup;
+  #  2026-08-21: third card — edit in Word for the web via Microsoft 365;
+  #  2026-08-22: dropped the untracked-node branch, the endpoint now refuses it;
+  #  2026-08-22: "Edit … in Word (Microsoft 365)" re-edit button;
+  #  2026-08-22: token panel above the form actions;
+  #  2026-08-24: note when the editor will demand a Microsoft sign-in;
+  #  2026-08-28: Done now CLOSES the Word tab BEFORE pulling — Word had not yet
+  #  committed the edits, so a stale file was written back over the author's
+  #  work while the message claimed nothing had changed;
+  #  2026-08-29: Done sends the selected category, so the reload afterwards no
+  #  longer comes back with an empty category that hides the file element;
+  #  2026-08-29: the file-input change handler is DELEGATED — replacing the
+  #  document on an existing template inserts a new input via Drupal AJAX, and
+  #  a directly-bound handler was never on it, so nothing happened at all;
+  #  2026-08-30: the Done panel is REBUILT from the server-side session on page
+  #  load, so a reload no longer strips the Done button away for good; plus a
+  #  4-hour editing-window note, since cron abandons a session after that;
+  #  2026-09-06: the token panel opts in to multiSelect, so picking two fields
+  #  copies a repeating block instead of two loose tokens;
+  #  2026-09-28: no upload-method popup — a chosen .docx goes straight to
+  #  Microsoft 365 and a non-.docx is refused with a message. FIRST UPLOAD shows
+  #  an "Open in Word" button and opens the tab from that click, because a file
+  #  input's change event carries no permission to open a tab; "Update document"
+  #  still opens the tab immediately, since it runs from a real button click;
+  #  2026-10-15: Invoice category — second token panel with the Invoice (Xero)
+  #  tokens, shown only when Category = Invoice;
+  #  2026-10-15: the Job token dropdown opens ABOVE the Invoice token panel).
+  # Quoted: unquoted 2.0 is a YAML float and becomes "2" in the ?v= URL.
+  version: '2.5'
   js:
     assets/js/docusign_library_form.js: {}
   dependencies:
     - core/jquery
     - core/drupal
     - core/once
+    # Supplies window.ApsTokenPicker for the authoring token panel.
+    - associatedps_affidavit_template/token-picker
+    - core/drupalSettings
+
+docusign-docgen-editor:
+  version: 1.0
+  js:
+    assets/js/docusign_docgen_editor.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+    - associatedps_affidavit_template/token-picker
+
+docusign-docgen-envelope-editor:
+  version: 1.0
+  js:
+    assets/js/docusign_docgen_envelope_editor.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
     - core/drupalSettings
 
 email-token-picker:
@@ -100,14 +158,51 @@ email-token-picker:
 docusign-generate:
   # Bump on every docusign_generate.js edit — an explicit version pins the ?v=
   # URL, which the global cache-busting string does NOT override, so browsers
-  # hold the old file through a cache rebuild (2026-07-27: generate loader).
-  version: 1.1
+  # hold the old file through a cache rebuild (2026-07-27: generate loader;
+  # 2026-08-10: doc-gen aware messaging + template badge;
+  #  2026-08-28: in-house Word merge branch — downloads the merged .docx via a
+  #  synthetic anchor click, since window.open() in an async callback is eaten
+  #  by popup blockers;
+  #  2026-09-28: wording matches what actually happens — the overlay says the
+  #  job's details are being merged into the template rather than that an
+  #  envelope is being created, and the generic AJAX failure no longer blames
+  #  envelope generation. The envelope/polling branches are unreachable now that
+  #  the controller never defers to DocuSign;
+  #  2026-09-28: EVERY Generate click opens the template picker first, fed by
+  #  /word-template/templates/{category}/{jobId}, with the job's own template
+  #  pre-selected — so confirming is one click and any other template can be used
+  #  for this run without editing the job).
+  version: '1.5'
   js:
     assets/js/docusign_generate.js: {}
   dependencies:
     - core/jquery
     - core/drupal
     - core/drupalSettings
+
+# Job Status -> Admin Status: the invoice-document download icon beside
+# "Invoice Drafted". Bump on every invoice_document.js edit (explicit version
+# pins the ?v= URL).
+invoice-document:
+  version: '1.0'
+  js:
+    assets/js/invoice_document.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
+
+# Job Status -> Admin Status: the affidavit download icon beside "Affidavit
+# Drafted". Separate from invoice-document on purpose (that one is verified on
+# staging and stays untouched). Bump on every affidavit_document.js edit.
+affidavit-document:
+  version: '1.0'
+  js:
+    assets/js/affidavit_document.js: {}
+  dependencies:
+    - core/jquery
+    - core/drupal
+    - core/once
 
 docusign-envelope-editor:
   version: 1.x

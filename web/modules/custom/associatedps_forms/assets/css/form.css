@@ -245,3 +245,60 @@
   max-width: 100%;
   box-sizing: border-box;
 }
+
+/* Job form: remove Claro's right-hand sidebar (Published / Last saved /
+   Author / Create new revision) and give the main column the full width.
+   Claro lays the form out as a grid (main 3fr + sidebar minmax(22.5rem, 1fr))
+   — hiding the sidebar alone would leave its empty grid column, so the grid
+   is collapsed to one column. (The theme's .layout-region-node-* rules in
+   style.css target the pre-Claro markup and match nothing.) */
+#node-job-form .layout-region--secondary,
+#node-job-edit-form .layout-region--secondary {
+  display: none;
+}
+#node-job-form .layout-form,
+#node-job-edit-form .layout-form {
+  grid-template-columns: minmax(0, 1fr);
+}
+#node-job-form .layout-region--main,
+#node-job-form .layout-region--footer,
+#node-job-edit-form .layout-region--main,
+#node-job-edit-form .layout-region--footer {
+  width: 100%;
+}
+
+/* Job Fees list: keep the Edit / Remove buttons compact so the operations
+   column stays inside the tab. The theme's app-wide .button rule sets
+   margin-inline + padding with !important, which overrode the compact rules
+   in style.css (#job-fees-panel .ief-entity-operations .button), so these
+   need !important too. The Attendance Notes list (Attendance Note tab) gets
+   the same compact buttons. */
+#node-job-form #job-fees-panel .ief-entity-operations,
+#node-job-edit-form #job-fees-panel .ief-entity-operations,
+#node-job-form #attendance-note-panel .field--name-field-attendance-notes .ief-entity-operations,
+#node-job-edit-form #attendance-note-panel .field--name-field-attendance-notes .ief-entity-operations {
+  position: relative;
+  white-space: nowrap;
+  text-align: right;
+}
+#node-job-form #job-fees-panel .ief-entity-operations .button,
+#node-job-edit-form #job-fees-panel .ief-entity-operations .button,
+#node-job-form #attendance-note-panel .field--name-field-attendance-notes .ief-entity-operations .button,
+#node-job-edit-form #attendance-note-panel .field--name-field-attendance-notes .ief-entity-operations .button {
+  margin-inline: 0 0 !important;
+  margin-inline-start: 4px !important;
+  padding: 3px 10px !important;
+  min-height: 0;
+  font-size: 12px;
+  line-height: 1.6;
+}
+/* Attendance Notes list only: buttons left-aligned in the operations column
+   (Job Fees stays right-aligned), with no leading gap before Edit. */
+#node-job-form #attendance-note-panel .field--name-field-attendance-notes .ief-entity-operations,
+#node-job-edit-form #attendance-note-panel .field--name-field-attendance-notes .ief-entity-operations {
+  text-align: left;
+}
+#node-job-form #attendance-note-panel .field--name-field-attendance-notes .ief-entity-operations .button:first-child,
+#node-job-edit-form #attendance-note-panel .field--name-field-attendance-notes .ief-entity-operations .button:first-child {
+  margin-inline-start: 0 !important;
+}

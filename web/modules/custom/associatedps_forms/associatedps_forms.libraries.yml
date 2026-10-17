@@ -23,6 +23,7 @@ party_to_serve_sync:
   dependencies:
     - core/jquery
     - core/once
+    - core/drupalSettings
 
 service_fee_sync:
   js:
@@ -81,6 +82,20 @@ attendance_service_details_modal:
     - core/once
     - core/drupal
     - core/drupal.dialog.ajax
+
+# Type-ahead suggestions for the search box on the app's list pages. Depends on
+# core/drupal.autocomplete only for the jQuery UI autocomplete widget and its
+# styling; Drupal's own autocomplete behaviour binds to input.form-autocomplete,
+# which these inputs are not.
+list_search_autocomplete:
+  version: '1.0'
+  js:
+    assets/js/list_search_autocomplete.js: {}
+  dependencies:
+    - core/jquery
+    - core/once
+    - core/drupal
+    - core/drupal.autocomplete
 
 job_filter:
   css:

@@ -89,15 +89,19 @@
   }
 
   /**
-   * Compose the Address Served from the paragraph address subform inputs.
+   * Address Served, read from the field's IEF list table.
+   *
+   * field_para_address is an inline entity form widget, so a saved entry has
+   * no address inputs in the DOM — only a table row. Its "Address Served"
+   * column (added in associatedps_forms_inline_entity_form_table_fields_alter)
+   * already holds "line1 - line3"; multiple entries are joined with "; ".
    */
   function addressServed() {
-    // The "address" paragraph bundle stores the address columns in field_address.
-    var base = 'field_para_address[0][subform][field_address][0][address]';
-    var parts = ['address_line1', 'locality', 'administrative_area', 'postal_code'].map(function (p) {
-      return ($('[name="' + base + '[' + p + ']"]').val() || '').trim();
-    });
-    return parts.filter(Boolean).join(', ');
+    return $('.field--name-field-para-address td.inline-entity-form-paragraph-address_served')
+      .map(function () { return $(this).text().trim(); })
+      .get()
+      .filter(Boolean)
+      .join('; ');
   }
 
   // Fields shown in the read-only summary, in display order.

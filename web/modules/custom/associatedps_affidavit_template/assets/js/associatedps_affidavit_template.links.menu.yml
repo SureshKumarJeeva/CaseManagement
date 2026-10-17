@@ -1,0 +1,55 @@
+associatedps_affidavit_template.list_templates:
+  title: 'List Templates'
+  description: 'View all templates'
+  route_name: associatedps_affidavit_template.list_templates
+  parent: system.admin_content   # shows under "Content"
+  weight: 20
+
+associatedps_affidavit_template.list_template_documents:
+  title: 'List Document Templates'
+  description: 'View all templates of a document'
+  route_name: associatedps_affidavit_template.list_template_documents
+  parent: system.admin_content   # shows under "Content"
+  weight: 25
+
+associatedps_affidavit_template.xero_account:
+  title: 'Xero Account'
+  description: 'Xero account integration: configuration and sync tools.'
+  route_name: associatedps_affidavit_template.xero_account
+  parent: system.admin_config   # shows under "Configuration"
+  weight: 30
+
+associatedps_affidavit_template.xero_account_config:
+  title: 'Xero Account Configuration'
+  description: 'Configure Xero Account Settings'
+  route_name: associatedps_affidavit_template.xero_account_config
+  parent: associatedps_affidavit_template.xero_account
+  weight: 10
+
+associatedps_affidavit_template.xero_sync_contacts:
+  title: 'Sync Contacts'
+  description: 'Push application Client records to Xero as contacts.'
+  route_name: associatedps_affidavit_template.xero_sync_contacts
+  parent: associatedps_affidavit_template.xero_account
+  weight: 20
+
+associatedps_affidavit_template.pandadoc_config:
+  title: 'PandaDoc Configuration'
+  description: 'Configure PandaDoc API Settings'
+  route_name: associatedps_affidavit_template.pandadoc_config
+  parent: system.admin_config   # shows under "Configuration"
+  weight: 35
+
+associatedps_affidavit_template.docusign_config:
+  title: 'DocuSign Configuration'
+  description: 'Configure DocuSign eSignature integration (JWT Grant)'
+  route_name: associatedps_affidavit_template.docusign_config
+  parent: system.admin_config   # shows under "Configuration"
+  weight: 36
+
+associatedps_affidavit_template.docusign_docgen_config:
+  title: 'DocuSign Document Generation'
+  description: 'Status and consent for the separate Document Generation sandbox account'
+  route_name: associatedps_affidavit_template.docusign_docgen_config
+  parent: system.admin_config   # shows under "Configuration"
+  weight: 37

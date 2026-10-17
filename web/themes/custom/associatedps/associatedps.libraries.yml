@@ -1,15 +1,16 @@
 global-styling:
   # Explicit version pins the ?v= URL (the global cache-busting string does not
-  # override it) — bump on every style.css edit (2026-07-29: APS Admin main-nav dropdown).
-  version: 1.3
+  # override it) — bump on every style.css edit (2026-10-13: removed the
+  # field_selected_address hide rule).
+  version: 1.5
   css:
     base:
       css/style.css: { weight : 200 }
 global-scripts:
   # Bump on every js/*.js edit — an explicit version pins the ?v= URL, which the
-  # cache-busting query string does not override (2026-08-01: stop hiding Party
-  # To Serve tab for agents).
-  version: 1.3
+  # cache-busting query string does not override (2026-10-14: Job view shows
+  # the Attendance Notes section whenever the job has a note).
+  version: 1.6
   js:
     js/moment.js: {}
     js/date.js: {}

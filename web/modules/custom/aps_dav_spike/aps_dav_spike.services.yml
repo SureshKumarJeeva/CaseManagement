@@ -1,0 +1,28 @@
+# Phase 0 spike: the WebDAV endpoint, as an http_middleware.
+#
+# This supersedes the route + controller approach, which CANNOT work. Two core
+# behaviours block it, neither configurable away:
+#
+#  - RouteMethodSubscriber (RoutingEvents::ALTER, priority 5000) forces
+#    ['GET','POST'] onto any route with no `methods:` key, so every DAV verb
+#    405s before the controller is reached.
+#  - OptionsRequestSubscriber (KernelEvents::REQUEST, priority 1000) answers
+#    OPTIONS itself, BEFORE routing. No route declaration can change this, and
+#    OPTIONS is the entire Word handshake.
+#
+# A middleware runs in front of the kernel, so neither subscriber has fired and
+# no route has been matched. That is the only place in Drupal where a DAV verb
+# and a DAV OPTIONS response can both survive.
+#
+# Priority 600 puts this outside every core middleware — ajax_page_state (500),
+# negotiation (400), reverse_proxy (300), cors (250), page_cache (200),
+# content_length (140), kernel_pre_handle (100), session (50). Content
+# negotiation in particular would try to resolve a request format for a .docx
+# PROPFIND, and page_cache must never see these responses.
+services:
+  aps_dav_spike.dav_middleware:
+    class: Drupal\aps_dav_spike\DavMiddleware
+    # No arguments: StackedKernelPass prepends the inner kernel as the first
+    # constructor argument. Declaring it here would inject it twice.
+    tags:
+      - { name: http_middleware, priority: 600 }

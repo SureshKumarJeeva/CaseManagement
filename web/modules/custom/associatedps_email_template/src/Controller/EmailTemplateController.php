@@ -164,10 +164,11 @@ class EmailTemplateController {
 
     else {
 
-      // 'job' (case-status / instructions hooks) and 'cron' (recurring
-      // attendance updates) both pass the template node id directly. Only the
-      // legacy path resolves the template from the client's field_email_template.
-      if ($content_type === 'job' || $content_type === 'cron') {
+      // 'job' (case-status / instructions hooks), 'cron' (recurring attendance
+      // updates) and 'manual' (the Job view page "Update Email" button) all pass
+      // the template node id directly. Only the legacy path resolves the
+      // template from the client's field_email_template.
+      if (in_array($content_type, ['job', 'cron', 'manual'], TRUE)) {
         $template_id = $node_id;
       }
       else {
@@ -238,7 +239,9 @@ class EmailTemplateController {
               //     'body' => $plain_body,
               //   ]);
             }
-            else {
+            // 'manual' sends are independent of the cron schedule, so they do
+            // NOT stamp field_last_mail_time (the cron's countdown anchor).
+            elseif ($content_type !== 'manual') {
               if ($job_list->hasField('field_last_mail_time')) {
                 $job_list->set('field_last_mail_time', date('Y-m-d\Th:i:s', time()));
                 $job_list->save();

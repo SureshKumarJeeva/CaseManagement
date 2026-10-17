@@ -11,7 +11,7 @@
  * When the job status (field_case_status) changes, the Person Delivered To
  * field is automatically set to the currently selected Name to Serve value.
  */
-(function ($, Drupal, once) {
+(function ($, Drupal, once, drupalSettings) {
   'use strict';
 
   /**
@@ -336,6 +336,12 @@
           }
         }
         set('address_line1', line1, false);
+        // The second street line is address_line3 (addressLine2 is hidden on
+        // these address fields). It is not encoded in the option value; the
+        // module passes it in drupalSettings keyed by option value. Blank when
+        // the address has none.
+        var line3Map = (drupalSettings && drupalSettings.apsPartyServeAddressLine3) || {};
+        set('address_line3', line3Map[val] || '', false);
         set('locality', suburb, false);
         set('administrative_area', state, true);
         set('postal_code', postal, false);
@@ -555,4 +561,4 @@
       });
     }
   };
-})(jQuery, Drupal, once);
+})(jQuery, Drupal, once, drupalSettings);

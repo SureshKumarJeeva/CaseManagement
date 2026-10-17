@@ -1,0 +1,5 @@
+name: 'APS DAV Spike (THROWAWAY)'
+type: module
+description: 'Phase 0 spike for the Affidavit Management feature. Proves Word can open a .docx over WebDAV and save back to the server. DELETE THIS MODULE once the question is answered — it is not part of the feature.'
+package: 'APS (temporary)'
+core_version_requirement: ^9 || ^10 || ^11

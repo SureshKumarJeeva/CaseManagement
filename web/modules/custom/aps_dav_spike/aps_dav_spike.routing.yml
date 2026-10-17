@@ -1,0 +1,25 @@
+# Phase 0 spike route. Throwaway — see the module .info.yml.
+#
+# Two things here are load-bearing and carry over to the real implementation:
+#
+# 1. There is deliberately NO `methods:` key. Omitting it makes Symfony accept
+#    every HTTP verb. An explicit list would 405 anything left off it, and Word
+#    needs OPTIONS, PROPFIND, LOCK, UNLOCK, PUT, GET and HEAD to all get
+#    through — a 405 on any one of them collapses the handshake.
+#
+# 2. `_access: 'TRUE'` is not laziness. Word has its own HTTP stack and does
+#    NOT send the Drupal session cookie, so a permission requirement here would
+#    reject every request Word makes. Authorisation is the capability token in
+#    the path instead, checked by the controller.
+#
+# `davpath` is a trailing wildcard because Word addresses both the collection
+# and the file within it during one edit; a single-segment route would 404 half
+# the conversation.
+aps_dav_spike.dav:
+  path: '/aps-dav-spike/{token}/{davpath}'
+  defaults:
+    _controller: '\Drupal\aps_dav_spike\Controller\DavSpikeController::handle'
+    davpath: ''
+  requirements:
+    _access: 'TRUE'
+    davpath: '.*'

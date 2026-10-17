@@ -74,6 +74,30 @@
 .field--name-field-admin-affidavit-date .form-items-inline {
   margin: 0;
 }
+/* Affidavit download icon — same look and placement as the invoice icon:
+   last in the flex row, so next to the date when shown, next to the checkbox
+   column while the date is hidden. */
+.field--name-field-admin-affidavit-date .aps-affidavit-doc-btn {
+  order: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #6e7500;
+  border-radius: 4px;
+  background: #fff;
+  color: #6e7500;
+  cursor: pointer;
+}
+.field--name-field-admin-affidavit-date .aps-affidavit-doc-btn:hover,
+.field--name-field-admin-affidavit-date .aps-affidavit-doc-btn:focus {
+  background: #6e7500;
+  color: #fff;
+}
 
 /* "Job Logged" — field_admin_cover_letter_date inline layout (date-only). */
 .field--name-field-admin-cover-letter-date.field--widget-datetime-default {
@@ -124,6 +148,37 @@
 .field--name-field-admin-invoiced-date > .form-datetime-wrapper,
 .field--name-field-admin-invoiced-date .form-items-inline {
   margin: 0;
+}
+/* Invoice document download icon, AFTER the "Invoice Drafted" checkbox and
+   its date. The checkbox column keeps the shared 16rem, so this row lines up
+   with the others; `order` puts the icon last in the flex row — next to the
+   date when it is shown, next to the checkbox while the date is hidden. */
+.field--name-field-admin-invoiced-date .aps-invoice-doc-btn {
+  order: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 1.75rem;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #6e7500;
+  border-radius: 4px;
+  background: #fff;
+  color: #6e7500;
+  cursor: pointer;
+}
+.field--name-field-admin-invoiced-date .aps-invoice-doc-btn:hover,
+.field--name-field-admin-invoiced-date .aps-invoice-doc-btn:focus {
+  background: #6e7500;
+  color: #fff;
+}
+/* No saved invoice number yet: still clickable (it explains why), but greyed. */
+.field--name-field-admin-invoiced-date .aps-invoice-doc-btn.is-disabled {
+  border-color: #bbb;
+  color: #bbb;
+  background: #fff;
 }
 
 /* "Invoice Sent to Client" — field_admin_send_to_client_date inline layout (date-only). */

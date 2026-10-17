@@ -83,9 +83,9 @@
     $btn.append($spinner);
 
     // Full-screen overlay so the wait is obvious even after the Generate
-    // dropdown closes — envelope creation + editor prep can take several
-    // seconds. Removed on error / no-template; kept through the redirect.
-    showLoadingOverlay('Generating envelope… This can take a few moments.');
+    // dropdown closes — merging a long template takes a few seconds. Removed on
+    // error; kept until the download starts.
+    showLoadingOverlay('Merging this job’s details into the template… This can take a few moments.');
 
     function resetButton() {
       $btn.text(originalText).removeClass('is-disabled').css('pointer-events', '');
@@ -110,17 +110,55 @@
           return;
         }
 
+        // Merged in-house from a .docx template by our own Python service.
+        // There is no envelope and nothing to poll — the document already
+        // exists by the time this response arrives.
+        if (response.method === 'word') {
+          updateLoadingOverlay('Document ready. Starting the download…');
+          // ⚠ NOT window.open(): we are inside an async callback, so the call
+          // is no longer tied to the user's click and popup blockers eat it.
+          // The route replies with Content-Disposition: attachment, so a
+          // synthetic anchor click downloads the file and leaves the Job page
+          // exactly where it is.
+          var link = document.createElement('a');
+          link.href = response.downloadUrl;
+          link.download = response.fileName || '';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+
+          (new Drupal.Message()).add(
+            Drupal.t('Affidavit generated from @template.', { '@template': response.libraryTitle }),
+            { type: 'status' }
+          );
+          resetButton();
+          return;
+        }
+
         if (response.envelope_id && response.status_url) {
-          updateLoadingOverlay('Envelope created. Preparing the DocuSign editor…');
+          // Document generation reports how much of the job it could fill in;
+          // the tab flow has no equivalent figure, so the message differs.
+          if (response.method === 'docgen') {
+            updateLoadingOverlay('Document generated from ' + response.prefilled + ' job field(s). Opening DocuSign for review…');
+          }
+          else {
+            updateLoadingOverlay('Envelope created. Preparing the DocuSign editor…');
+          }
           pollStatus($btn, $spinner, originalText, response.status_url, response.editor_url || response.download_url, 0);
         }
         else {
-          (new Drupal.Message()).add('Unexpected response from DocuSign.', { type: 'error' });
+          // The endpoint now fronts three generators (in-house Word merge,
+          // DocuSign tabs, DocuSign doc-gen), so this no longer means DocuSign
+          // specifically.
+          (new Drupal.Message()).add('Unexpected response from the document generator.', { type: 'error' });
           resetButton();
         }
       },
       error: function (xhr) {
-        var msg = 'Envelope generation request failed.';
+        // Default only. The server's own message — a retired template, no
+        // template assigned, the merge service being down — is parsed below and
+        // is what the user should normally see.
+        var msg = 'The document could not be generated. Please try again.';
         try {
           var resp = JSON.parse(xhr.responseText);
           if (resp.error) {
@@ -185,7 +223,12 @@
   }
 
   /**
-   * Show a modal popup with a scrollable list of available DocuSign templates.
+   * Pick the template to merge this job into, then generate.
+   *
+   * Opened by every Generate click. The job's own template arrives as
+   * `defaultNid` and is pre-selected and scrolled into view, so pressing
+   * Generate straight away does what the button used to do on its own; picking a
+   * different row overrides it for this run only and changes nothing on the job.
    */
   function showTemplateSelectionModal($btn, category, jobId, generateUrl) {
     $('#docusign-template-modal-overlay').remove();
@@ -217,8 +260,8 @@
 
     var $header = $('<div></div>').css({ marginBottom: '16px' });
     $header.append(
-      $('<h3></h3>').text('Select a DocuSign Template').css({ margin: '0 0 8px 0', fontSize: '18px' }),
-      $('<p></p>').text('This job has no linked documents. Please select a ' + category + ' template to generate the envelope.').css({ margin: 0, color: '#666', fontSize: '14px' })
+      $('<h3></h3>').text('Select a template').css({ margin: '0 0 8px 0', fontSize: '18px' }),
+      $('<p></p>').text('Choose the ' + category.toLowerCase() + ' template to merge this job’s details into, then press Generate.').css({ margin: 0, color: '#666', fontSize: '14px' })
     );
 
     var $listContainer = $('<div></div>').css({
@@ -251,7 +294,7 @@
     });
 
     $.ajax({
-      url: '/docusign/templates-by-category/' + encodeURIComponent(category),
+      url: '/word-template/templates/' + encodeURIComponent(category) + '/' + encodeURIComponent(jobId),
       type: 'GET',
       dataType: 'json',
       success: function (response) {
@@ -259,7 +302,7 @@
 
         if (!response.templates || response.templates.length === 0) {
           $listContainer.append(
-            $('<div></div>').text('No ' + category + ' templates available. Please create a template first.').css({ padding: '20px', textAlign: 'center', color: '#888' })
+            $('<div></div>').text('No ' + category.toLowerCase() + ' templates are available yet. Create one on the Template page first — upload a Word document and edit it in Word.').css({ padding: '20px', textAlign: 'center', color: '#888' })
           );
           return;
         }
@@ -273,6 +316,32 @@
             cursor: 'pointer',
             transition: 'background-color 0.15s'
           }).attr('data-nid', tpl.nid).text(tpl.title);
+
+          // The document under the title: two templates can carry the same name,
+          // and the file is what the author recognises.
+          if (tpl.fileName) {
+            $item.append(
+              $('<div></div>').text(tpl.fileName).css({
+                fontSize: '12px',
+                color: '#777',
+                marginTop: '2px'
+              })
+            );
+          }
+
+          if (tpl.nid === response.defaultNid) {
+            $item.append(
+              $('<span></span>').text('This job’s template').css({
+                marginLeft: '8px',
+                padding: '1px 6px',
+                borderRadius: '3px',
+                backgroundColor: '#6e7500',
+                color: '#fff',
+                fontSize: '11px',
+                verticalAlign: 'middle'
+              })
+            );
+          }
 
           $item.on('mouseenter', function () {
             if (selectedNid !== tpl.nid) {
@@ -300,6 +369,17 @@
         });
 
         $listContainer.append($list);
+
+        // Pre-select the job's own template so confirming is a single click.
+        // Triggering the row's own handler keeps the highlight, the selection and
+        // the Generate button in one place rather than repeating that styling.
+        if (response.defaultNid) {
+          var $default = $list.find('li[data-nid="' + response.defaultNid + '"]');
+          if ($default.length) {
+            $default.trigger('click');
+            $default.get(0).scrollIntoView({ block: 'nearest' });
+          }
+        }
       },
       error: function () {
         $loading.text('Failed to load templates. Please try again.');
@@ -332,7 +412,25 @@
             return;
           }
 
-          triggerGenerate($btn, generateUrl);
+          // Always ask which template, even when the job already has one — the
+          // job's own is pre-selected, so confirming is one click, and any other
+          // template can be chosen without editing the job first.
+          //
+          // Job id and category come from the link's own href
+          // (/word-template/generate-affidavit/537) rather than from a server
+          // round trip, so the picker can open immediately.
+          var parts = generateUrl.match(/generate-(affidavit|correspondence)\/(\d+)/i);
+          if (!parts) {
+            // Not a URL we recognise — generate directly rather than block.
+            triggerGenerate($btn, generateUrl);
+            return;
+          }
+
+          var category = parts[1].toLowerCase() === 'correspondence'
+            ? 'Correspondence'
+            : 'Affidavit';
+
+          showTemplateSelectionModal($btn, category, parts[2], generateUrl);
         });
       });
     }

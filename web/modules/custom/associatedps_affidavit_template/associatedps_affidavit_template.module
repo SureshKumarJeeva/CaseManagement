@@ -79,6 +79,77 @@ function associatedps_affidavit_template_form_node_template_form_alter(array &$f
  */
 function associatedps_affidavit_template_form_node_library_form_alter(array &$form, FormStateInterface $form_state, $form_id) {
   _associatedps_affidavit_template_library_form_alter($form, $form_state);
+  _associatedps_affidavit_template_library_first_step($form, $form_state);
+}
+
+/**
+ * Reduce the Library ADD form to Title plus a Next button.
+ *
+ * A template cannot be uploaded to Microsoft 365 usefully until the node it
+ * belongs to exists: the SharePoint file is tracked against a node id, and
+ * without one there is nothing to write the edited document back onto. The old
+ * behaviour let the author upload first and only told them afterwards that the
+ * document could not come back — the worst possible moment, since by then they
+ * may already have edited it.
+ *
+ * So creation is split. Step one captures the title and saves, which mints the
+ * node id. Step two is the ordinary edit form, where category and file upload
+ * appear and every id needed for the round trip already exists.
+ *
+ * Only `title` is required on this bundle, so hiding the rest cannot block the
+ * save. The EDIT form is deliberately untouched.
+ */
+function _associatedps_affidavit_template_library_first_step(array &$form, FormStateInterface $form_state) {
+  $entity = $form_state->getFormObject()->getEntity();
+  if (!$entity || !$entity->isNew()) {
+    return;
+  }
+
+  // Everything except the title and the buttons. Drupal's own internals
+  // (form_build_id, form_token, form_id) must survive or the form will not
+  // submit at all.
+  foreach (array_keys($form) as $key) {
+    if (strpos($key, '#') === 0 || strpos($key, 'form_') === 0) {
+      continue;
+    }
+    if ($key === 'title' || $key === 'actions') {
+      continue;
+    }
+    $form[$key]['#access'] = FALSE;
+  }
+
+  $form['aps_first_step_help'] = [
+    '#type' => 'html_tag',
+    '#tag' => 'p',
+    '#value' => t('Give this template a title first. The category and the Word document come next, once the item exists.'),
+    '#weight' => -100,
+  ];
+
+  if (isset($form['actions']['submit'])) {
+    // Labelled Next because it reads as step one of two; it is still an
+    // ordinary save, and the node really is created here.
+    $form['actions']['submit']['#value'] = t('Next');
+    $form['actions']['submit']['#submit'][] = '_associatedps_affidavit_template_library_first_step_submit';
+  }
+  // Previewing half a form helps nobody.
+  if (isset($form['actions']['preview'])) {
+    $form['actions']['preview']['#access'] = FALSE;
+  }
+}
+
+/**
+ * Send the author straight to the edit form after step one.
+ *
+ * Appended after ::save, so the node id exists by the time this runs.
+ */
+function _associatedps_affidavit_template_library_first_step_submit(array $form, FormStateInterface $form_state) {
+  $node = $form_state->getFormObject()->getEntity();
+  if (!$node || $node->isNew()) {
+    return;
+  }
+
+  \Drupal::messenger()->addStatus(t('Now choose the category and upload the Word document.'));
+  $form_state->setRedirect('entity.node.edit_form', ['node' => $node->id()]);
 }
 
 /**
@@ -122,6 +193,9 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
       'visible' => [
         [':input[name="field_category"]' => ['value' => 'Affidavit']],
         [':input[name="field_category"]' => ['value' => 'Correspondence']],
+        // Invoice templates are authored the same way (.docx → Word for the
+        // web) and merged from the Job's invoice-document download icon.
+        [':input[name="field_category"]' => ['value' => 'Invoice']],
       ],
     ];
   }
@@ -140,7 +214,7 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
 
     $form['available_tokens_picker'] = [
       '#type' => 'select',
-      '#title' => t('Available Tokens'),
+      '#title' => t('Job Available Tokens'),
       '#description' => t('Search and select a field — its token is copied to your clipboard. Paste it into the email body where you want the value to appear.'),
       // Option value = the [node:...] token that gets copied; option label = the
       // readable "<Tab>-<Section>-...-<Field>" path (same labels as the DocuSign
@@ -176,7 +250,7 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
 
     $form['instruction_tokens_picker'] = [
       '#type' => 'select',
-      '#title' => t('Instruction Received - Available Tokens'),
+      '#title' => t('Online Instruction Available tokens'),
       '#description' => t('Search and select an Online Instruction field — its token is copied to your clipboard. Paste it into the email body where you want the value to appear.'),
       '#options' => ['' => t('- Select a token to copy -')] + $instruction_options,
       '#chosen' => TRUE,
@@ -196,11 +270,13 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
   // never run side by side.
   $pandadoc_active = _associatedps_affidavit_template_pandadoc_active();
 
-  // Field visibility states + readonly attribute (Affidavit/Correspondence only).
+  // Field visibility states + readonly attribute (Affidavit/Correspondence/
+  // Invoice — the .docx document categories).
   $template_field_states = [
     'visible' => [
       [':input[name="field_category"]' => ['value' => 'Affidavit']],
       [':input[name="field_category"]' => ['value' => 'Correspondence']],
+      [':input[name="field_category"]' => ['value' => 'Invoice']],
     ],
   ];
   if ($pandadoc_active) {
@@ -210,9 +286,21 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
     }
   }
   else {
-    if (isset($form['field_docusign_template_id'])) {
-      $form['field_docusign_template_id']['#states'] = $template_field_states;
-      $form['field_docusign_template_id']['widget'][0]['value']['#attributes']['readonly'] = 'readonly';
+    // Hide the two DocuSign template ID fields.
+    //
+    // They serve no purpose now: templates are authored in Word for the web,
+    // and generation reads the .docx file attached to the Library item, not a
+    // DocuSign template ID. Nothing writes these fields and nothing reads them.
+    //
+    // #access = FALSE hides them from the form in code. Taking them out of the
+    // form display instead would be a config change, which then has to be
+    // exported and imported on every environment. The fields themselves and any
+    // values already saved in them are left alone; they are removed when the
+    // DocuSign fields are deleted.
+    foreach (['field_docusign_template_id', 'field_docgen_template_id'] as $template_id_field) {
+      if (isset($form[$template_id_field])) {
+        $form[$template_id_field]['#access'] = FALSE;
+      }
     }
   }
 
@@ -225,9 +313,14 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
     }
   }
   else {
+    // Which param came back tells us which editor the user just returned from.
     $docusign_template_id = $request->query->get('docusign_template_id');
     if ($docusign_template_id && isset($form['field_docusign_template_id'])) {
       $form['field_docusign_template_id']['widget'][0]['value']['#default_value'] = $docusign_template_id;
+    }
+    $docgen_template_id = $request->query->get('docgen_template_id');
+    if ($docgen_template_id && isset($form['field_docgen_template_id'])) {
+      $form['field_docgen_template_id']['widget'][0]['value']['#default_value'] = $docgen_template_id;
     }
   }
   $category_param = $request->query->get('category');
@@ -239,6 +332,7 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
   $node = $form_state->getFormObject()->getEntity();
   $nid = $node->id() ?: 0;
   $existingTemplateId = '';
+  $existingDocGenTemplateId = '';
   if ($pandadoc_active) {
     if ($node->hasField('field_pandadoc_template_id')) {
       $existingTemplateId = $node->get('field_pandadoc_template_id')->value ?: '';
@@ -247,6 +341,9 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
   else {
     if ($node->hasField('field_docusign_template_id')) {
       $existingTemplateId = $node->get('field_docusign_template_id')->value ?: '';
+    }
+    if ($node->hasField('field_docgen_template_id')) {
+      $existingDocGenTemplateId = $node->get('field_docgen_template_id')->value ?: '';
     }
   }
 
@@ -284,20 +381,78 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
     $form['#attached']['library'][] = 'associatedps_affidavit_template/pandadoc-library-form';
   }
   else {
-    if (!empty($existingTemplateId)) {
-      $form['docusign_update_btn'] = [
+    // The two "Update at DocuSign" buttons used to be built here, one for a tab
+    // template and one for a Document Generation template. Both are removed:
+    // there is nothing at DocuSign to update any more. A template that already
+    // holds a .docx is re-edited with the "Update document" button below.
+
+    // "Edit in Word" for a template that already has a document — the
+    // equivalent of "Update at DocuSign", but without a stored id. DocuSign has
+    // to remember a template id because the authoritative copy lives at
+    // DocuSign; here the authoritative copy is field_import_template on this
+    // node and SharePoint is only ever a temporary workspace, so re-editing is
+    // just "push the current server file up again".
+    $m365_existing_file = '';
+    $library_node = $form_state->getFormObject()->getEntity();
+    if ($library_node && !$library_node->isNew() && $library_node->hasField('field_import_template')) {
+      $existing = $library_node->get('field_import_template')->getValue();
+      if (!empty($existing[0]['target_id'])) {
+        $existing_file = \Drupal::entityTypeManager()->getStorage('file')->load($existing[0]['target_id']);
+        // Only .docx — Word for the web cannot edit a PDF or a .doc.
+        if ($existing_file && preg_match('/\.docx$/i', $existing_file->getFilename())) {
+          $m365_existing_file = $existing_file->getFilename();
+        }
+      }
+    }
+
+    // Token panel for authoring. Sits immediately above the form actions, so it
+    // is in reach while the author works in the other tab — the tokens are what
+    // they are copying INTO the Word document, so it has to stay on screen for
+    // the whole editing session rather than living on a separate page.
+    //
+    // Only for document categories: the Email category already has its own
+    // picker from the email-token-picker library, and two pickers on one form
+    // would be worse than none.
+    $form['m365_token_panel'] = [
+      '#type' => 'container',
+      '#weight' => 100,
+      '#states' => $template_field_states,
+      '#attributes' => ['id' => 'm365-token-panel'],
+    ];
+    // Invoice category only: a second panel with the Invoice tokens, whose
+    // values are read from Xero when the invoice document is generated
+    // (InvoiceDocumentController). Separate from the Job panel so Affidavit and
+    // Correspondence authors are never offered tokens that would merge empty.
+    $form['m365_invoice_token_panel'] = [
+      '#type' => 'container',
+      '#weight' => 100.5,
+      '#states' => [
+        'visible' => [
+          ':input[name="field_category"]' => ['value' => 'Invoice'],
+        ],
+      ],
+      '#attributes' => ['id' => 'm365-invoice-token-panel'],
+    ];
+    // Push the buttons below it. Without this the panel can land under Save,
+    // which is exactly where nobody looks for it.
+    $form['actions']['#weight'] = 101;
+
+    if ($m365_existing_file !== '') {
+      $form['m365_update_btn'] = [
         '#type' => 'container',
         '#weight' => 99,
         '#states' => $template_field_states,
         'button' => [
           '#type' => 'html_tag',
           '#tag' => 'button',
-          '#value' => 'Update at DocuSign',
+          // Fixed label, deliberately: the filename was in here and its length
+          // dictated the button's width, which made the button impossible to
+          // style consistently. The filename is shown in the panel instead.
+          '#value' => 'Update document',
           '#attributes' => [
             'type' => 'button',
-            'id' => 'docusign-update-btn',
-            'class' => ['button', 'button--primary'],
-            'data-template-id' => $existingTemplateId,
+            'id' => 'm365-update-btn',
+            'class' => ['button'],
             'data-nid' => $nid,
             'style' => 'margin-top:10px;',
           ],
@@ -305,15 +460,143 @@ function _associatedps_affidavit_template_library_form_alter(array &$form, FormS
       ];
     }
 
+    /** @var \Drupal\associatedps_affidavit_template\Service\DocuSignDocGenClient $docgen_client */
+    $docgen_client = \Drupal::service('associatedps_affidavit_template.docusign_docgen_client');
+    $docgen_configured = $docgen_client->isConfigured();
+
     $form['#attached']['drupalSettings']['docusignLibrary'] = [
       'ajaxUploadUrl' => '/admin/content/docusign/ajax-upload',
       'ajaxSessionUrl' => '/admin/content/docusign/ajax-edit-view',
       'editorPageBaseUrl' => '/admin/content/docusign/editor',
       'existingTemplateId' => $existingTemplateId,
       'nid' => $nid,
+      // The upload-method popup needs to know whether the Doc Gen sandbox
+      // account is usable BEFORE the user picks it — an unconfigured account
+      // should grey the option out with the reason, not fail after upload.
+      'docgen' => [
+        'ajaxUploadUrl' => '/admin/content/docusign-docgen/ajax-upload',
+        'ajaxSessionUrl' => '/admin/content/docusign-docgen/ajax-edit-view',
+        'editorPageBaseUrl' => '/admin/content/docusign-docgen/editor',
+        'existingTemplateId' => $existingDocGenTemplateId,
+        'configured' => $docgen_configured,
+        'configError' => $docgen_configured ? '' : $docgen_client->getConfigurationError(),
+      ],
+      // Third option in the same popup: author the .docx in Word for the web
+      // and merge tokens ourselves later. Same reasoning as docgen above — the
+      // card is greyed with the reason rather than failing after the upload,
+      // because the usual cause is a missing Entra grant that only an
+      // administrator can fix.
+      'm365' => _associatedps_affidavit_template_m365_settings((int) $nid),
+      // [{label, value}] — label is the field's Tab-Section-Field path from the
+      // Job form display, value is the token the author pastes into the Word
+      // document. Same labels as the DocuSign editor page, so the two pickers
+      // never drift apart; the Jinja2 variant only changes what is pasted,
+      // because these .docx templates are merged by Python docxtpl and DocuSign
+      // still needs the bare name. See getJobVariableOptionsJinja().
+      'tokens' => \Drupal::service('associatedps_affidavit_template.docusign_token_mapper')
+        ->getJobVariableOptionsJinja(),
+      // Invoice.* / Invoice_Lines.* tokens for the Invoice-only panel; the
+      // same constants feed the merge payload, so they cannot drift.
+      'invoiceTokens' => \Drupal\associatedps_affidavit_template\Controller\InvoiceDocumentController::tokenOptions(
+        \Drupal::service('associatedps_affidavit_template.docusign_token_mapper')
+      ),
     ];
     $form['#attached']['library'][] = 'associatedps_affidavit_template/docusign-library-form';
   }
+}
+
+/**
+ * Settings for the "Edit in Word (Microsoft 365)" card on the Library form.
+ *
+ * Deliberately total and non-throwing: this runs while building a node form, so
+ * a Microsoft outage, an expired secret or a missing Entra grant must grey the
+ * card out with an explanation — never break the Library form itself.
+ *
+ * The permission check costs at most one token request per hour (the token is
+ * cached; after that it is a local JWT decode), because the answer has to be
+ * known BEFORE the author picks the option rather than after the upload fails.
+ *
+ * @return array
+ *   Keys: enabled, ajaxUploadUrl, configError.
+ */
+function _associatedps_affidavit_template_m365_settings(int $nid = 0): array {
+  $settings = [
+    'enabled' => FALSE,
+    'ajaxUploadUrl' => '/admin/content/m365/ajax-upload',
+    'reopenBaseUrl' => '/admin/content/m365/reopen',
+    'configError' => '',
+    // An editing session already in progress for this node, so the Done panel
+    // can be rebuilt on page load.
+    //
+    // WHY: the panel used to live only in the browser, built from the upload
+    // response, so anything that reloaded the Library tab took the Done button
+    // with it permanently. The longer someone edits in the other tab the
+    // likelier that is, because browsers DISCARD idle background tabs to
+    // reclaim memory and silently reload them on return; a stray refresh or
+    // Back does the same. The document was still safe in SharePoint, but there
+    // was no way left to pull it back.
+    //
+    // The session is already recorded server-side, so that is the reliable
+    // source of truth. See M365EditSessionStore::getOpen().
+    'openSession' => NULL,
+  ];
+
+  try {
+    /** @var \Drupal\associatedps_affidavit_template\Service\GraphDriveClient $graph */
+    $graph = \Drupal::service('associatedps_affidavit_template.graph_drive');
+
+    if (!$graph->isConfigured()) {
+      $settings['configError'] = 'Unavailable — Microsoft 365 credentials are not set on this server.';
+      return $settings;
+    }
+
+    if (!$graph->hasSitesWritePermission()) {
+      $settings['configError'] = 'Unavailable — the Microsoft 365 app registration has not been granted '
+        . 'Sites.ReadWrite.All. An administrator must grant it and consent in Entra ID.';
+      return $settings;
+    }
+
+    $settings['enabled'] = TRUE;
+  }
+  catch (\Throwable $e) {
+    \Drupal::logger('associatedps_affidavit_template')->warning(
+      'M365 availability check failed while building the Library form: @msg',
+      ['@msg' => $e->getMessage()]
+    );
+    $settings['configError'] = 'Unavailable — could not reach Microsoft 365 (' . $e->getMessage() . ').';
+  }
+
+  // Rebuild data for an editing session that is already open on this node.
+  // Deliberately outside the try above: even if the availability probe failed,
+  // an already-open session still needs its Done button back.
+  if ($nid) {
+    try {
+      /** @var \Drupal\associatedps_affidavit_template\Service\M365EditSessionStore $sessions */
+      $sessions = \Drupal::service('associatedps_affidavit_template.m365_sessions');
+      $session = $sessions->getOpen($nid);
+      if ($session) {
+        $settings['openSession'] = [
+          'fileName' => $session['file_name'] ?? '',
+          'pullUrl' => '/admin/content/m365/pull/' . $nid,
+          'discardUrl' => '/admin/content/m365/discard/' . $nid,
+          // Minutes elapsed, so the panel can say how much of the four-hour
+          // window is left. Cron abandons an open session after four hours.
+          'startedMinutesAgo' => isset($session['created'])
+            ? (int) floor((\Drupal::time()->getRequestTime() - (int) $session['created']) / 60)
+            : 0,
+          'maxEditMinutes' => 240,
+        ];
+      }
+    }
+    catch (\Throwable $e) {
+      \Drupal::logger('associatedps_affidavit_template')->warning(
+        'Could not read the open M365 session for node @nid: @msg',
+        ['@nid' => $nid, '@msg' => $e->getMessage()]
+      );
+    }
+  }
+
+  return $settings;
 }
 
 /**
@@ -456,4 +739,68 @@ function _associatedps_affidavit_template_sync_client_to_xero(NodeInterface $nod
   \Drupal::messenger()->addStatus(t('Client synced to Xero (ContactID: @cid).', [
     '@cid' => $contact_id ?: t('(unavailable)'),
   ]));
+}
+/**
+ * Implements hook_cron().
+ *
+ * Removes SharePoint copies that could not be deleted at the time.
+ *
+ * Two cases, both normal rather than exceptional:
+ *
+ *  - cleanup_pending: the author pressed Done (or Discard) while Word for the
+ *    web still held a lock on the document, so the delete returned HTTP 423
+ *    resourceLocked. The document was already safely on our server by then;
+ *    only the remote copy lingers. Word releases the lock a few minutes after
+ *    the last editor closes, so the retry is delayed rather than immediate.
+ *
+ *  - open, but hours old: the author closed the tab and never pressed Done.
+ *    Nothing is coming back, and leaving a copy of a court document sitting in
+ *    SharePoint indefinitely is not acceptable, so it is removed.
+ */
+function associatedps_affidavit_template_cron() {
+  /** @var \Drupal\associatedps_affidavit_template\Service\M365EditSessionStore $sessions */
+  $sessions = \Drupal::service('associatedps_affidavit_template.m365_sessions');
+  /** @var \Drupal\associatedps_affidavit_template\Service\GraphDriveClient $graph */
+  $graph = \Drupal::service('associatedps_affidavit_template.graph_drive');
+  $logger = \Drupal::logger('associatedps_affidavit_template');
+
+  if (!$graph->isConfigured()) {
+    return;
+  }
+
+  $now = \Drupal::time()->getRequestTime();
+
+  // Ten minutes is comfortably past the Word lock, without leaving documents
+  // lying around for long.
+  foreach ($sessions->getCleanupPending($now - 600) as $row) {
+    try {
+      $graph->deleteItem($row['drive_id'], $row['item_id']);
+      $sessions->markPulled((int) $row['id']);
+    }
+    catch (\Throwable $e) {
+      // Left pending deliberately — the next cron run tries again. A row that
+      // keeps failing for days is a real problem and will be visible here.
+      $logger->warning('M365 cron: still cannot remove @item (session @id): @msg', [
+        '@item' => $row['item_id'],
+        '@id' => $row['id'],
+        '@msg' => $e->getMessage(),
+      ]);
+    }
+  }
+
+  // Abandoned editing sessions: four hours is far longer than any real editing
+  // session, so anything older is certainly forgotten rather than in progress.
+  foreach ($sessions->getStale($now - 14400) as $row) {
+    try {
+      $graph->deleteItem($row['drive_id'], $row['item_id']);
+      $sessions->markAbandoned((int) $row['id']);
+      $logger->info('M365 cron: removed abandoned SharePoint copy @file (node @nid).', [
+        '@file' => $row['file_name'],
+        '@nid' => $row['library_nid'],
+      ]);
+    }
+    catch (\Throwable $e) {
+      $sessions->markCleanupPending((int) $row['id']);
+    }
+  }
 }

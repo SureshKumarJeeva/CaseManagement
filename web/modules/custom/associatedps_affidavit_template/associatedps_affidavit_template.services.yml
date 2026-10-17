@@ -42,8 +42,52 @@ services:
       - '@database'
       - '@settings'
       - '@logger.factory'
+  # Same class shape as docusign_client, but bound to the separate Document
+  # Generation sandbox account (DOCUSIGN_DOCGEN_* env vars, token row 2).
+  associatedps_affidavit_template.docusign_docgen_client:
+    class: Drupal\associatedps_affidavit_template\Service\DocuSignDocGenClient
+    arguments:
+      - '@http_client'
+      - '@database'
+      - '@settings'
+      - '@logger.factory'
   associatedps_affidavit_template.docusign_token_mapper:
     class: Drupal\associatedps_affidavit_template\Service\DocuSignTokenMapper
     arguments:
       - '@entity_field.manager'
       - '@entity_type.manager'
+  # Affidavit template authoring via Microsoft 365. Pushes a .docx into our own
+  # SharePoint library, hands the user Word for the web, then pulls the edited
+  # bytes back. Deliberately separate from the email module's Graph service so
+  # the production email path is never affected.
+  associatedps_affidavit_template.graph_drive:
+    class: Drupal\associatedps_affidavit_template\Service\GraphDriveClient
+    arguments:
+      - '@http_client'
+      - '@cache.default'
+      - '@logger.factory'
+  # Maps a Library node to the SharePoint copy of its template for the duration
+  # of an editing session. Microsoft's ids are handed to us once, in the upload
+  # response; without this the Done button cannot find the file again.
+  associatedps_affidavit_template.m365_sessions:
+    class: Drupal\associatedps_affidavit_template\Service\M365EditSessionStore
+    arguments:
+      - '@database'
+      - '@datetime.time'
+  # Our own token merging, replacing the DocuSign/PandaDoc round trip. Talks to
+  # the Python docxtpl service at services/aps-docgen/, which runs on this box
+  # bound to 127.0.0.1. See that directory's README for the token semantics.
+  associatedps_affidavit_template.word_merge:
+    class: Drupal\associatedps_affidavit_template\Service\WordMergeClient
+    arguments:
+      - '@http_client'
+      - '@logger.factory'
+  # Job + Library template -> merged affidavit stored in private://affidavits.
+  associatedps_affidavit_template.word_affidavit_generator:
+    class: Drupal\associatedps_affidavit_template\Service\WordAffidavitGenerator
+    arguments:
+      - '@associatedps_affidavit_template.word_merge'
+      - '@associatedps_affidavit_template.docusign_token_mapper'
+      - '@file.repository'
+      - '@file_system'
+      - '@logger.factory'

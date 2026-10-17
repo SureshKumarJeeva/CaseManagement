@@ -1,27 +1,27 @@
 /**
  * @file
- * Syncs the Allocated To field to Employee fields in Attendance Note paragraphs.
+ * Fills the hidden Employee name fields of Attendance Note paragraphs.
  *
- * Handles two scenarios:
- * 1. A new paragraph is generated (IEF AJAX) after Allocated To is already
- *    set — auto-populates the new empty Employee field on attach().
- * 2. Allocated To changes while paragraphs are open — overrides only
- *    new (auto-filled) paragraphs, never saved ones.
+ * Each attendance note has hidden helper fields (field_employee_full_name /
+ * _first_name / _last_name) read as template tokens. They are filled from the
+ * note's own Employee (field_by) autocomplete value:
+ * - when the add/edit form is generated (IEF AJAX) — a new note's Employee is
+ *   prefilled server-side with the job's SAVED Allocated To
+ *   (associatedps_forms_inline_entity_form_entity_form_alter);
+ * - whenever the user picks a different Employee.
  *
- * Saved attendance notes are protected to preserve attendance history
- * when a job is reassigned to a different employee at different stages.
- * A data-employee-autofilled attribute marks inputs that were set by
- * this script, so only those are updated when Allocated To changes.
+ * The Employee field itself is never set from the Job Status tab's Allocated
+ * To here: only a saved allocation counts, and that default is applied
+ * server-side.
  *
- * Allocated To is an entity reference autocomplete field. Its value may
- * be "Label (entity_id)" (e.g. "John Smith (5)") or just the label
- * without an ID suffix. Both formats are handled.
+ * The Employee value may be "Label (entity_id)" (e.g. "John Smith (5)") or just
+ * the label without an ID suffix. Both formats are handled.
  */
 (function ($, Drupal, drupalSettings, once) {
   'use strict';
 
-  // Selector for the Allocated To autocomplete input.
-  var allocatedToSelector = 'input[name="field_allocated_to[0][target_id]"]';
+  // Employee autocomplete inputs inside Attendance Note paragraphs.
+  var employeeSelector = 'input[name*="field_attendance_notes"][name*="field_by"][name$="[target_id]"]';
 
   /**
    * Resolve the user ID from a Drupal autocomplete value string.
@@ -61,22 +61,12 @@
   }
 
   /**
-   * Look up user data from drupalSettings and populate the given
-   * Employee autocomplete input and its sibling name fields.
-   * Marks the input as auto-filled so it can be updated later.
+   * Fill the hidden name fields next to the given Employee input from the
+   * user it currently holds (cleared when it holds no known user).
    */
-  function populateEmployee($input, userId) {
+  function fillEmployeeNames($input) {
     var users = (drupalSettings.associatedps_forms || {}).user_details || {};
-    var userData = users[userId];
-    if (!userData) {
-      return;
-    }
-
-    var autocompleteValue = userData.label + ' (' + userId + ')';
-    var fullName = userData.given_name + ' ' + userData.family_name;
-
-    $input.val(autocompleteValue);
-    $input.attr('data-employee-autofilled', 'true');
+    var userData = users[resolveUserId($input.val())];
 
     // Derive sibling name fields from this input's name prefix.
     var namePrefix = $input.attr('name').replace(
@@ -84,51 +74,25 @@
       ''
     );
 
-    $('input[name="' + namePrefix + '[field_employee_full_name][0][value]"]').val(fullName);
-    $('input[name="' + namePrefix + '[field_employee_first_name][0][value]"]').val(userData.given_name);
-    $('input[name="' + namePrefix + '[field_employee_last_name][0][value]"]').val(userData.family_name);
+    $('input[name="' + namePrefix + '[field_employee_full_name][0][value]"]').val(userData ? userData.given_name + ' ' + userData.family_name : '');
+    $('input[name="' + namePrefix + '[field_employee_first_name][0][value]"]').val(userData ? userData.given_name : '');
+    $('input[name="' + namePrefix + '[field_employee_last_name][0][value]"]').val(userData ? userData.family_name : '');
   }
 
   Drupal.behaviors.associatedpsEmployeeSync = {
     attach: function (context) {
-      // Scenario 1: Allocated To changes — override only auto-filled
-      // Employee fields (new paragraphs), never saved ones.
-      // Listen for autocompleteclose (jQuery UI event fired after a
-      // suggestion is picked from the dropdown).
-      $(once(
-        'employee-allocated-sync',
-        allocatedToSelector,
-        context
-      )).on('autocompleteclose', function () {
-        var userId = resolveUserId($(this).val());
-        if (!userId) {
-          return;
+      // attach() re-runs after every AJAX; once() ensures each Employee input
+      // is processed exactly once. Fill on generation (covers the server-side
+      // default), then again whenever the Employee changes — autocompleteclose
+      // fires after a suggestion is picked, change covers typed/cleared values.
+      $(once('employee-name-sync', employeeSelector, context)).each(function () {
+        var $input = $(this);
+        if ($input.val()) {
+          fillEmployeeNames($input);
         }
-
-        $('input[name*="field_attendance_notes"][name*="field_by"][name$="[target_id]"][data-employee-autofilled="true"]').each(function () {
-          populateEmployee($(this), userId);
+        $input.on('autocompleteclose change', function () {
+          fillEmployeeNames($input);
         });
-      });
-
-      // Scenario 2: New paragraph generated via IEF AJAX — auto-populate
-      // empty Employee field from current Allocated To value.
-      // attach() re-runs after every AJAX; once() ensures each new input
-      // is processed exactly once.
-      $(once(
-        'employee-new-para-sync',
-        'input[name*="field_attendance_notes"][name*="field_by"][name$="[target_id]"]',
-        context
-      )).each(function () {
-        if ($(this).val()) {
-          return; // Saved paragraph with existing Employee — leave untouched.
-        }
-
-        var userId = resolveUserId($(allocatedToSelector).val());
-        if (!userId) {
-          return;
-        }
-
-        populateEmployee($(this), userId);
       });
     }
   };

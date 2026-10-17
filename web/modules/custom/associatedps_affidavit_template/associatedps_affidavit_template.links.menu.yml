@@ -46,3 +46,10 @@ associatedps_affidavit_template.docusign_config:
   route_name: associatedps_affidavit_template.docusign_config
   parent: system.admin_config   # shows under "Configuration"
   weight: 36
+
+associatedps_affidavit_template.docusign_docgen_config:
+  title: 'DocuSign Document Generation'
+  description: 'Status and consent for the separate Document Generation sandbox account'
+  route_name: associatedps_affidavit_template.docusign_docgen_config
+  parent: system.admin_config   # shows under "Configuration"
+  weight: 37

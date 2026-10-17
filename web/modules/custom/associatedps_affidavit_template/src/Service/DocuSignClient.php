@@ -52,20 +52,91 @@ class DocuSignClient {
     $this->httpClient = $http_client;
     $this->database = $database;
     $this->settings = $settings;
-    $this->logger = $logger_factory->get('docusign');
+    $this->logger = $logger_factory->get($this->loggerChannel());
 
-    $this->integrationKey = getenv('DOCUSIGN_INTEGRATION_KEY') ?: '';
-    $this->userId = getenv('DOCUSIGN_USER_ID') ?: '';
-    $this->oauthBase = rtrim(getenv('DOCUSIGN_OAUTH_BASE') ?: 'https://account-d.docusign.com', '/');
-    $this->apiBaseOverride = rtrim(getenv('DOCUSIGN_API_BASE') ?: '', '/');
-    $this->accountIdOverride = getenv('DOCUSIGN_ACCOUNT_ID') ?: '';
-    $this->redirectUri = getenv('DOCUSIGN_REDIRECT_URI') ?: '';
-    $this->scopes = getenv('DOCUSIGN_JWT_SCOPES') ?: 'signature impersonation';
-    $this->privateKeyPath = getenv('DOCUSIGN_PRIVATE_KEY_PATH') ?: '';
-    $this->privateKeyInline = getenv('DOCUSIGN_PRIVATE_KEY') ?: '';
-    $this->ownerEmail = getenv('DOCUSIGN_OWNER_EMAIL') ?: '';
-    $this->ownerName = getenv('DOCUSIGN_OWNER_NAME') ?: 'APS Admin';
-    $this->connectHmacKey = getenv('DOCUSIGN_CONNECT_HMAC_KEY') ?: '';
+    $this->integrationKey = $this->env('INTEGRATION_KEY');
+    $this->userId = $this->env('USER_ID');
+    $this->oauthBase = $this->normalizeOauthBase(rtrim($this->env('OAUTH_BASE', 'https://account-d.docusign.com'), '/'));
+    $this->apiBaseOverride = rtrim($this->env('API_BASE'), '/');
+    $this->accountIdOverride = $this->env('ACCOUNT_ID');
+    $this->redirectUri = $this->env('REDIRECT_URI');
+    $this->scopes = $this->env('JWT_SCOPES', 'signature impersonation');
+    $this->privateKeyPath = $this->env('PRIVATE_KEY_PATH');
+    $this->privateKeyInline = $this->env('PRIVATE_KEY');
+    $this->ownerEmail = $this->env('OWNER_EMAIL');
+    $this->ownerName = $this->env('OWNER_NAME', 'APS Admin');
+    $this->connectHmacKey = $this->env('CONNECT_HMAC_KEY');
+  }
+
+  /**
+   * Env var prefix for this credential set.
+   *
+   * Subclasses point at a different DocuSign account by overriding this —
+   * see DocuSignDocGenClient, which reads DOCUSIGN_DOCGEN_* instead. Every
+   * credential this class reads is namespaced by this prefix, so the two
+   * accounts never share an integration key, user, RSA key or owner.
+   */
+  protected function envPrefix(): string {
+    return 'DOCUSIGN_';
+  }
+
+  /**
+   * Row id used in the docusign_tokens singleton table.
+   *
+   * One row per credential set — the JWT access token minted for account A
+   * is useless against account B, so they must never share a row.
+   */
+  protected function tokenRowId(): int {
+    return 1;
+  }
+
+  /**
+   * Watchdog channel for this credential set.
+   */
+  protected function loggerChannel(): string {
+    return 'docusign';
+  }
+
+  /**
+   * Coerce an account base URI into the matching authentication host.
+   *
+   * DocuSign's Apps and Keys page shows two hosts and it is easy to copy the
+   * wrong one into OAUTH_BASE:
+   *
+   *   Account Base URI  demo.docusign.net / na*.docusign.net  → REST API
+   *   Authentication    account-d.docusign.com / account.docusign.com → OAuth
+   *
+   * Only the authentication host serves /oauth/auth, /oauth/token and
+   * /oauth/userinfo, and it is also what the JWT `aud` claim must name. Point
+   * OAUTH_BASE at the account host and the token exchange comes back as a bare
+   * IIS "404 - File or directory not found" page, which reads like a broken
+   * integration rather than one mis-set variable. Translate it instead, and say
+   * so in the log so the .env still gets corrected.
+   */
+  protected function normalizeOauthBase(string $base): string {
+    $host = strtolower((string) parse_url($base, PHP_URL_HOST));
+    if ($host === '' || substr($host, -13) !== '.docusign.net') {
+      return $base;
+    }
+    // demo.docusign.net is the only non-production account host; everything
+    // else (na4, eu1, au1, …) belongs to production.
+    $corrected = ($host === 'demo.docusign.net')
+      ? 'https://account-d.docusign.com'
+      : 'https://account.docusign.com';
+    $this->logger->warning('@prefixOAUTH_BASE is set to @given, which is the account (REST API) host and has no /oauth endpoints. Using @corrected instead — correct the .env to silence this.', [
+      '@prefix' => $this->envPrefix(),
+      '@given' => $base,
+      '@corrected' => $corrected,
+    ]);
+    return $corrected;
+  }
+
+  /**
+   * Read a prefixed env var, falling back to $default when unset or empty.
+   */
+  protected function env(string $key, string $default = ''): string {
+    $value = getenv($this->envPrefix() . $key);
+    return ($value === FALSE || $value === '') ? $default : $value;
   }
 
   /**
@@ -160,8 +231,25 @@ class DocuSignClient {
    */
   public function getValidAccessToken(): array {
     $record = $this->getStoredTokens();
-    if (empty($record) || empty($record['access_token']) || (int) ($record['expires_at'] ?? 0) <= time() + 60) {
-      $this->logger->notice('getValidAccessToken: minting fresh token (record missing or expired).');
+
+    // A cached token belongs to the credentials that minted it. Editing .env
+    // does not expire it, so without this check a changed integration key or
+    // user goes unnoticed for up to an hour while the app keeps talking to the
+    // old account — no error, wrong account. Treat a mismatch as no token.
+    $stale = !empty($record)
+      && ($record['credential_fingerprint'] ?? '') !== $this->credentialFingerprint();
+    if ($stale) {
+      $this->logger->notice('getValidAccessToken: @prefix credentials changed since this token was minted (stored user @old, configured user @new) — discarding it and re-minting.', [
+        '@prefix' => $this->envPrefix(),
+        '@old' => $record['user_id'] ?? '(none)',
+        '@new' => $this->userId,
+      ]);
+    }
+
+    if ($stale || empty($record) || empty($record['access_token']) || (int) ($record['expires_at'] ?? 0) <= time() + 60) {
+      if (!$stale) {
+        $this->logger->notice('getValidAccessToken: minting fresh token (record missing or expired).');
+      }
       $minted = $this->mintJwtAccessToken();
       if (isset($minted['error'])) {
         return $minted;
@@ -227,7 +315,7 @@ class DocuSignClient {
       $encrypted = $crypto->encrypt($accessToken);
 
       $this->database->merge('docusign_tokens')
-        ->key(['id' => 1])
+        ->key(['id' => $this->tokenRowId()])
         ->fields([
           'user_id' => $this->userId,
           'account_id' => $accountId,
@@ -235,6 +323,7 @@ class DocuSignClient {
           'access_token' => $encrypted,
           'expires_at' => time() + $expiresIn,
           'scope' => $scope,
+          'credential_fingerprint' => $this->credentialFingerprint(),
           'created' => time(),
           'updated' => time(),
         ])
@@ -246,13 +335,30 @@ class DocuSignClient {
   }
 
   /**
+   * Hash of the credentials in force, stored alongside the token they minted.
+   *
+   * Covers everything that decides WHICH DocuSign identity a token represents:
+   * the integration key, the impersonated user, the auth host, and the signing
+   * key. The private key is hashed rather than concatenated so no key material
+   * reaches the database even indirectly.
+   */
+  protected function credentialFingerprint(): string {
+    return hash('sha256', implode('|', [
+      $this->integrationKey,
+      $this->userId,
+      $this->oauthBase,
+      hash('sha256', $this->loadPrivateKey()),
+    ]));
+  }
+
+  /**
    * Read + decrypt the stored token row. Returns [] if none.
    */
   protected function getStoredTokens(): array {
     try {
       $row = $this->database->select('docusign_tokens', 'd')
         ->fields('d')
-        ->condition('id', 1)
+        ->condition('id', $this->tokenRowId())
         ->execute()
         ->fetchAssoc();
       if (!$row) {
@@ -400,19 +506,48 @@ class DocuSignClient {
    *
    * @param string $templateId DocuSign template GUID.
    * @param string $returnUrl  URL the iframe redirects to after Save/Cancel.
+   * @param string $viewAccess
+   *   Optional. Pass 'template' to opt into DocuSign's newer embedded-view
+   *   security model, which scopes the person in the browser to THIS template
+   *   alone instead of letting them inherit everything the impersonated API
+   *   user can reach. Omitted (the default) keeps DocuSign in backwards
+   *   compatibility mode, where the browser user is assumed to hold the same
+   *   account and envelope access as the API user.
+   *
+   *   Defaulted to omitted deliberately: the tab flow has been running in
+   *   compatibility mode since M1 and this parameter changes which screen
+   *   DocuSign hands back, so it is opted into per call site rather than
+   *   switched on globally. Currently only the Document Generation flow passes
+   *   it.
+   *
+   * @param array $settings
+   *   Optional templateViewSettings. The one that decides where the iframe
+   *   lands is startingScreen, and DocuSign validates it strictly: probing the
+   *   live API, only 'Tagger' and 'Prepare' are accepted — everything else,
+   *   including 'Document', 'DocumentGeneration' and 'AgreementTemplateBuilder',
+   *   comes back INPUT_VALIDATION_ERROR "Invalid startingScreen value". Omitted
+   *   means DocuSign's own default (Tagger).
    *
    * @return array { url } or { error }.
    */
-  public function createTemplateEditView(string $templateId, string $returnUrl): array {
+  public function createTemplateEditView(string $templateId, string $returnUrl, string $viewAccess = '', array $settings = []): array {
     $ctx = $this->authContext();
     if (isset($ctx['error'])) {
       return $ctx;
     }
 
+    $body = ['returnUrl' => $returnUrl];
+    if ($viewAccess !== '') {
+      $body['viewAccess'] = $viewAccess;
+    }
+    if ($settings !== []) {
+      $body['settings'] = $settings;
+    }
+
     try {
       $response = $this->httpClient->post($ctx['base'] . '/templates/' . $templateId . '/views/edit', [
         'headers' => array_merge($ctx['headers'], ['Content-Type' => 'application/json']),
-        'json' => ['returnUrl' => $returnUrl],
+        'json' => $body,
       ]);
       $data = json_decode((string) $response->getBody(), TRUE) ?: [];
       if (empty($data['url'])) {
@@ -860,6 +995,192 @@ class DocuSignClient {
         '@body' => $errBody,
       ]);
       return '';
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Document Generation (docgen) API.
+  //
+  // A *docgen* template is an ordinary eSignature template whose document is
+  // a DOCX carrying merge/sender fields — authored either in the DocuSign web
+  // console with the Agreement Template Builder, or in Word with the DocuSign
+  // Template Assistant add-in. DocuSign detects the fields on upload and marks
+  // the template document-generation compatible; there is no API flag to set.
+  //
+  // The generation flow differs fundamentally from the tab flow above:
+  //   tab flow    — values are typed into positioned tabs on a static document
+  //   docgen flow — values are merged into the DOCX itself, which DocuSign
+  //                 then re-renders, so the document text changes per job
+  //
+  // Sequence: create draft envelope from the template → GET docGenFormFields
+  // (discovers the per-document field names and the document GUIDs, which are
+  // NOT "1" here) → PUT the values back → DocuSign regenerates the document.
+  // ---------------------------------------------------------------------
+
+  /**
+   * Create a draft envelope from a template without overriding its recipients.
+   *
+   * Deliberately does NOT send templateRoles: a docgen template built in the
+   * Agreement Template Builder carries its own roles, and forcing the "Signer 1"
+   * placeholder used by the tab flow would either fail (unknown role) or strip
+   * the template's own recipient routing. The envelope stays at status
+   * "created", so nothing is emailed to anyone.
+   *
+   * @param string $templateId DocuSign template GUID.
+   * @param string $name       Envelope name / email subject.
+   *
+   * @return array { envelopeId, status, ... } or { error }.
+   */
+  public function createDraftEnvelopeFromTemplate(string $templateId, string $name): array {
+    $ctx = $this->authContext();
+    if (isset($ctx['error'])) {
+      return $ctx;
+    }
+
+    try {
+      $response = $this->httpClient->post($ctx['base'] . '/envelopes', [
+        'headers' => array_merge($ctx['headers'], ['Content-Type' => 'application/json']),
+        'json' => [
+          'templateId' => $templateId,
+          'emailSubject' => $name,
+          'status' => 'created',
+        ],
+      ]);
+      $data = json_decode((string) $response->getBody(), TRUE) ?: [];
+      if (empty($data['envelopeId'])) {
+        $this->logger->error('createDraftEnvelopeFromTemplate: no envelopeId. Body: @b', ['@b' => (string) $response->getBody()]);
+        return ['error' => 'DocuSign did not return an envelopeId.'];
+      }
+      return $data;
+    }
+    catch (RequestException $e) {
+      $errBody = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
+      $this->logger->error('createDraftEnvelopeFromTemplate HTTP error: @msg | body: @body', [
+        '@msg' => $e->getMessage(),
+        '@body' => $errBody,
+      ]);
+      return ['error' => 'createDraftEnvelopeFromTemplate failed: ' . $e->getMessage() . ($errBody ? ' — ' . $errBody : '')];
+    }
+  }
+
+  /**
+   * GET the document-generation form fields declared by an envelope's documents.
+   *
+   * Response shape:
+   *   { "docGenFormFields": [ { "documentId": "<guid>",
+   *       "docGenFormFieldList": [ { "name": ..., "label": ..., "type": ...,
+   *                                  "required": ..., "value": ... }, ... ] } ] }
+   *
+   * The documentId here is a GUID, not the "1" used by the tab endpoints.
+   *
+   * @param string $envelopeId DocuSign envelope GUID.
+   *
+   * @return array Decoded response or { error }.
+   */
+  public function getDocGenFormFields(string $envelopeId): array {
+    $ctx = $this->authContext();
+    if (isset($ctx['error'])) {
+      return $ctx;
+    }
+
+    try {
+      $response = $this->httpClient->get($ctx['base'] . '/envelopes/' . $envelopeId . '/docGenFormFields', [
+        'headers' => $ctx['headers'],
+      ]);
+      return json_decode((string) $response->getBody(), TRUE) ?: [];
+    }
+    catch (RequestException $e) {
+      $errBody = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
+      $this->logger->error('getDocGenFormFields HTTP error: @msg | body: @body', [
+        '@msg' => $e->getMessage(),
+        '@body' => $errBody,
+      ]);
+      return ['error' => 'getDocGenFormFields failed: ' . $e->getMessage() . ($errBody ? ' — ' . $errBody : '')];
+    }
+  }
+
+  /**
+   * PUT values into an envelope's document-generation form fields.
+   *
+   * @param string $envelopeId DocuSign envelope GUID.
+   * @param array  $docGenFormFields
+   *   Payload in DocuSign's own shape — a list of
+   *   ['documentId' => <guid>, 'docGenFormFieldList' => [['name' => ..., 'value' => ...], ...]].
+   * @param bool $fieldsOnly
+   *   TRUE stores the values without re-rendering the document
+   *   (update_docgen_formfields_only=true). Default FALSE, which is what makes
+   *   DocuSign actually merge the data and regenerate the document.
+   *
+   * @return array Decoded response or { error }.
+   */
+  public function updateDocGenFormFields(string $envelopeId, array $docGenFormFields, bool $fieldsOnly = FALSE): array {
+    if (empty($docGenFormFields)) {
+      return ['skipped' => 'no docgen fields to update'];
+    }
+
+    $ctx = $this->authContext();
+    if (isset($ctx['error'])) {
+      return $ctx;
+    }
+
+    try {
+      $response = $this->httpClient->put($ctx['base'] . '/envelopes/' . $envelopeId . '/docGenFormFields', [
+        'headers' => array_merge($ctx['headers'], ['Content-Type' => 'application/json']),
+        'query' => ['update_docgen_formfields_only' => $fieldsOnly ? 'true' : 'false'],
+        'json' => ['docGenFormFields' => array_values($docGenFormFields)],
+      ]);
+      return json_decode((string) $response->getBody(), TRUE) ?: [];
+    }
+    catch (RequestException $e) {
+      $errBody = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
+      $this->logger->error('updateDocGenFormFields HTTP error: @msg | body: @body', [
+        '@msg' => $e->getMessage(),
+        '@body' => $errBody,
+      ]);
+      return ['error' => 'updateDocGenFormFields failed: ' . $e->getMessage() . ($errBody ? ' — ' . $errBody : '')];
+    }
+  }
+
+  /**
+   * Create an embedded SENDER view for a draft envelope.
+   *
+   * Distinct from createSenderView() above, which — despite its name — now
+   * returns a *recipient* view because the tab flow transitions its envelopes
+   * to "sent". The docgen flow keeps envelopes at "created", where the real
+   * sender view is valid, and that view is what shows DocuSign's document
+   * generation form: the sender fields, prefilled with whatever we PUT, with
+   * the regenerated document previewed beside them.
+   *
+   * @param string $envelopeId DocuSign envelope GUID (must be status=created).
+   * @param string $returnUrl  URL the iframe redirects to on Send/Save/close.
+   *
+   * @return array { url } or { error }.
+   */
+  public function createDraftSenderView(string $envelopeId, string $returnUrl): array {
+    $ctx = $this->authContext();
+    if (isset($ctx['error'])) {
+      return $ctx;
+    }
+
+    try {
+      $response = $this->httpClient->post($ctx['base'] . '/envelopes/' . $envelopeId . '/views/sender', [
+        'headers' => array_merge($ctx['headers'], ['Content-Type' => 'application/json']),
+        'json' => ['returnUrl' => $returnUrl],
+      ]);
+      $data = json_decode((string) $response->getBody(), TRUE) ?: [];
+      if (empty($data['url'])) {
+        $this->logger->error('createDraftSenderView: response had no url. Body: @b', ['@b' => (string) $response->getBody()]);
+        return ['error' => 'DocuSign did not return a sender-view URL.'];
+      }
+      return $data;
+    }
+    catch (RequestException $e) {
+      $errBody = $e->hasResponse() ? (string) $e->getResponse()->getBody() : '';
+      $this->logger->error('createDraftSenderView HTTP error: @msg | body: @body', [
+        '@msg' => $e->getMessage(),
+        '@body' => $errBody,
+      ]);
+      return ['error' => 'createDraftSenderView failed: ' . $e->getMessage() . ($errBody ? ' — ' . $errBody : '')];
     }
   }
 
